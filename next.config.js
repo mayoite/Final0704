@@ -58,12 +58,30 @@ const securityHeaders = [
   { key: "X-XSS-Protection", value: "1; mode=block" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  // HSTS — force HTTPS for 2 years (only effective in production with valid SSL)
+  // HSTS — force HTTPS for 2 years (standard for enterprise)
   ...(process.env.NODE_ENV === "production"
     ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
     : []),
   // Lock down browser feature access
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+  // Content Security Policy (CSP)
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.cloudflare.com *.cloudflareinsights.com *.google.com *.gstatic.com scripts.tldraw.com",
+      "style-src 'self' 'unsafe-inline' *.google.com *.gstatic.com",
+      "img-src 'self' data: blob: *.supabase.co https: http:",
+      "font-src 'self' data: *.gstatic.com",
+      "connect-src 'self' *.supabase.co *.cloudflare.com *.cloudflareinsights.com *.google.com *.gstatic.com wss://*.supabase.co",
+      "media-src 'self' data: blob: https: http:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+  },
 ];
 
 const nextConfig = {
@@ -76,7 +94,18 @@ const nextConfig = {
   },
   trailingSlash: true,
   async headers() {
-    return [{ source: "/(.*)", headers: securityHeaders }];
+    return [
+      { source: "/(.*)", headers: securityHeaders },
+      {
+        source: "/(images|fonts|icons|3d-assets)/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+    ];
   },
   async redirects() {
     return [
