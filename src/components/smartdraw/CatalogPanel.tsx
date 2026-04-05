@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Search, Box, DoorOpen, Package, PenTool, ChevronDown, ChevronRight, Eye, EyeOff, X } from "lucide-react";
+import { Search, Box, DoorOpen, Package, PenTool, ChevronDown, ChevronRight, X } from "lucide-react";
 import type { CatalogProduct } from "./types";
 import type { Editor } from "tldraw";
 
@@ -28,8 +28,16 @@ export function CatalogPanel({ products, editor, onDropFurniture, onClose, pinne
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-theme-soft">
         <span className="typ-caption font-bold text-subtle uppercase tracking-widest">Catalog</span>
         <div className="flex items-center gap-1">
-          <button onClick={onTogglePin} className={`p-1 rounded ${pinned ? "text-blue-500" : "text-inverse-muted hover-text-muted"}`} title={pinned ? "Unpin" : "Pin"}>
-            {pinned ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+          <button
+            onClick={onTogglePin}
+            className={`px-2 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wider transition-all ${
+              pinned
+                ? "border-blue-200 bg-blue-50 text-blue-600"
+                : "border-theme-soft text-inverse-muted hover-text-muted"
+            }`}
+            title={pinned ? "Float panel" : "Dock panel"}
+          >
+            {pinned ? "Float" : "Dock"}
           </button>
           <button onClick={onClose} className="p-1 rounded text-inverse-muted hover-text-muted">
             <X className="w-3 h-3" />

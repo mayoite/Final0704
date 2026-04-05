@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { HomepageHero } from "@/components/home/HomepageHero";
 import { PartnershipBanner } from "@/components/home/PartnershipBanner";
+import { FeaturedCarousel } from "@/components/home/FeaturedCarousel";
 import { TrustStrip } from "@/components/home/TrustStrip";
 import { ProcessSection } from "@/components/home/ProcessSection";
 import { InteractiveTools } from "@/components/home/InteractiveTools";
@@ -9,7 +10,6 @@ import { Projects } from "@/components/home/Projects";
 import { HomeFAQ } from "@/components/home/HomeFAQ";
 import { TestimonialsStrip } from "@/components/home/TestimonialsStrip";
 import { ContactTeaser } from "@/components/shared/ContactTeaser";
-import { SectionReveal } from "@/components/shared/SectionReveal";
 import { SITE_BRAND } from "@/data/site/brand";
 import { buildPageJsonLd, buildPageMetadata } from "@/data/site/seo";
 import { getBusinessStats } from "@/lib/businessStats";
@@ -37,27 +37,31 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
       />
       <HomepageHero />
-      <SectionReveal delay={0.02}>
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.02s" }}>
         <PartnershipBanner />
-      </SectionReveal>
+      </div>
 
-      <SectionReveal delay={0.04}>
-        <InteractiveTools />
-      </SectionReveal>
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.04s" }}>
+        <FeaturedCarousel />
+      </div>
 
-      <SectionReveal delay={0.05}>
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.05s" }}>
         <Collections />
-      </SectionReveal>
+      </div>
 
-      <SectionReveal delay={0.08}>
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.08s" }}>
+        <InteractiveTools />
+      </div>
+
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.09s" }}>
         <Projects />
-      </SectionReveal>
+      </div>
 
-      <SectionReveal delay={0.12}>
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.13s" }}>
         <TestimonialsStrip />
-      </SectionReveal>
+      </div>
 
-      <SectionReveal delay={0.16}>
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.17s" }}>
         <section className="home-section home-section--dark py-14 md:py-18">
           <div className="home-shell">
             <ProcessSection embedded dark />
@@ -66,16 +70,15 @@ export default async function Home() {
             </div>
           </div>
         </section>
-      </SectionReveal>
+      </div>
 
-      <SectionReveal delay={0.18}>
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.19s" }}>
         <HomeFAQ />
-      </SectionReveal>
+      </div>
 
-      <SectionReveal delay={0.2}>
+      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.21s" }}>
         <ContactTeaser />
-      </SectionReveal>
+      </div>
     </div>
   );
 }
-

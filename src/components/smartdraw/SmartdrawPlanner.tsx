@@ -16,6 +16,30 @@ import { AiCopilot, type AiSuggestion } from "./AiCopilot";
 import { WorkspacePanel } from "./WorkspacePanel";
 import { MobileDrawerSheet } from "./MobileDrawerSheet";
 
+const LOCAL_TLDRAW_ASSET_URLS = {
+  fonts: {
+    tldraw_mono: "/cdn/tldraw/fonts/IBMPlexMono-Medium.woff2",
+    tldraw_mono_italic: "/cdn/tldraw/fonts/IBMPlexMono-MediumItalic.woff2",
+    tldraw_mono_bold: "/cdn/tldraw/fonts/IBMPlexMono-Bold.woff2",
+    tldraw_mono_italic_bold: "/cdn/tldraw/fonts/IBMPlexMono-BoldItalic.woff2",
+    tldraw_serif: "/cdn/tldraw/fonts/IBMPlexSerif-Medium.woff2",
+    tldraw_serif_italic: "/cdn/tldraw/fonts/IBMPlexSerif-MediumItalic.woff2",
+    tldraw_serif_bold: "/cdn/tldraw/fonts/IBMPlexSerif-Bold.woff2",
+    tldraw_serif_italic_bold: "/cdn/tldraw/fonts/IBMPlexSerif-BoldItalic.woff2",
+    tldraw_sans: "/cdn/tldraw/fonts/IBMPlexSans-Medium.woff2",
+    tldraw_sans_italic: "/cdn/tldraw/fonts/IBMPlexSans-MediumItalic.woff2",
+    tldraw_sans_bold: "/cdn/tldraw/fonts/IBMPlexSans-Bold.woff2",
+    tldraw_sans_italic_bold: "/cdn/tldraw/fonts/IBMPlexSans-BoldItalic.woff2",
+    tldraw_draw: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Regular.woff2",
+    tldraw_draw_italic: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Regular_Italic.woff2",
+    tldraw_draw_bold: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Bold.woff2",
+    tldraw_draw_italic_bold: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Bold_Italic.woff2",
+  },
+  translations: {
+    en: "/cdn/tldraw/translations/en.json",
+  },
+} as const;
+
 /* ─────────────────────────────────────────────
    SmartdrawPlanner — Orchestrator
    Composes StepBar, CatalogPanel, InspectorPanel,
@@ -252,10 +276,10 @@ export function SmartdrawPlanner({ catalogProducts = [] }: { catalogProducts?: C
 
   /* ── Render ─────────────────────── */
   return (
-    <section className="w-full pt-20">
+    <section className="fixed inset-0 z-[100] w-screen h-screen overflow-hidden bg-page">
 
       {/* ═══ WORKSPACE: Canvas | Floating Panels | Tool Dock ═══ */}
-      <div className="relative w-full h-smartdraw-viewport canvas-touch-lock overflow-hidden scheme-section-muted">
+      <div className="relative w-full h-full canvas-touch-lock overflow-hidden scheme-section-muted">
 
         {/* ── Floating Tool Dock (Top center) ── */}
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-float pointer-events-auto">
@@ -318,6 +342,7 @@ export function SmartdrawPlanner({ catalogProducts = [] }: { catalogProducts?: C
           <WorkspacePanel 
             id="catalog-panel" 
             side="left" 
+            docked={catalogPinned}
             isActive={activePanel === "catalog"}
             onFocus={() => setActivePanel("catalog")}
           >
@@ -351,6 +376,7 @@ export function SmartdrawPlanner({ catalogProducts = [] }: { catalogProducts?: C
             persistenceKey="one-and-only-planner-v1"
             onMount={handleMount}
             hideUi={true} /* True Headless Architecture */
+            assetUrls={LOCAL_TLDRAW_ASSET_URLS}
             className="absolute inset-0"
             components={{ SharePanel: null }}
           />
@@ -361,6 +387,7 @@ export function SmartdrawPlanner({ catalogProducts = [] }: { catalogProducts?: C
           <WorkspacePanel 
             id="inspector-panel" 
             side="right" 
+            docked={inspectorPinned}
             isActive={activePanel === "inspector"}
             onFocus={() => setActivePanel("inspector")}
           >

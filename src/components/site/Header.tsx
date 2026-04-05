@@ -15,7 +15,6 @@ import {
 import { SITE_NAV_LINKS } from "@/lib/siteNav";
 import { MobileNavDrawer } from "@/components/site/MobileNavDrawer";
 import { cn } from "@/lib/utils";
-import { SITE_BRAND } from "@/data/site/brand";
 
 function prettify(id: string): string {
   return id
@@ -75,10 +74,6 @@ async function resolveSearchDestination(
 const siteHeaderBaseClass =
   "fixed top-0 left-0 z-50 w-full border-b border-soft backdrop-blur-xl transition-shadow [background-color:var(--surface-glass-strong)] [transition-duration:var(--motion-fast)] [transition-timing-function:var(--ease-standard)]";
 const siteHeaderScrolledClass = "[box-shadow:var(--shadow-panel)]";
-const headerUtilityCopyClass =
-  "text-muted [font-size:var(--type-body-size)] font-normal [letter-spacing:0.04em] [line-height:1.35]";
-const headerUtilityLinksClass =
-  "flex items-center gap-5 text-muted [font-size:var(--type-body-size)] font-normal [letter-spacing:0.04em] [line-height:1.35]";
 const headerSearchShellClass =
   "border [border-color:var(--border-soft)] [background:var(--surface-glass-strong)] [box-shadow:var(--shadow-soft)] [backdrop-filter:blur(12px)]";
 const headerSearchPanelClass =
@@ -301,30 +296,6 @@ export function SiteHeader() {
     <>
       <header className={cn(siteHeaderBaseClass, scrolled ? siteHeaderScrolledClass : "shadow-none")}>
         <div className="container-wide px-4 sm:px-6">
-          <div
-            className={cn(
-              "hidden 2xl:flex items-center justify-between overflow-hidden border-b border-soft transition-[max-height,opacity,padding] duration-300",
-              scrolled ? "max-h-0 opacity-0 py-0" : "max-h-10 opacity-100 py-2",
-            )}
-            aria-label="Utility navigation"
-          >
-            {SITE_BRAND.utilityTagline ? (
-              <p className={headerUtilityCopyClass}>
-                {SITE_BRAND.utilityTagline}
-              </p>
-            ) : (
-              <span />
-            )}
-            <div className={headerUtilityLinksClass}>
-              <Link href="/login" className="whitespace-nowrap transition-colors hover:text-primary">
-                Partner Login
-              </Link>
-              <Link href="/contact" className="whitespace-nowrap transition-colors hover:text-primary">
-                Contact
-              </Link>
-            </div>
-          </div>
-
           <div className="flex h-16 items-center justify-between gap-3">
 
             {/* Logo */}

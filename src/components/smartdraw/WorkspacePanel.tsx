@@ -9,6 +9,7 @@ interface WorkspacePanelProps {
   children: ReactNode;
   onFocus?: () => void;
   isActive?: boolean;
+  docked?: boolean;
 }
 
 /* ─────────────────────────────────────────────
@@ -18,7 +19,7 @@ interface WorkspacePanelProps {
    and entry/exit motion physics.
    ───────────────────────────────────────────── */
 
-export function WorkspacePanel({ id, side, children, onFocus, isActive = false }: WorkspacePanelProps) {
+export function WorkspacePanel({ id, side, children, onFocus, isActive = false, docked = false }: WorkspacePanelProps) {
   // Use local state fallback for elevation if external manager isn't strictly hooked
   const [localZ, setLocalZ] = useState(isActive ? 60 : 50);
 
@@ -30,20 +31,28 @@ export function WorkspacePanel({ id, side, children, onFocus, isActive = false }
   return (
     <motion.div
       id={id}
-      drag
+      drag={!docked}
       dragMomentum={false}
       dragElastic={0}
       onPointerDown={handlePointerDown}
-      onPointerUp={() => setLocalZ(50)}
+      onPointerUp={() => {
+        if (!docked) setLocalZ(50);
+      }}
       style={{ zIndex: isActive ? 60 : localZ }}
-      className={`absolute top-4 ${
-        side === "left" ? "left-4" : "right-4"
-      } w-min-panel shadow-theme-float rounded-xl cursor-grab active:cursor-grabbing bg-panel border border-theme-soft overflow-hidden`}
-      initial={{ opacity: 0, x: side === "left" ? -20 : 20 }}
+      className={
+        docked
+          ? `absolute top-0 bottom-0 ${
+              side === "left" ? "left-0 rounded-r-xl border-r" : "right-0 rounded-l-xl border-l"
+            } w-min-panel shadow-theme-float bg-panel border-theme-soft overflow-hidden`
+          : `absolute top-4 ${
+              side === "left" ? "left-4" : "right-4"
+            } w-min-panel shadow-theme-float rounded-xl cursor-grab active:cursor-grabbing bg-panel border border-theme-soft overflow-hidden`
+      }
+      initial={{ opacity: 0, x: docked ? 0 : side === "left" ? -20 : 20 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: side === "left" ? -20 : 20 }}
+      exit={{ opacity: 0, x: docked ? 0 : side === "left" ? -20 : 20 }}
     >
-      <div className="h-smartdraw-panel pointer-events-auto flex flex-col">
+      <div className={`${docked ? "h-full" : "h-smartdraw-panel"} pointer-events-auto flex flex-col`}>
         {children}
       </div>
     </motion.div>

@@ -58,13 +58,7 @@ export function Projects() {
                 />
               </div>
               <div className="projects-card__body">
-                <span className="block text-xs font-medium uppercase tracking-ultra text-muted">
-                  {project.sector}
-                </span>
                 <h3 className="projects-card__title">{project.companyName}</h3>
-                <p className="max-w-[34ch] text-sm leading-relaxed text-muted">
-                  {project.outcome}
-                </p>
               </div>
             </motion.div>
           ))}

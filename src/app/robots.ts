@@ -5,7 +5,10 @@ const BASE_URL = SITE_URL;
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: [{ userAgent: "*", allow: "/" }],
+    rules: [
+      { userAgent: "*", allow: "/" },
+      { userAgent: "*", disallow: "/api/" },
+    ],
     sitemap: [`${BASE_URL.replace(/\/+$/, "")}/sitemap.xml`],
     host: BASE_URL.replace(/\/+$/, ""),
   };

@@ -37,9 +37,6 @@ export function TestimonialsStrip() {
                   &ldquo;{item.quote}&rdquo;
                 </p>
                 <footer className="mt-auto">
-                  <p className="text-sm font-semibold text-strong">
-                    {item.author}
-                  </p>
                   <p className="text-xs text-muted">{item.org}</p>
                 </footer>
               </motion.blockquote>

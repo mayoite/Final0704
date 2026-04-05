@@ -1,10 +1,9 @@
 export const HOMEPAGE_HERO_CONTENT = {
-  eyebrow: "Premium workspaces",
   title: ["Spaces that work", "as hard as", "your team."],
   description:
     "Furniture systems for offices, campuses, and operational teams with planning, delivery, and after-sales support aligned from brief to handover.",
-  primaryCta: { label: "Guided Planner", href: "/contact" },
-  secondaryCta: { label: "View Products", href: "/products" },
+  primaryCta: { label: "Explore Products", href: "/products" },
+  secondaryCta: { label: "Request Quote", href: "/contact" },
   proofItems: [
     { label: "Selected clients", value: "DMRC, Titan, Tata Steel" },
     { label: "Service", value: "Planning, installation, after-sales" },
@@ -20,7 +19,7 @@ export const HOMEPAGE_HERO_CONTENT = {
 export const HOMEPAGE_TRUST_CONTENT = {
   logoLabel: "Selected organisations",
   logos: [
-    { name: "Titan", src: "/ClientLogos/Titan.png" },
+    { name: "marqww" },
     { name: "L&T", src: "/ClientLogos/LandT.png" },
     { name: "JSW", src: "/ClientLogos/JSW.png" },
     { name: "Tata Motors", src: "/ClientLogos/TataMotors.jpg" },
@@ -222,8 +221,8 @@ export const HOMEPAGE_SOLUTIONS_CONTENT = {
 } as const;
 
 export const HOMEPAGE_TESTIMONIALS_CONTENT = {
-  titleLead: "What",
-  titleAccent: "clients say.",
+  titleLead: "Client",
+  titleAccent: "speak",
   items: [
     {
       quote:
@@ -276,10 +275,10 @@ export const HOMEPAGE_FAQ_CONTENT = {
 export const HOMEPAGE_PARTNERSHIP_CONTENT = {
   image: {
     src: "/catalog-logo-sharp.webp",
-    alt: "AFC - Authorized Franchise Partner",
+    alt: "AFC logo - Official Strategic Partner",
   },
-  title: ["Authorized Franchise", "Partner"],
-  description: "Global standards, local execution.",
+  title: ["Official Strategic", "Partner"],
+  description: "",
   cta: {
     label: "Partner Profile",
     href: "/about",

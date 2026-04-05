@@ -45,9 +45,7 @@ function ensureDir(dir: string) {
 
 function parseTablesFromEnv(): string[] {
   const raw = process.env.SUPABASE_BACKUP_TABLES?.trim();
-  if (!raw) return [...DEFAULT_TABLES];
-  return [...new Set(raw.split(",").map((v) => v.trim()).filter(Boolean))];
-}
+  return Array.from(new Set(raw.split(",").map((v) => v.trim()).filter(Boolean)));
 
 function parseRetentionDays(): number {
   const raw = process.env.SUPABASE_BACKUP_RETENTION_DAYS?.trim();

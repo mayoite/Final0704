@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Box, Monitor, DraftingCompass } from "lucide-react";
+import { ArrowRight, Box, DraftingCompass } from "lucide-react";
 
 const tools = [
   {
@@ -15,55 +15,42 @@ const tools = [
     href: "/configurator",
     icon: Box,
   },
-  {
-    title: "Partner Portal",
-    description: "Sign in to manage and review enterprise projects, access specialized pricing, and manage tracking.",
-    href: "/login",
-    icon: Monitor,
-  },
 ];
 
 export function InteractiveTools() {
   return (
-    <section className="home-section py-16 md:py-24 border-y scheme-border bg-hover/30">
+    <section className="home-section home-section--dark py-16 md:py-24">
       <div className="home-shell">
-        <div className="mb-12 max-w-2xl">
-          <p className="typ-label mb-3 text-primary">Digital Workspace</p>
-          <h2 className="typ-h2 text-strong">Advanced planning tools</h2>
-          <p className="typ-lead mt-4 text-body">
-            Go beyond the catalog. Use our integrated suite of interactive tools to design, configure, and manage your commercial furniture projects.
-          </p>
-        </div>
-
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="mx-auto grid max-w-5xl gap-0 overflow-hidden rounded-[1.75rem] border border-inverse md:grid-cols-2">
           {tools.map((tool) => {
             const Icon = tool.icon;
             return (
               <Link
                 key={tool.title}
                 href={tool.href}
-                className="group flex flex-col rounded-4xl border scheme-border bg-panel p-8 shadow-sm transition-all hover:border-primary/40 hover:shadow-md"
+                className="group flex flex-col items-center text-center border-b border-inverse bg-[color:var(--overlay-panel-08)] p-8 shadow-[0_18px_40px_-32px_var(--overlay-inverse-24)] transition-all hover:bg-[color:var(--overlay-panel-12)] md:min-h-[22rem] md:border-b-0 md:px-10 md:py-10 [&:nth-child(1)]:md:border-r"
               >
-                <div className="mb-6 flex items-center justify-between">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl scheme-accent-wash text-primary">
+                <div className="mb-6 flex items-center justify-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--overlay-panel-12)] text-[var(--color-accent)]">
                     <Icon className="h-6 w-6 stroke-[1.5]" />
                   </div>
-                  {tool.badge && (
-                    <span className="rounded-full border scheme-border bg-hover px-3 py-1 typ-caption font-bold uppercase tracking-wider text-muted">
-                      {tool.badge}
-                    </span>
-                  )}
                 </div>
+
+                {tool.badge && (
+                  <span className="mb-5 rounded-full border border-inverse bg-[color:var(--overlay-panel-08)] px-3 py-1 typ-caption font-bold uppercase tracking-wider text-[var(--text-inverse-muted)]">
+                    {tool.badge}
+                  </span>
+                )}
                 
-                <h3 className="typ-h3 text-strong group-hover:text-primary transition-colors">
+                <h3 className="typ-h3 text-[var(--text-inverse)] group-hover:text-[var(--color-accent)] transition-colors">
                   {tool.title}
                 </h3>
                 
-                <p className="mt-4 flex-1 text-sm leading-6 text-body">
+                <p className="mt-4 flex-1 max-w-[30ch] text-sm leading-6 text-[var(--text-inverse-body)]">
                   {tool.description}
                 </p>
 
-                <div className="mt-8 flex items-center text-sm font-semibold text-primary transition-transform group-hover:translate-x-1">
+                <div className="mt-8 flex items-center justify-center text-sm font-semibold text-[var(--color-accent)] transition-transform group-hover:translate-x-1">
                   Launch tool
                   <ArrowRight className="ml-1.5 h-4 w-4" />
                 </div>

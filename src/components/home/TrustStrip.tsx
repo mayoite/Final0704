@@ -55,13 +55,19 @@ export function TrustStrip({ stats, embedded = false, showLogos = true, dark = f
           <div className="grid grid-cols-2 gap-8 md:grid-cols-3 lg:grid-cols-6">
             {HOMEPAGE_TRUST_CONTENT.logos.map((logo) => (
               <div key={logo.name} className="flex min-h-12 items-center justify-center">
-                <Image
-                  src={logo.src}
-                  alt={logo.name}
-                  width={140}
-                  height={46}
-                  className="h-9 w-auto object-contain opacity-65 grayscale transition hover:opacity-90"
-                />
+                {logo.src ? (
+                  <Image
+                    src={logo.src}
+                    alt={logo.name}
+                    width={140}
+                    height={46}
+                    className="h-9 w-auto object-contain opacity-65 grayscale transition hover:opacity-90"
+                  />
+                ) : (
+                  <span className="rounded-full border border-soft px-4 py-2 text-sm font-semibold tracking-[0.12em] uppercase text-muted">
+                    {logo.name}
+                  </span>
+                )}
               </div>
             ))}
           </div>

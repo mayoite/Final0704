@@ -8,11 +8,15 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
+    include: [
+      "src/components/smartdraw/**/*.test.{ts,tsx}",
+      "src/lib/planner/engine/**/*.test.ts"
+    ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      include: ["src/lib/planner/engine/**/*.ts"],
-      exclude: ["**/__tests__/**", "**/*.test.ts"],
+      include: ["src/lib/planner/engine/**/*.ts", "src/components/smartdraw/**/*.tsx"],
+      exclude: ["**/__tests__/**", "**/*.test.tsx", "**/*.test.ts"],
     },
   },
   resolve: {

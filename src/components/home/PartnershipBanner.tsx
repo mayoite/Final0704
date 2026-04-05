@@ -1,17 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { HOMEPAGE_PARTNERSHIP_CONTENT } from "@/data/site/homepage";
 import { fadeUp } from "@/lib/helpers/motion";
 
 export function PartnershipBanner() {
+  const hasDescription = HOMEPAGE_PARTNERSHIP_CONTENT.description.trim().length > 0;
+
   return (
-    <section className="home-section home-section--white py-10 md:py-12">
+    <section className="home-section home-section--white -mt-3 py-7 md:-mt-4 md:py-9">
       <div className="home-shell">
-        <div className="home-frame home-frame--roomy flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+        <div className="home-frame flex flex-col items-start justify-between gap-4 px-4 py-3 md:flex-row md:items-center md:px-5 md:py-4">
           <motion.div className="shrink-0 md:pl-2" {...fadeUp(14, 0.03)}>
             <Image
               src={HOMEPAGE_PARTNERSHIP_CONTENT.image.src}
@@ -20,7 +20,7 @@ export function PartnershipBanner() {
               height={153}
               sizes="(max-width: 768px) 154px, 224px"
               quality={100}
-              className="h-auto w-[154px] md:w-[224px]"
+              className="h-auto w-[108px] md:w-[158px]"
             />
           </motion.div>
 
@@ -31,14 +31,11 @@ export function PartnershipBanner() {
                 {HOMEPAGE_PARTNERSHIP_CONTENT.title[1]}
               </span>
             </h2>
-            <p className="scheme-text-body mb-6 max-w-lg text-base">
-              {HOMEPAGE_PARTNERSHIP_CONTENT.description}
-            </p>
-            <motion.div whileHover={{ y: -1 }} whileTap={{ y: 0 }}>
-              <Link href={HOMEPAGE_PARTNERSHIP_CONTENT.cta.href} className="link-arrow typ-label">
-              {HOMEPAGE_PARTNERSHIP_CONTENT.cta.label} <ArrowRight className="h-4 w-4" />
-              </Link>
-            </motion.div>
+            {hasDescription ? (
+              <p className="scheme-text-body mb-6 max-w-lg text-base">
+                {HOMEPAGE_PARTNERSHIP_CONTENT.description}
+              </p>
+            ) : null}
           </motion.div>
         </div>
       </div>
