@@ -14,7 +14,7 @@
     "lint": "npm run lint:source",
     "lint:source": "eslint src/app src/components src/lib --ext .js,.jsx,.ts,.tsx,.mjs,.cjs",
     "test": "jest --forceExit",
-    "test:planner": "vitest run src/lib/planner/engine",
+    "test:planner": "vitest run",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --forceExit",
     "test:e2e:nav": "playwright test tests/navigation-smoke.spec.ts",
@@ -29,6 +29,7 @@
     "planner:catalog:mismatch-classify": "tsx scripts/classify-planner-shared-mismatches.ts",
     "planner:runtime:candidate": "tsx scripts/build-planner-runtime-candidate.ts",
     "planner:runtime:publish": "tsx scripts/publish-planner-runtime-candidate.ts",
+    "cdn:sync": "node scripts/sync_r2_assets.mjs",
     "supabase:backup": "npx tsx scripts/backup_supabase.ts",
     "audit:nhost:backup": "npx tsx scripts/audit_nhost_backup.ts",
     "nhost:sync": "npx tsx scripts/sync_nhost_backup.ts"
@@ -80,6 +81,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1024.0",
     "@axe-core/playwright": "^4.11.1",
     "@axe-core/react": "^4.11.1",
     "@fancyapps/ui": "^6.1.13",
