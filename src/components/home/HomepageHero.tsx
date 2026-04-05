@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
 import { HOMEPAGE_HERO_CONTENT } from "@/data/site/homepage";
 import { MOTION_EASE } from "@/lib/helpers/motion";
+import { normalizeImageSource } from "@/lib/helpers/images";
 
 const heroContainerVariants: Variants = {
   hidden: { opacity: 0 },
@@ -32,6 +33,7 @@ const heroItemVariants: Variants = {
 export function HomepageHero() {
   const hasDescription = HOMEPAGE_HERO_CONTENT.description.trim().length > 0;
   const titleLines = HOMEPAGE_HERO_CONTENT.title.filter((line) => line.trim().length > 0);
+  const heroImage = normalizeImageSource("/images/hero/titan-patna-hq.webp");
 
   function openGuidedPlanner() {
     window.dispatchEvent(new CustomEvent("oando-assistant:open"));
@@ -44,7 +46,7 @@ export function HomepageHero() {
     >
       <div className="absolute inset-0 relative">
         <Image
-          src="/images/hero/titan-patna-hq.webp"
+          src={heroImage}
           alt="Ergonomic seating and workstations installed at Titan Patna HQ by One&Only"
           fill
           priority
@@ -109,6 +111,5 @@ export function HomepageHero() {
     </section>
   );
 }
-
 
 

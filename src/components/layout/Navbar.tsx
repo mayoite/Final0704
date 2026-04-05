@@ -22,6 +22,7 @@ import {
   groupCategories,
   type GroupedCategory,
 } from "@/lib/navigation";
+import { normalizeImageSource } from "@/lib/helpers/images";
 import { cn } from "@/lib/utils";
 import { useQuoteCart } from "@/lib/store/quoteCart";
 
@@ -274,6 +275,14 @@ export function Navbar() {
     if (searchLoading) return "Searching";
     return searchResults.length > 0 ? "Results" : "No Results";
   }, [searchLoading, searchQuery, searchResults.length]);
+  const featuredCards = useMemo(
+    () =>
+      FEATURED_CARDS.map((card) => ({
+        ...card,
+        image: normalizeImageSource(card.image),
+      })),
+    [],
+  );
 
   const onSearchResultClick = () => {
     setShowSearchPanel(false);
@@ -523,7 +532,7 @@ export function Navbar() {
                 </div>
 
                 <div className="mt-6 grid grid-cols-3 gap-5">
-                  {FEATURED_CARDS.map((card) => (
+                  {featuredCards.map((card) => (
                     <Link
                       key={card.title}
                       href={card.href}

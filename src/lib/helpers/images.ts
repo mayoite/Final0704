@@ -27,6 +27,14 @@ function applyAssetBase(value: string): string {
   return `${configuredAssetBaseUrl}${value}`;
 }
 
+export function normalizeAssetPath(path: string | null | undefined): string {
+  if (!path) return "";
+  const normalized = String(path).trim();
+  if (!normalized) return "";
+  if (hasAbsoluteUrl(normalized)) return normalized;
+  return applyAssetBase(normalized);
+}
+
 export function normalizeImageSource(path: string | null | undefined): string {
   if (!path) return "";
   const normalized = String(path).trim();

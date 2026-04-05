@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { motion, useScroll, useTransform, Variants } from "framer-motion";
+import { normalizeAssetPath, normalizeImageSource } from "@/lib/helpers/images";
 
 export interface HeroProps {
   title?: React.ReactNode;
@@ -53,6 +54,8 @@ export function Hero({
   sectionId = "page-hero",
 }: HeroProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const normalizedBackgroundImage = normalizeImageSource(backgroundImage);
+  const normalizedVideoBackground = normalizeAssetPath(videoBackground);
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"],
@@ -81,21 +84,21 @@ export function Hero({
         style={{ y: yParallax, opacity: opacityFade }}
         className="absolute inset-0 w-full h-[130%] -top-[15%]"
       >
-        {videoBackground ? (
+        {normalizedVideoBackground ? (
           <video
             autoPlay
             loop
             muted
             playsInline
-            poster={backgroundImage}
+            poster={normalizedBackgroundImage || undefined}
             className="w-full h-full object-cover scale-105 transition-opacity duration-1000 opacity-0 data-[ready=true]:opacity-100"
             onCanPlay={(e) => (e.currentTarget.dataset.ready = "true")}
           >
-            <source src={videoBackground} type="video/mp4" />
+            <source src={normalizedVideoBackground} type="video/mp4" />
           </video>
-        ) : backgroundImage ? (
+        ) : normalizedBackgroundImage ? (
           <Image
-            src={backgroundImage}
+            src={normalizedBackgroundImage}
             alt=""
             aria-hidden="true"
             fill
