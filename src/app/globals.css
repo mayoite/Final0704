@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+@import "./theme-tokens.css";
+@import "./theme-utilities.css";
+@import "./typography.css";
+@import "./surfaces.css";
+@import "./layout-geometry.css";
+@import "./borders-radii.css";
+@import "./interactive.css";
+
+/* App components & pages */
+@import "./secondary.css";
+
+@layer base {
+  :root {
+    --background: var(--surface-page);
+    --foreground: var(--text-body);
+  }
+
+  html {
+    scroll-behavior: smooth;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-size: var(--type-body-size);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+  }
+
+  a {
+    transition: color 0.3s ease;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-delay: -1ms !important;
+      animation-duration: 1ms !important;
+      animation-iteration-count: 1 !important;
+      background-attachment: initial !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0s !important;
+      transition-delay: 0s !important;
+    }
+  }
+}

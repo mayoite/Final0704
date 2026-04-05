@@ -1,0 +1,76 @@
+/* ── layout-geometry.css ── */
+/* Captures arbitrary layout elements like grid templates, viewport calc boundaries, and structural spacing */
+
+@utility grid-cols-1-auto {
+  display: grid;
+  grid-template-columns: 1fr auto;
+}
+
+@utility grid-cols-1_1-auto {
+  display: grid;
+  grid-template-columns: 1.1fr auto;
+}
+
+@utility grid-cols-1_05-0_95 {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+}
+
+@utility h-smartdraw-viewport {
+  height: calc(100vh - 136px);
+}
+
+@utility h-smartdraw-panel {
+  height: calc(100vh - 180px);
+}
+
+@utility w-min-panel {
+  width: 320px;
+}
+
+@utility h-min-hero {
+  min-height: 600px;
+}
+
+@utility h-min-canvas {
+  min-height: 400px;
+}
+
+@utility h-min-support {
+  min-height: 500px;
+}
+
+@utility z-float {
+  z-index: 60;
+}
+
+/* ── Mobile CAD Canvas Lock ────────────────────
+   Prevents iOS Safari rubber-band scroll from
+   breaking the infinite canvas drag experience.
+   Apply to the wrapping section on mobile.      */
+@utility canvas-touch-lock {
+  touch-action: none;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: unset;
+}
+
+/* ── Mobile Panel Utilities ─────────────────── */
+@utility h-smartdraw-mobile {
+  height: calc(100svh - 60px);
+}
+
+@utility hide-on-mobile {
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+@utility show-on-mobile {
+  @media (min-width: 769px) {
+    display: none !important;
+  }
+}
+
+@utility z-sheet {
+  z-index: 200;
+}
