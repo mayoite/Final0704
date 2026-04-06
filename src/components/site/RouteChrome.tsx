@@ -14,17 +14,20 @@ export function RouteChrome({
   position: "top" | "bottom";
 }) {
   const pathname = usePathname();
-  const isPlannerRoute = pathname === "/planner" || pathname?.startsWith("/planner/");
+  const isCADRoute =
+    pathname === "/planner" || pathname?.startsWith("/planner/") ||
+    pathname === "/draw" || pathname?.startsWith("/draw/") ||
+    pathname === "/configurator" || pathname?.startsWith("/configurator/");
 
   if (position === "top") {
-    if (isPlannerRoute) {
+    if (isCADRoute) {
       return null;
     }
 
     return <SiteHeader />;
   }
 
-  if (isPlannerRoute) {
+  if (isCADRoute) {
     return null;
   }
 

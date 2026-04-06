@@ -232,19 +232,13 @@ export default function ProductsPage() {
                     key={logo.name}
                     className="flex min-h-14 items-center justify-center rounded-lg border scheme-border bg-panel px-3 py-2"
                   >
-                    {logo.src ? (
-                      <Image
-                        src={logo.src}
-                        alt={logo.name}
-                        width={110}
-                        height={36}
-                        className="h-7 w-auto object-contain opacity-80 grayscale mix-blend-multiply transition-all duration-300 hover:grayscale-0 hover:opacity-100"
-                      />
-                    ) : (
-                      <span className="rounded-full border border-soft px-3 py-2 text-xs font-semibold tracking-[0.12em] uppercase text-muted">
-                        {logo.name}
-                      </span>
-                    )}
+                    <Image
+                      src={logo.src}
+                      alt={logo.name}
+                      width={110}
+                      height={36}
+                      className="h-7 w-auto object-contain opacity-80 grayscale mix-blend-multiply transition-all duration-300 hover:grayscale-0 hover:opacity-100"
+                    />
                   </div>
                 ))}
               </div>

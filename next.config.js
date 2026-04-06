@@ -69,7 +69,7 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.cloudflare.com *.cloudflareinsights.com *.google.com *.gstatic.com scripts.tldraw.com",
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' *.cloudflare.com *.cloudflareinsights.com *.google.com *.gstatic.com",
       "style-src 'self' 'unsafe-inline' *.google.com *.gstatic.com",
       "img-src 'self' data: blob: *.supabase.co https: http:",
       "font-src 'self' data: *.gstatic.com",
@@ -199,20 +199,15 @@ const nextConfig = {
         destination: "/products/seating",
         permanent: true,
       },
-      // Legacy planner-related redirects
-      {
-        source: "/configurator",
-        destination: "/planner",
-        permanent: true,
-      },
+      // Legacy redirects to new CAD suite routes
       {
         source: "/smartdraw",
-        destination: "/planner",
+        destination: "/draw",
         permanent: true,
       },
       {
         source: "/workstations/configurator",
-        destination: "/planner",
+        destination: "/configurator",
         permanent: true,
       },
       {
@@ -223,7 +218,17 @@ const nextConfig = {
     ];
   },
   async rewrites() {
+    const cadSuiteUrl = process.env.NEXT_PUBLIC_CAD_SUITE_URL || "http://localhost:3001";
     return [
+      { source: "/planner", destination: `${cadSuiteUrl}/planner` },
+      { source: "/planner/", destination: `${cadSuiteUrl}/planner/` },
+      { source: "/planner/:path*", destination: `${cadSuiteUrl}/planner/:path*` },
+      { source: "/draw", destination: `${cadSuiteUrl}/draw` },
+      { source: "/draw/", destination: `${cadSuiteUrl}/draw/` },
+      { source: "/draw/:path*", destination: `${cadSuiteUrl}/draw/:path*` },
+      { source: "/configurator", destination: `${cadSuiteUrl}/configurator` },
+      { source: "/configurator/", destination: `${cadSuiteUrl}/configurator/` },
+      { source: "/configurator/:path*", destination: `${cadSuiteUrl}/configurator/:path*` },
       { source: "/@vite/client", destination: "/api/vite-client" },
       { source: "/@vite/client/", destination: "/api/vite-client" },
     ];
@@ -239,3 +244,7 @@ const nextConfig = {
 };
 
 module.exports = nextConfig;
+
+import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) => {
+  initOpenNextCloudflareForDev();
+});

@@ -138,11 +138,25 @@ export function Footer() {
               Terms
             </Link>
             <Link
+              href="/planner"
+              prefetch={false}
+              className="hover:text-subtle transition-colors"
+            >
+              Planner
+            </Link>
+            <Link
+              href="/draw"
+              prefetch={false}
+              className="hover:text-subtle transition-colors"
+            >
+              Draw
+            </Link>
+            <Link
               href="/configurator"
               prefetch={false}
-              className="hover:text-subtle transition-colors opacity-60"
+              className="hover:text-subtle transition-colors"
             >
-              Office Planner
+              Configurator
             </Link>
           </div>
           <div suppressHydrationWarning>

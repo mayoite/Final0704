@@ -18,22 +18,19 @@ export function Collections() {
       <div className="home-shell">
         <div className="home-frame home-frame--standard">
           <motion.div
-            className="mb-10 flex flex-col gap-5 md:mb-12 md:flex-row md:items-end md:justify-between"
+            className="mb-8 flex items-end justify-between gap-6"
             {...fadeUp(14, 0.03)}
           >
-            <div className="max-w-3xl">
-              <h2 className="home-heading">
-                {HOMEPAGE_COLLECTIONS_CONTENT.titleLead}{" "}
-                <span className="home-heading__accent">
-                  {HOMEPAGE_COLLECTIONS_CONTENT.titleAccent}
-                </span>
+            <div className="max-w-2xl">
+              <h2 className="typ-section-title text-strong">
+                Browse by workspace need.
               </h2>
             </div>
 
-            <div className="flex gap-4">
+            <div className="hidden items-center gap-4 sm:flex shrink-0">
               <motion.button
                 aria-label="Previous slide"
-                className="swiper-button-prev-custom inline-flex h-12 w-12 items-center justify-center rounded-full border border-soft bg-panel text-body transition-all hover:border-strong hover:bg-inverse hover:text-inverse disabled:opacity-50"
+                className="swiper-button-prev-custom inline-flex h-12 w-12 items-center justify-center rounded-full border border-soft text-body hover:border-strong hover:bg-hover disabled:cursor-not-allowed disabled:opacity-20 transition-all duration-300"
                 whileHover={{ y: -1 }}
                 whileTap={{ y: 0 }}
               >
@@ -41,12 +38,18 @@ export function Collections() {
               </motion.button>
               <motion.button
                 aria-label="Next slide"
-                className="swiper-button-next-custom inline-flex h-12 w-12 items-center justify-center rounded-full border border-soft bg-panel text-body transition-all hover:border-strong hover:bg-inverse hover:text-inverse disabled:opacity-50"
+                className="swiper-button-next-custom inline-flex h-12 w-12 items-center justify-center rounded-full border border-soft text-body hover:border-strong hover:bg-hover disabled:cursor-not-allowed disabled:opacity-20 transition-all duration-300"
                 whileHover={{ y: -1 }}
                 whileTap={{ y: 0 }}
               >
                 <ArrowRight className="h-5 w-5" />
               </motion.button>
+              <Link
+                href="/products"
+                className="ml-4 text-sm font-medium tracking-tight border-b border-transparent pb-0.5 transition-all text-muted hover:text-strong hover:border-strong flex items-center gap-1.5"
+              >
+                Browse full catalog <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
           </motion.div>
 

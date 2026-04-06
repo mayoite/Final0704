@@ -1,17 +1,26 @@
+"use client";
+
 import Link from "next/link";
+import { motion } from "framer-motion";
 import { ArrowRight, Box, DraftingCompass } from "lucide-react";
 
 const tools = [
   {
-    title: "Floor Planner",
+    title: "Planner",
+    description: "Plan complete workspace layouts. Place furniture, check compliance, and export BOQs.",
+    href: "/planner",
+    icon: DraftingCompass,
+  },
+  {
+    title: "Draw",
     description: "Draw and visualize your office layouts with our robust 2D smart diagramming engine.",
-    href: "/smartdraw",
+    href: "/draw",
     icon: DraftingCompass,
     badge: "New",
   },
   {
-    title: "3D Configurator",
-    description: "Build custom desk configurations and preview spacing in a completely 3D interactive room layout.",
+    title: "Configurator",
+    description: "Build custom desk configurations and preview spacing in a 3D interactive room layout.",
     href: "/configurator",
     icon: Box,
   },
@@ -19,42 +28,54 @@ const tools = [
 
 export function InteractiveTools() {
   return (
-    <section className="home-section home-section--dark py-16 md:py-24">
-      <div className="home-shell">
-        <div className="mx-auto grid max-w-5xl gap-0 overflow-hidden rounded-[1.75rem] border border-inverse md:grid-cols-2">
-          {tools.map((tool) => {
+    <section className="scheme-page w-full border-t border-theme-soft py-16 md:py-20">
+      <div className="container px-6 2xl:px-0">
+        {/* Section header — same style as Collections */}
+        <div className="mb-10 text-center lg:text-left">
+          <h2 className="typ-section-title scheme-text-strong">
+            Design your workspace, your way.
+          </h2>
+        </div>
+
+        {/* Tool cards — standard grid matching Collections */}
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+          {tools.map((tool, i) => {
             const Icon = tool.icon;
             return (
-              <Link
+              <motion.div
                 key={tool.title}
-                href={tool.href}
-                className="group flex flex-col items-center text-center border-b border-inverse bg-[color:var(--overlay-panel-08)] p-8 shadow-[0_18px_40px_-32px_var(--overlay-inverse-24)] transition-all hover:bg-[color:var(--overlay-panel-12)] md:min-h-[22rem] md:border-b-0 md:px-10 md:py-10 [&:nth-child(1)]:md:border-r"
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: i * 0.08 }}
               >
-                <div className="mb-6 flex items-center justify-center">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--overlay-panel-12)] text-[var(--color-accent)]">
-                    <Icon className="h-6 w-6 stroke-[1.5]" />
+                <Link
+                  href={tool.href}
+                  className="group scheme-panel scheme-border relative flex flex-col rounded-2xl border shadow-sm p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_50px_-30px_var(--overlay-inverse-16)] min-h-[170px]"
+                >
+                  {tool.badge && (
+                    <span className="absolute top-5 right-5 rounded-full scheme-accent-wash scheme-text-brand px-2.5 py-0.5 text-[0.68rem] font-semibold uppercase tracking-wider">
+                      {tool.badge}
+                    </span>
+                  )}
+
+                  <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl border scheme-border scheme-section-soft scheme-text-brand transition-colors group-hover:border-primary/30 group-hover:bg-primary/5">
+                    <Icon className="h-5 w-5 stroke-[1.5]" />
                   </div>
-                </div>
 
-                {tool.badge && (
-                  <span className="mb-5 rounded-full border border-inverse bg-[color:var(--overlay-panel-08)] px-3 py-1 typ-caption font-bold uppercase tracking-wider text-[var(--text-inverse-muted)]">
-                    {tool.badge}
-                  </span>
-                )}
-                
-                <h3 className="typ-h3 text-[var(--text-inverse)] group-hover:text-[var(--color-accent)] transition-colors">
-                  {tool.title}
-                </h3>
-                
-                <p className="mt-4 flex-1 max-w-[30ch] text-sm leading-6 text-[var(--text-inverse-body)]">
-                  {tool.description}
-                </p>
+                  <h3 className="text-lg font-medium tracking-tight scheme-text-strong mb-2 transition-colors group-hover:text-primary">
+                    {tool.title}
+                  </h3>
 
-                <div className="mt-8 flex items-center justify-center text-sm font-semibold text-[var(--color-accent)] transition-transform group-hover:translate-x-1">
-                  Launch tool
-                  <ArrowRight className="ml-1.5 h-4 w-4" />
-                </div>
-              </Link>
+                  <p className="text-sm leading-relaxed scheme-text-body flex-1">
+                    {tool.description}
+                  </p>
+
+                  <div className="mt-6 flex items-center gap-1.5 text-sm font-semibold scheme-text-muted transition-all group-hover:text-primary group-hover:gap-2.5">
+                    Launch <ArrowRight className="h-3.5 w-3.5" />
+                  </div>
+                </Link>
+              </motion.div>
             );
           })}
         </div>

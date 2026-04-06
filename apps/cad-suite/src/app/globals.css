@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-page: #f8fafc;
+  --color-panel: rgba(255, 255, 255, 0.95);
+  --color-glass-strong: rgba(15, 23, 42, 0.85);
+  --color-muted: #94a3b8;
+  --color-accent: #bfdbfe;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #171717;
+  }
+}
+
+@layer utilities {
+  .bg-page {
+    background-color: var(--color-page);
+  }
+  .bg-panel {
+    background-color: var(--color-panel);
+    backdrop-filter: blur(12px);
+  }
+  .bg-glass-strong {
+    background-color: var(--color-glass-strong);
+    backdrop-filter: blur(16px);
+  }
+  .w-min-panel {
+    width: 320px;
+  }
+  .h-smartdraw-panel {
+    height: calc(100vh - 120px);
+  }
+  .rounded-blob {
+    border-radius: 9999px;
+  }
+}
+
+/* Tldraw Headless Overrides */
+.tl-container, .tl-theme__light {
+  --color-background: transparent !important;
+  --color-panel: transparent !important;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}

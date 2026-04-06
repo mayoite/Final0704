@@ -14,16 +14,8 @@ export function HomeFAQ() {
       <div className="home-shell">
         <div className="home-frame home-frame--standard">
           <motion.div className="mb-7 md:mb-8" {...fadeUp(12, 0.02)}>
-            <h2 className="home-heading">
+            <h2 className="typ-section-title text-strong">
               {HOMEPAGE_FAQ_CONTENT.titleLead}
-              {HOMEPAGE_FAQ_CONTENT.titleAccent ? (
-                <>
-                  {" "}
-                  <span className="home-heading__accent">
-                    {HOMEPAGE_FAQ_CONTENT.titleAccent}
-                  </span>
-                </>
-              ) : null}
             </h2>
           </motion.div>
 

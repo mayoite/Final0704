@@ -70,51 +70,26 @@
   text-wrap: balance;
 }
 
-/* ── Section / H2 ── */
-@utility typ-h2 {
+@utility typ-section-title {
   font-family: var(--font-display);
-  font-size: var(--type-title-lg-size);
-  font-weight: var(--font-weight-display-regular);
-  letter-spacing: var(--type-letter-title);
-  line-height: var(--type-leading-title);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 300;
+  letter-spacing: -0.04em;
+  line-height: 1.08;
   font-kerning: normal;
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
 
-@utility typ-section {
-  font-family: var(--font-display);
-  font-size: var(--type-title-lg-size);
-  font-weight: var(--font-weight-display-regular);
-  letter-spacing: var(--type-letter-title);
-  line-height: var(--type-leading-title);
-  font-kerning: normal;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
+@utility typ-section-subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--type-body-lg-size);
+  font-weight: var(--font-weight-copy-regular);
+  letter-spacing: var(--type-letter-copy);
+  line-height: var(--type-leading-copy);
+  color: var(--text-body-muted);
 }
 
-@utility home-heading {
-  font-family: var(--font-display);
-  font-size: var(--type-title-lg-size);
-  font-weight: var(--font-weight-display-regular);
-  letter-spacing: var(--type-letter-title);
-  line-height: var(--type-leading-title);
-  font-kerning: normal;
-  overflow-wrap: anywhere;
-  color: var(--text-heading-soft);
-  text-wrap: balance;
-}
-
-@utility section-title {
-  font-family: var(--font-display);
-  font-size: var(--type-title-lg-size);
-  font-weight: var(--font-weight-display-regular);
-  letter-spacing: var(--type-letter-title);
-  line-height: var(--type-leading-title);
-  font-kerning: normal;
-  overflow-wrap: anywhere;
-  text-wrap: balance;
-}
 
 /* ── H3 ── */
 @utility typ-h3 {

@@ -9,19 +9,19 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
     include: [
-      "src/components/smartdraw/**/*.test.{ts,tsx}",
-      "src/lib/planner/engine/**/*.test.ts"
+      "apps/cad-suite/src/**/*.test.{ts,tsx}"
     ],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      include: ["src/lib/planner/engine/**/*.ts", "src/components/smartdraw/**/*.tsx"],
+      include: ["apps/cad-suite/src/**/*.ts", "apps/cad-suite/src/**/*.tsx"],
       exclude: ["**/__tests__/**", "**/*.test.tsx", "**/*.test.ts"],
     },
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@cad": path.resolve(__dirname, "./apps/cad-suite/src")
     },
   },
 });

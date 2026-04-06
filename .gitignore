@@ -103,6 +103,9 @@ docs/ops/artifacts/
 
 .vercel
 .wrangler/
+.open-next/
+.dev.vars
+.dev.vars.*
 oando_website/.DONOTDELETE/keys/raw-values-*/
 oando_website/.DONOTDELETE/keys/.env.local
 oando_website/.DONOTDELETE/keys/wrangler-account.json

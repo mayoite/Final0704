@@ -6,13 +6,11 @@ import { HOMEPAGE_PARTNERSHIP_CONTENT } from "@/data/site/homepage";
 import { fadeUp } from "@/lib/helpers/motion";
 
 export function PartnershipBanner() {
-  const hasDescription = HOMEPAGE_PARTNERSHIP_CONTENT.description.trim().length > 0;
-
   return (
     <section className="home-section home-section--white -mt-3 py-7 md:-mt-4 md:py-9">
       <div className="home-shell">
-        <div className="home-frame flex flex-col items-start justify-between gap-4 px-4 py-3 md:flex-row md:items-center md:px-5 md:py-4">
-          <motion.div className="shrink-0 md:pl-2" {...fadeUp(14, 0.03)}>
+        <div className="home-frame flex flex-col items-center justify-center text-center gap-6 px-4 py-8 md:flex-row md:text-left md:gap-16">
+          <motion.div className="shrink-0" {...fadeUp(14, 0.03)}>
             <Image
               src={HOMEPAGE_PARTNERSHIP_CONTENT.image.src}
               alt={HOMEPAGE_PARTNERSHIP_CONTENT.image.alt}
@@ -25,17 +23,12 @@ export function PartnershipBanner() {
           </motion.div>
 
           <motion.div className="max-w-2xl" {...fadeUp(18, 0.08)}>
-            <h2 className="home-heading mb-4">
-              {HOMEPAGE_PARTNERSHIP_CONTENT.title[0]}{" "}
-              <span className="home-heading__accent">
-                {HOMEPAGE_PARTNERSHIP_CONTENT.title[1]}
-              </span>
-            </h2>
-            {hasDescription ? (
-              <p className="scheme-text-body mb-6 max-w-lg text-base">
-                {HOMEPAGE_PARTNERSHIP_CONTENT.description}
-              </p>
-            ) : null}
+            <h2 className="typ-section-title">
+               {HOMEPAGE_PARTNERSHIP_CONTENT.title[0]}{" "}
+               <span className="text-primary italic">
+                 {HOMEPAGE_PARTNERSHIP_CONTENT.title[1]}
+               </span>
+             </h2>
           </motion.div>
         </div>
       </div>

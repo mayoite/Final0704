@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { SiteHeader } from "@/components/site/Header";
+import { CookieConsentBar } from "@/components/site/CookieConsentBar";
 import { SiteFooter } from "@/components/site/Footer";
 import { FooterLogoMarquee } from "@/components/site/FooterLogoMarquee";
-import { CookieConsentBar } from "@/components/site/CookieConsentBar";
+import { SiteHeader } from "@/components/site/Header";
 import dynamic from "next/dynamic";
 import QueryProvider from "@/app/providers/QueryProvider";
 import { WhatsAppCTA } from "@/components/ui/WhatsAppCTA";
@@ -55,4 +55,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -1,0 +1,453 @@
+"use client";
+
+import React, { useCallback, useState, useEffect } from "react";
+import { Tldraw, createShapeId, Editor, AssetRecordType } from "tldraw";
+import "tldraw/tldraw.css";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { useQuoteCart } from "@/lib/store/quoteCart";
+import { Magnet, Layers, Settings2, Trash2, Download } from "lucide-react";
+
+import type { PlannerStep, BoqItem, CatalogProduct } from "./types";
+import { StepBar } from "./StepBar";
+import { CatalogPanel } from "./CatalogPanel";
+import { InspectorPanel } from "./InspectorPanel";
+import { AiCopilot, type AiSuggestion } from "./AiCopilot";
+import { WorkspacePanel } from "./WorkspacePanel";
+import { MobileDrawerSheet } from "./MobileDrawerSheet";
+
+const LOCAL_TLDRAW_ASSET_URLS = {
+  fonts: {
+    tldraw_mono: "/cdn/tldraw/fonts/IBMPlexMono-Medium.woff2",
+    tldraw_mono_italic: "/cdn/tldraw/fonts/IBMPlexMono-MediumItalic.woff2",
+    tldraw_mono_bold: "/cdn/tldraw/fonts/IBMPlexMono-Bold.woff2",
+    tldraw_mono_italic_bold: "/cdn/tldraw/fonts/IBMPlexMono-BoldItalic.woff2",
+    tldraw_serif: "/cdn/tldraw/fonts/IBMPlexSerif-Medium.woff2",
+    tldraw_serif_italic: "/cdn/tldraw/fonts/IBMPlexSerif-MediumItalic.woff2",
+    tldraw_serif_bold: "/cdn/tldraw/fonts/IBMPlexSerif-Bold.woff2",
+    tldraw_serif_italic_bold: "/cdn/tldraw/fonts/IBMPlexSerif-BoldItalic.woff2",
+    tldraw_sans: "/cdn/tldraw/fonts/IBMPlexSans-Medium.woff2",
+    tldraw_sans_italic: "/cdn/tldraw/fonts/IBMPlexSans-MediumItalic.woff2",
+    tldraw_sans_bold: "/cdn/tldraw/fonts/IBMPlexSans-Bold.woff2",
+    tldraw_sans_italic_bold: "/cdn/tldraw/fonts/IBMPlexSans-BoldItalic.woff2",
+    tldraw_draw: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Regular.woff2",
+    tldraw_draw_italic: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Regular_Italic.woff2",
+    tldraw_draw_bold: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Bold.woff2",
+    tldraw_draw_italic_bold: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Bold_Italic.woff2",
+  },
+  translations: {
+    en: "/cdn/tldraw/translations/en.json",
+  },
+} as const;
+
+/* ─────────────────────────────────────────────
+   SmartdrawPlanner — Orchestrator
+   Composes StepBar, CatalogPanel, InspectorPanel,
+   AiCopilot around a persistent Tldraw viewport.
+   ───────────────────────────────────────────── */
+
+export function SmartdrawPlanner({ catalogProducts = [] }: { catalogProducts?: CatalogProduct[] }) {
+  const router = useRouter();
+  const quoteCart = useQuoteCart();
+  const [editor, setEditor] = useState<Editor | null>(null);
+  const [boqItems, setBoqItems] = useState<BoqItem[]>([]);
+
+  // Workflow
+  const [currentStep, setCurrentStep] = useState<PlannerStep>("room");
+
+  // Panel visibility
+  const [showCatalog, setShowCatalog] = useState(true);
+  const [showInspector, setShowInspector] = useState(true);
+  const [catalogPinned, setCatalogPinned] = useState(true);
+  const [inspectorPinned, setInspectorPinned] = useState(true);
+
+  // Snap
+  const [isSnapMode, setIsSnapMode] = useState(true);
+
+  // AI & Global Elevation
+  const [activePanel, setActivePanel] = useState<"catalog" | "inspector" | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<AiSuggestion[]>([]);
+  const [showAi, setShowAi] = useState(true);
+
+  // Mobile sheets
+  const [mobileCatalogOpen, setMobileCatalogOpen] = useState(false);
+  const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false);
+
+  /* ── Engine ─────────────────────── */
+  const handleMount = useCallback((app: Editor) => {
+    setEditor(app);
+    app.updateInstanceState({ isGridMode: true });
+    app.user.updateUserPreferences({ isSnapMode: true });
+
+    if (app.getCurrentPageShapes().length === 0) {
+      app.createShape({
+        id: createShapeId("room-boundary"),
+        type: "geo", x: 200, y: 100,
+        props: { geo: "rectangle", w: 900, h: 650, dash: "dashed", color: "grey", size: "s" } as any,
+        meta: { text: "Room Footprint (9000×6500mm)" },
+      });
+    }
+  }, []);
+
+  /* ── Snap sync ──────────────────── */
+  useEffect(() => {
+    if (editor) editor.user.updateUserPreferences({ isSnapMode });
+  }, [editor, isSnapMode]);
+
+  /* ── Spatial Geometry Engine (Phase 3) ───────── */
+  const runComplianceCheck = useCallback((shapes: any[]) => {
+    if (!editor) return [];
+    const warnings: string[] = [];
+    const planners = shapes.filter((s) => s.meta && s.meta.isPlannerItem);
+    
+    let overlapCount = 0;
+    let tightClearanceCount = 0;
+
+    for (let i = 0; i < planners.length; i++) {
+      for (let j = i + 1; j < planners.length; j++) {
+        const boundsA = editor.getShapePageBounds(planners[i]);
+        const boundsB = editor.getShapePageBounds(planners[j]);
+        
+        if (!boundsA || !boundsB) continue;
+
+        // AABB Collision Detect
+        const isOverlapping = !(
+          boundsA.maxX < boundsB.minX ||
+          boundsA.minX > boundsB.maxX ||
+          boundsA.maxY < boundsB.minY ||
+          boundsA.minY > boundsB.maxY
+        );
+
+        if (isOverlapping) {
+          overlapCount++;
+          continue;
+        }
+
+        // 90px = 900mm ADA clearance check
+        const clearanceX = Math.max(0, Math.max(boundsA.minX - boundsB.maxX, boundsB.minX - boundsA.maxX));
+        const clearanceY = Math.max(0, Math.max(boundsA.minY - boundsB.maxY, boundsB.minY - boundsA.maxY));
+        const distance = Math.sqrt(clearanceX * clearanceX + clearanceY * clearanceY);
+
+        // If items are close but not overlapping
+        if (distance > 0 && distance < 90) {
+          tightClearanceCount++;
+        }
+      }
+    }
+
+    if (overlapCount > 0) {
+      warnings.push(`CRITICAL: ${overlapCount} workstation(s) are severely overlapping.`);
+    }
+    if (tightClearanceCount > 0) {
+      warnings.push(`COMPLIANCE WARNING: ${tightClearanceCount} module boundary clearances are under the strict 900mm ADA minimum.`);
+    }
+    return warnings;
+  }, [editor]);
+
+  /* ── BOQ sync ───────────────────── */
+  useEffect(() => {
+    if (!editor) return;
+
+    // Dedicated sync function running natively, not on a blind interval
+    const syncBoq = () => {
+      const shapes = editor.getCurrentPageShapes();
+      const items = shapes
+        .filter((s) => s.meta && (s.meta as any).isPlannerItem)
+        .map((s) => ({
+          id: s.id,
+          name: (s.meta as any)?.text || "Custom Module",
+          category: (s.meta as any)?.category || "Workstations",
+          price: (s.meta as any)?.price || 0,
+          dimensions: (s.meta as any)?.dimensions || "",
+        }));
+      setBoqItems(items);
+      
+      const geometricWarnings = runComplianceCheck(shapes);
+      buildAiSuggestions(items, shapes.length, geometricWarnings);
+    };
+
+    // Initial load sync
+    syncBoq();
+
+    // Event-driven reactive bridge directly from the CAD store
+    const stopListening = editor.store.listen(
+      (history) => {
+        const { added, updated, removed } = history.changes;
+        // Only trigger React state updates if actual geometric data changed
+        if (
+          Object.keys(added).length > 0 ||
+          Object.keys(updated).length > 0 ||
+          Object.keys(removed).length > 0
+        ) {
+          syncBoq();
+        }
+      },
+      { source: "user", scope: "document" }
+    );
+
+    return () => stopListening();
+  }, [editor, currentStep]);
+
+  /* ── AI logic ───────────────────── */
+  const buildAiSuggestions = (items: BoqItem[], total: number, geometricWarnings: string[] = []) => {
+    const out: AiSuggestion[] = [];
+    
+    // Process physical compliance rules first
+    if (geometricWarnings.length > 0) {
+      geometricWarnings.forEach(warn => {
+        out.push({ type: warn.includes("CRITICAL") ? "action" : "warning", text: warn });
+      });
+    } else if (items.length >= 6) {
+      out.push({ type: "tip", text: "Healthy density. ClearANCES looking compliant." });
+    }
+
+    if (currentStep === "room" && total <= 1)
+      out.push({ type: "tip", text: "Draw the room perimeter. Switch to 'Furniture Layout' when ready." });
+    if (currentStep === "layout" && items.length === 0)
+      out.push({ type: "tip", text: "Click products from the catalog to place them on your floor plan." });
+    if (currentStep === "review" && items.length > 0)
+      out.push({ type: "action", text: `${items.length} item(s) ready. Click 'Generate Final Quote' to proceed.` });
+    
+    setAiSuggestions(out);
+  };
+
+  /* ── Drop furniture ─────────────── */
+  const handleDropFurniture = (prod: any) => {
+    if (!editor) return;
+    const center = editor.getViewportPageBounds().center;
+    let w = 120, h = 120;
+    if (prod.specs?.dimensions) {
+      const nums = String(prod.specs.dimensions).match(/\d+/g);
+      if (nums && nums.length >= 2) { w = parseInt(nums[0]) / 10 || 120; h = parseInt(nums[1]) / 10 || 120; }
+    }
+
+    const imgUrl = prod.flagship_image || prod.images?.[0];
+    const meta = {
+      text: typeof prod === "string" ? prod : prod.name,
+      isPlannerItem: true,
+      price: prod.price || 0,
+      category: prod.category || "Workstations",
+      dimensions: prod.specs?.dimensions || "",
+    };
+
+    if (imgUrl) {
+      const assetId = AssetRecordType.createId();
+      editor.createAssets([{
+        id: assetId, type: "image", typeName: "asset",
+        props: { w, h, name: prod.name, isAnimated: false, mimeType: "image/png", src: imgUrl },
+        meta: {},
+      }]);
+      editor.createShape({
+        id: createShapeId(), type: "image",
+        x: center.x - w / 2 + Math.random() * 40 - 20,
+        y: center.y - h / 2 + Math.random() * 40 - 20,
+        props: { w, h, assetId }, meta,
+      });
+    } else {
+      editor.createShape({
+        id: createShapeId(), type: "geo",
+        x: center.x - w / 2 + Math.random() * 40 - 20,
+        y: center.y - h / 2 + Math.random() * 40 - 20,
+        props: { geo: "rectangle", w, h, color: "blue", fill: "semi", size: "s" } as any,
+        meta,
+      });
+    }
+  };
+
+  /* ── Actions ────────────────────── */
+  const handleClearAll = () => {
+    if (!editor) return;
+    editor.deleteShapes(editor.getCurrentPageShapes().filter((s) => s.id !== "shape:room-boundary").map((s) => s.id));
+  };
+
+  const handleGenerateQuote = () => {
+    const grouped = boqItems.reduce((acc, item) => {
+      if (!acc[item.name]) acc[item.name] = { ...item, qty: 1 };
+      else acc[item.name].qty += 1;
+      return acc;
+    }, {} as Record<string, any>);
+    Object.values(grouped).forEach((g) => {
+      quoteCart.addItem({ id: `planner-${g.name.replace(/\s+/g, "-")}`, name: g.name, qty: g.qty, source: "planner", plannerFamily: g.category });
+    });
+    router.push("/quote-cart");
+  };
+
+  const totalBoq = boqItems.reduce((a, i) => a + i.price, 0);
+
+  /* ── Render ─────────────────────── */
+  return (
+    <section className="fixed inset-0 z-[100] w-screen h-screen overflow-hidden bg-page">
+
+      {/* ═══ WORKSPACE: Canvas | Floating Panels | Tool Dock ═══ */}
+      <div className="relative w-full h-full canvas-touch-lock overflow-hidden scheme-section-muted">
+
+        {/* ── Floating Tool Dock (Top center) ── */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-float pointer-events-auto">
+          <div className="flex items-center gap-3 bg-panel border border-theme-soft shadow-theme-float rounded-blob px-4 py-2">
+            <StepBar current={currentStep} onChange={setCurrentStep} />
+            
+            <div className="w-px h-6 bg-muted opacity-20" />
+
+            <div className="flex items-center gap-2">
+              {/* Desktop snap/panel controls */}
+              <button onClick={() => setIsSnapMode(!isSnapMode)}
+                aria-pressed={isSnapMode}
+                aria-label={isSnapMode ? "Disable geometric snapping" : "Enable geometric snapping"}
+                className={`hide-on-mobile flex items-center gap-1.5 px-3 py-1.5 rounded-lg typ-caption-lg font-semibold transition-all border
+                  ${isSnapMode ? "bg-violet-50 text-violet-700 border-violet-200" : "bg-panel text-subtle border-theme-soft hover:bg-slate-50"}`}>
+                <Magnet className="w-3.5 h-3.5" aria-hidden="true" /> Snap
+              </button>
+              <button onClick={() => setShowCatalog(!showCatalog)}
+                aria-expanded={showCatalog}
+                aria-controls="catalog-panel"
+                aria-label="Toggle CAD Product Catalog Panel"
+                className={`hide-on-mobile p-2 rounded-lg transition-all border ${showCatalog ? "bg-blue-50 text-blue-600 border-blue-200" : "text-subtle border-theme-soft hover:bg-slate-50"}`}
+                title="Toggle Catalog">
+                <Layers className="w-4 h-4" aria-hidden="true" />
+              </button>
+              <button onClick={() => setShowInspector(!showInspector)}
+                aria-expanded={showInspector}
+                aria-controls="inspector-panel"
+                aria-label="Toggle CAD Inspector Layout Properties Panel"
+                className={`hide-on-mobile p-2 rounded-lg transition-all border ${showInspector ? "bg-blue-50 text-blue-600 border-blue-200" : "text-subtle border-theme-soft hover:bg-slate-50"}`}
+                title="Toggle Inspector">
+                <Settings2 className="w-4 h-4" aria-hidden="true" />
+              </button>
+
+              {/* Mobile bottom-sheet triggers */}
+              <button onClick={() => setMobileCatalogOpen(true)}
+                aria-label="Open Product Catalog"
+                className="show-on-mobile p-2 rounded-lg transition-all border text-subtle border-theme-soft">
+                <Layers className="w-4 h-4" aria-hidden="true" />
+              </button>
+              <button onClick={() => setMobileInspectorOpen(true)}
+                aria-label="Open Inspector"
+                className="show-on-mobile p-2 rounded-lg transition-all border text-subtle border-theme-soft">
+                <Settings2 className="w-4 h-4" aria-hidden="true" />
+              </button>
+
+              <div className="w-px h-6 scheme-section-muted" aria-hidden="true" />
+              <button onClick={handleClearAll} aria-label="Clear all furniture and items from the drafting canvas" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg typ-caption-lg font-semibold text-muted hover:bg-red-50 hover:text-red-600 border border-theme-soft transition-all">
+                <Trash2 className="w-3.5 h-3.5" aria-hidden="true" /> Clear
+              </button>
+              <button onClick={() => window.print()} aria-label="Export drafting canvas to PDF or Print" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg typ-caption-lg font-semibold bg-slate-900 text-white hover:bg-black transition-all shadow-sm">
+                <Download className="w-3.5 h-3.5" aria-hidden="true" /> Export
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Floating Catalog Panel ── */}
+        {showCatalog && (
+          <WorkspacePanel 
+            id="catalog-panel" 
+            side="left" 
+            docked={catalogPinned}
+            isActive={activePanel === "catalog"}
+            onFocus={() => setActivePanel("catalog")}
+          >
+            <CatalogPanel
+              products={catalogProducts}
+              editor={editor}
+              onDropFurniture={handleDropFurniture}
+              onClose={() => setShowCatalog(false)}
+              pinned={catalogPinned}
+              onTogglePin={() => setCatalogPinned(!catalogPinned)}
+            />
+          </WorkspacePanel>
+        )}
+
+        {/* Canvas viewport — now absolute 100% full span */}
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-20 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+            <div className="surface-overlay-95 backdrop-blur-md rounded-full px-5 py-2 flex items-center gap-2 text-strong shadow-theme-panel border border-theme-soft">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success-soft opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-success-soft" />
+              </span>
+              <span className="typ-caption font-bold tracking-widest uppercase">
+                {currentStep === "room" && "Room Shell — Draw boundaries"}
+                {currentStep === "layout" && "Furniture Layout — Place items"}
+                {currentStep === "review" && "Review — Verify & generate"}
+              </span>
+            </div>
+          </div>
+          <Tldraw
+            persistenceKey="one-and-only-planner-v1"
+            onMount={handleMount}
+            hideUi={true} /* True Headless Architecture */
+            assetUrls={LOCAL_TLDRAW_ASSET_URLS}
+            className="absolute inset-0"
+            components={{ SharePanel: null }}
+          />
+        </div>
+
+        {/* ── Floating Inspector Panel ── */}
+        {showInspector && (
+          <WorkspacePanel 
+            id="inspector-panel" 
+            side="right" 
+            docked={inspectorPinned}
+            isActive={activePanel === "inspector"}
+            onFocus={() => setActivePanel("inspector")}
+          >
+            <InspectorPanel
+              boqItems={boqItems}
+              totalBoq={totalBoq}
+              isSnapMode={isSnapMode}
+              onToggleSnap={() => setIsSnapMode(!isSnapMode)}
+              onGenerateQuote={handleGenerateQuote}
+              onClose={() => setShowInspector(false)}
+              pinned={inspectorPinned}
+              onTogglePin={() => setInspectorPinned(!inspectorPinned)}
+            />
+          </WorkspacePanel>
+        )}
+      </div>
+
+      {/* ═══ AI Copilot ═══ */}
+      {showAi && <AiCopilot suggestions={aiSuggestions} onClose={() => setShowAi(false)} />}
+
+      {/* ═══ Mobile Bottom Sheets ═══ */}
+      <MobileDrawerSheet
+        open={mobileCatalogOpen}
+        onOpenChange={setMobileCatalogOpen}
+        title="Product Catalog"
+        trigger={<span />}
+      >
+        {mobileCatalogOpen ? (
+          <CatalogPanel
+            products={catalogProducts}
+            editor={editor}
+            onDropFurniture={(p) => { handleDropFurniture(p); setMobileCatalogOpen(false); }}
+            onClose={() => setMobileCatalogOpen(false)}
+            pinned={false}
+            onTogglePin={() => {}}
+            showPinToggle={false}
+          />
+        ) : null}
+      </MobileDrawerSheet>
+
+      <MobileDrawerSheet
+        open={mobileInspectorOpen}
+        onOpenChange={setMobileInspectorOpen}
+        title="Layout Inspector"
+        trigger={<span />}
+      >
+        {mobileInspectorOpen ? (
+          <InspectorPanel
+            boqItems={boqItems}
+            totalBoq={totalBoq}
+            isSnapMode={isSnapMode}
+            onToggleSnap={() => setIsSnapMode(!isSnapMode)}
+            onGenerateQuote={() => { handleGenerateQuote(); setMobileInspectorOpen(false); }}
+            onClose={() => setMobileInspectorOpen(false)}
+            pinned={false}
+            onTogglePin={() => {}}
+            showPinToggle={false}
+          />
+        ) : null}
+      </MobileDrawerSheet>
+    </section>
+  );
+}

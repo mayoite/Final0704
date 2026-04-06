@@ -1,16 +1,18 @@
 import type { Metadata } from "next";
 import { HomepageHero } from "@/components/home/HomepageHero";
 import { PartnershipBanner } from "@/components/home/PartnershipBanner";
-import { FeaturedCarousel } from "@/components/home/FeaturedCarousel";
-import { TrustStrip } from "@/components/home/TrustStrip";
-import { ProcessSection } from "@/components/home/ProcessSection";
-import { InteractiveTools } from "@/components/home/InteractiveTools";
 import { Collections } from "@/components/home/Collections";
-import { Projects } from "@/components/home/Projects";
+import { TrustStrip } from "@/components/home/TrustStrip";
+import { ShowcaseCarousel } from "@/components/home/ShowcaseCarousel";
+import { VideoSection } from "@/components/home/VideoSection";
+import { InteractiveTools } from "@/components/home/InteractiveTools";
+import { WhyChooseUs } from "@/components/home/WhyChooseUs";
+import { ProcessSection } from "@/components/home/ProcessSection";
 import { HomeFAQ } from "@/components/home/HomeFAQ";
-import { TestimonialsStrip } from "@/components/home/TestimonialsStrip";
 import { ContactTeaser } from "@/components/shared/ContactTeaser";
+
 import { SITE_BRAND } from "@/data/site/brand";
+import { HOMEPAGE_SHOWCASE_CONTENT } from "@/data/site/homepage";
 import { buildPageJsonLd, buildPageMetadata } from "@/data/site/seo";
 import { getBusinessStats } from "@/lib/businessStats";
 import { SITE_URL } from "@/lib/siteUrl";
@@ -31,54 +33,48 @@ export default async function Home() {
   });
 
   return (
-    <div className="min-h-screen bg-panel">
+    <div className="min-h-screen overflow-x-hidden">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(homeJsonLd) }}
       />
+
+      {/* 1. Hero */}
       <HomepageHero />
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.02s" }}>
-        <PartnershipBanner />
-      </div>
 
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.04s" }}>
-        <FeaturedCarousel />
-      </div>
+      {/* 2. Partnership Banner */}
+      <PartnershipBanner />
 
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.05s" }}>
-        <Collections />
-      </div>
+      {/* 3. Product Categories */}
+      <Collections />
 
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.08s" }}>
-        <InteractiveTools />
-      </div>
+      {/* 4. Stats */}
+      <TrustStrip stats={stats} embedded={false} showLogos={false} />
 
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.09s" }}>
-        <Projects />
-      </div>
+      {/* 5. Showcase */}
+      <ShowcaseCarousel
+        sectionLabel={HOMEPAGE_SHOWCASE_CONTENT.sectionLabel}
+        sectionTitle={HOMEPAGE_SHOWCASE_CONTENT.sectionTitle}
+        items={[...HOMEPAGE_SHOWCASE_CONTENT.items]}
+        browseLink="/projects"
+        browseLabel="View portfolio"
+      />
 
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.13s" }}>
-        <TestimonialsStrip />
-      </div>
+      {/* 7. Tools */}
+      <InteractiveTools />
 
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.17s" }}>
-        <section className="home-section home-section--dark py-14 md:py-18">
-          <div className="home-shell">
-            <ProcessSection embedded dark />
-            <div className="mt-10 md:mt-12">
-              <TrustStrip stats={stats} embedded showLogos={false} dark />
-            </div>
-          </div>
-        </section>
-      </div>
+      {/* 8. Why Choose Us */}
+      <WhyChooseUs />
 
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.19s" }}>
-        <HomeFAQ />
-      </div>
+      {/* 9. Process / Delivery System */}
+      <ProcessSection dark />
 
-      <div className="home-reveal" style={{ ["--home-reveal-delay" as string]: "0.21s" }}>
-        <ContactTeaser />
-      </div>
+      {/* 10. FAQs */}
+      <HomeFAQ />
+
+      {/* 11. Contact */}
+      <ContactTeaser />
+
     </div>
   );
 }
