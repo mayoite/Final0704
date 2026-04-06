@@ -118,3 +118,5 @@ docs/ops/generated-artifacts-*.zip
 docs/ops/~$*.xlsx
 
 .vercel
+cloudflare/
+backup/
