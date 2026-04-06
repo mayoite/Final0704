@@ -27,6 +27,20 @@
       "database_id": "8117f302-64e7-4f81-a0d4-cd37314263a9"
     }
   ],
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://oando.co.in",
+    "SITE_URL": "https://oando.co.in",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://erpweaiypimorcunaimz.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_s-rFltnlTHSTmNtYQrdOyQ_Z2P13F0t",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_s-rFltnlTHSTmNtYQrdOyQ_Z2P13F0t",
+    "SUPABASE_URL": "https://erpweaiypimorcunaimz.supabase.co",
+    "OPENAI_MODEL": "gpt-5.4",
+    "OPENROUTER_MODEL": "openrouter/free",
+    "NEXT_IMAGE_UNOPTIMIZED": "0",
+    "CLOUDFLARE_BACKUP_ENABLED": "true",
+    "NHOST_BACKUP_ENABLED": "true",
+    "NEXT_PUBLIC_CAD_SUITE_URL": "https://oneandonly-cad-suite.mayoite.workers.dev"
+  },
   "images": {
     "binding": "IMAGES"
   }
