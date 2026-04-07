@@ -2,11 +2,12 @@
 
 import { Tldraw, type TLComponents } from "tldraw";
 
+import type { CanvasMeasurement } from "../../features/planner/lib/measurements";
+
 import type { PlannerStep } from "./types";
 
 interface PlannerCanvasProps {
   currentStep: PlannerStep;
-  assetUrls: Parameters<typeof Tldraw>[0]["assetUrls"];
   onMount: Parameters<typeof Tldraw>[0]["onMount"];
   isGridVisible: boolean;
   gridState: {
@@ -14,15 +15,7 @@ interface PlannerCanvasProps {
     originY: number;
     zoom: number;
   };
-  measurements: Array<{
-    id: string;
-    caption: string;
-    value: string;
-    x: number;
-    y: number;
-    rotateDeg?: number;
-    tone?: "room" | "selection";
-  }>;
+  measurements: CanvasMeasurement[];
 }
 
 const CANVAS_COMPONENTS: TLComponents = {
@@ -31,7 +24,6 @@ const CANVAS_COMPONENTS: TLComponents = {
 
 export function PlannerCanvas({
   currentStep,
-  assetUrls,
   onMount,
   isGridVisible,
   gridState,
@@ -45,7 +37,6 @@ export function PlannerCanvas({
       <Tldraw
         onMount={onMount}
         hideUi={true}
-        assetUrls={assetUrls}
         className="absolute inset-0"
         components={CANVAS_COMPONENTS}
       />
@@ -72,7 +63,7 @@ export function PlannerCanvas({
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success-soft opacity-75" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-success-soft" />
           </span>
-          <span className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-slate-700">
+          <span className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[color:var(--planner-text-muted)]">
             {currentStep === "room" && "Room Shell - Walls and basic shapes"}
             {currentStep === "catalog" && "Catalog - Place modules"}
             {currentStep === "measure" && "Measure - Inspect shell and dimensions"}
@@ -94,11 +85,11 @@ export function PlannerCanvas({
           <div
             className={`min-w-[8.75rem] rounded-2xl border px-3 py-2 shadow-theme-panel backdrop-blur-md ${
               measurement.tone === "selection"
-                ? "border-violet-200 bg-violet-50/96 text-violet-900"
-                : "border-blue-200 bg-white/96 text-slate-900"
+                ? "border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)]/96 text-[color:var(--planner-accent-strong)]"
+                : "border-[color:var(--planner-primary-soft)] bg-[color:var(--planner-panel-strong)] text-[color:var(--planner-text-strong)]"
             }`}
           >
-            <div className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-slate-500">
+            <div className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--planner-text-muted)]">
               {measurement.caption}
             </div>
             <div className="mt-1 font-mono text-[0.86rem] font-semibold tracking-[0.03em]">

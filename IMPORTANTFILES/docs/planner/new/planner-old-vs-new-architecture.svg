@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1680" height="1260" viewBox="0 0 1680 1260" role="img" aria-labelledby="title desc">
+  <title id="title">Planner Architecture Update</title>
+  <desc id="desc">Updated planner architecture chart showing the before-cleanup state on the left and the current planner trajectory inside apps/cad-suite on the right, including extracted session and quote boundaries, the interim dual-store data model, and the honest 3D preview route.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4efe8; }
+      .panel-old { fill: #fff7f1; stroke: #b86124; stroke-width: 2; }
+      .panel-current { fill: #eef4fa; stroke: #1f3653; stroke-width: 2; }
+      .box-old { fill: #ffffff; stroke: #c96a2b; stroke-width: 2; }
+      .box-current { fill: #ffffff; stroke: #1f3653; stroke-width: 2; }
+      .note-old { fill: #fff4ec; stroke: #b86124; stroke-width: 1.6; }
+      .note-current { fill: #f8fbff; stroke: #56718d; stroke-width: 1.6; }
+      .status-chip { fill: #e5edf6; stroke: #7c92ab; stroke-width: 1.2; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #0f1720; }
+      .subtitle { font: 16px 'Segoe UI', Arial, sans-serif; fill: #425466; }
+      .panel-title-old { font: 700 28px 'Segoe UI', Arial, sans-serif; fill: #9a4e16; }
+      .panel-title-current { font: 700 28px 'Segoe UI', Arial, sans-serif; fill: #17324d; }
+      .heading { font: 700 20px 'Segoe UI', Arial, sans-serif; fill: #17212b; }
+      .body { font: 16px 'Segoe UI', Arial, sans-serif; fill: #24323f; }
+      .small { font: 14px 'Segoe UI', Arial, sans-serif; fill: #425466; }
+      .chip-label { font: 700 13px 'Segoe UI', Arial, sans-serif; fill: #28435d; letter-spacing: 0.08em; text-transform: uppercase; }
+      .accent-old { fill: #9a4e16; }
+      .accent-current { fill: #17324d; }
+      .line-old { stroke: #c96a2b; stroke-width: 3; fill: none; marker-end: url(#arrowOld); }
+      .line-current { stroke: #1f3653; stroke-width: 3; fill: none; marker-end: url(#arrowCurrent); }
+      .line-neutral { stroke: #68778a; stroke-width: 2.4; fill: none; marker-end: url(#arrowNeutral); }
+    </style>
+    <marker id="arrowOld" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#c96a2b" />
+    </marker>
+    <marker id="arrowCurrent" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#1f3653" />
+    </marker>
+    <marker id="arrowNeutral" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#68778a" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1680" height="1260" />
+  <text class="title" x="840" y="56" text-anchor="middle">Planner Architecture Update</text>
+  <text class="subtitle" x="840" y="84" text-anchor="middle">Before cleanup on the left. Current planner trajectory inside apps/cad-suite on the right.</text>
+
+  <rect class="panel-old" x="58" y="118" width="734" height="1084" rx="28" />
+  <rect class="panel-current" x="838" y="118" width="784" height="1084" rx="28" />
+
+  <text class="panel-title-old" x="425" y="162" text-anchor="middle">Before Cleanup / Old State</text>
+  <text class="panel-title-current" x="1230" y="162" text-anchor="middle">Current Architecture / Next Target</text>
+
+  <rect class="box-old" x="96" y="198" width="286" height="132" rx="18" />
+  <text class="heading" x="239" y="232" text-anchor="middle">Historical Root Planner</text>
+  <text class="body" x="239" y="262" text-anchor="middle">Old docs described /planner and /planner2</text>
+  <text class="body" x="239" y="286" text-anchor="middle">but the live source no longer matched</text>
+  <text class="body" x="239" y="310" text-anchor="middle">current code reality</text>
+
+  <rect class="box-old" x="420" y="198" width="330" height="132" rx="18" />
+  <text class="heading" x="585" y="232" text-anchor="middle">Routes Before Cleanup</text>
+  <text class="body" x="585" y="262" text-anchor="middle">/planner and /draw shared one runtime</text>
+  <text class="body" x="585" y="286" text-anchor="middle">/configurator sounded more complete</text>
+  <text class="body" x="585" y="310" text-anchor="middle">than the delivered experience</text>
+
+  <rect class="box-old" x="96" y="368" width="286" height="178" rx="18" />
+  <text class="heading" x="239" y="402" text-anchor="middle">Donor Trees and Duplicates</text>
+  <text class="body" x="239" y="434" text-anchor="middle">Backupcad had useful save and 3D ideas</text>
+  <text class="body" x="239" y="458" text-anchor="middle">but lived in the wrong app boundary</text>
+  <text class="body" x="239" y="482" text-anchor="middle">Duplicate b_yeh copies added noise</text>
+  <text class="body" x="239" y="506" text-anchor="middle">and confused ownership</text>
+
+  <rect class="box-old" x="420" y="368" width="330" height="178" rx="18" />
+  <text class="heading" x="585" y="402" text-anchor="middle">Monolithic Planner Owner</text>
+  <text class="body" x="585" y="434" text-anchor="middle">SmartdrawPlanner owned shell state,</text>
+  <text class="body" x="585" y="458" text-anchor="middle">session flow, quote mapping, editor</text>
+  <text class="body" x="585" y="482" text-anchor="middle">behavior, and route-adjacent logic</text>
+  <text class="body" x="585" y="506" text-anchor="middle">in one place</text>
+
+  <rect class="note-old" x="96" y="590" width="654" height="314" rx="18" />
+  <text class="heading accent-old" x="423" y="628" text-anchor="middle">Before-Cleanup Problems</text>
+  <text class="body" x="126" y="676">- docs drifted away from live code</text>
+  <text class="body" x="126" y="708">- route names and route behavior did not tell the same story</text>
+  <text class="body" x="126" y="740">- donor capabilities existed, but in the wrong product boundary</text>
+  <text class="body" x="126" y="772">- duplicate planner trees made the repo look more active than it was</text>
+  <text class="body" x="126" y="804">- persistence, draft behavior, and quote flow were too entangled</text>
+  <text class="body" x="126" y="836">- build stability still blocked deployment confidence</text>
+  <text class="small" x="126" y="876">Interpretation: the planner direction was right, but the code and docs were too messy to trust quickly.</text>
+
+  <path class="line-old" d="M239 330 L239 368" />
+  <path class="line-old" d="M585 330 L585 368" />
+  <path class="line-old" d="M239 546 L239 590" />
+  <path class="line-old" d="M585 546 L585 590" />
+  <path class="line-neutral" d="M382 264 L420 264" />
+  <path class="line-neutral" d="M382 458 L420 458" />
+
+  <rect class="status-chip" x="886" y="188" width="686" height="44" rx="14" />
+  <text class="chip-label" x="915" y="215">Current Status</text>
+  <text class="small" x="1030" y="215">Phase 1: 70%   Phase 2: 85%   Phase 3: 65%   Session/cache: 100%</text>
+
+  <rect class="box-current" x="878" y="258" width="318" height="142" rx="18" />
+  <text class="heading" x="1037" y="292" text-anchor="middle">Canonical Route Strategy</text>
+  <text class="body" x="1037" y="322" text-anchor="middle">/planner is the canonical public entry</text>
+  <text class="body" x="1037" y="346" text-anchor="middle">/draw remains a temporary alias</text>
+  <text class="body" x="1037" y="370" text-anchor="middle">/configurator is an honest interim</text>
+  <text class="body" x="1037" y="394" text-anchor="middle">3D preview route</text>
+
+  <rect class="box-current" x="1230" y="258" width="340" height="142" rx="18" />
+  <text class="heading" x="1400" y="292" text-anchor="middle">Single Planner Boundary</text>
+  <text class="body" x="1400" y="322" text-anchor="middle">apps/cad-suite stays canonical</text>
+  <text class="body" x="1400" y="346" text-anchor="middle">features/planner owns extracted logic</text>
+  <text class="body" x="1400" y="370" text-anchor="middle">07docs/Backupcad stays archival only</text>
+
+  <rect class="box-current" x="878" y="436" width="318" height="204" rx="18" />
+  <text class="heading" x="1037" y="470" text-anchor="middle">Runtime Shell</text>
+  <text class="body" x="1037" y="500" text-anchor="middle">PlannerCanvas</text>
+  <text class="body" x="1037" y="524" text-anchor="middle">PlannerToolbar</text>
+  <text class="body" x="1037" y="548" text-anchor="middle">PlannerDesktopPanels / MobilePanels</text>
+  <text class="body" x="1037" y="572" text-anchor="middle">PlannerSessionDialog</text>
+  <text class="body" x="1037" y="596" text-anchor="middle">AiCopilot</text>
+  <text class="small" x="1037" y="622" text-anchor="middle">planner shell now uses the shared site CSS direction</text>
+
+  <rect class="box-current" x="1230" y="436" width="340" height="236" rx="18" />
+  <text class="heading" x="1400" y="470" text-anchor="middle">Extracted Boundaries</text>
+  <text class="body" x="1400" y="500" text-anchor="middle">measurements.ts + compliance.ts</text>
+  <text class="body" x="1400" y="524" text-anchor="middle">documentBridge.ts</text>
+  <text class="body" x="1400" y="548" text-anchor="middle">plannerCatalog.ts</text>
+  <text class="body" x="1400" y="572" text-anchor="middle">usePlannerSession.ts</text>
+  <text class="body" x="1400" y="596" text-anchor="middle">quoteBridge.ts</text>
+  <text class="small" x="1400" y="628" text-anchor="middle">SmartdrawPlanner is smaller and no longer owns</text>
+  <text class="small" x="1400" y="648" text-anchor="middle">session and quote mapping inline</text>
+
+  <rect class="box-current" x="878" y="678" width="318" height="252" rx="18" />
+  <text class="heading" x="1037" y="712" text-anchor="middle">Interim Data Contract</text>
+  <text class="body" x="1037" y="742" text-anchor="middle">Canonical planner document</text>
+  <text class="body" x="1037" y="766" text-anchor="middle">Legacy read-only product catalog</text>
+  <text class="body" x="1037" y="790" text-anchor="middle">New write-side planner store</text>
+  <text class="body" x="1037" y="814" text-anchor="middle">Stable product id and slug references</text>
+  <text class="body" x="1037" y="838" text-anchor="middle">24-hour local draft cache only</text>
+  <text class="small" x="1037" y="870" text-anchor="middle">products are read from the old source, while</text>
+  <text class="small" x="1037" y="890" text-anchor="middle">planner documents and new managed products write elsewhere</text>
+
+  <rect class="box-current" x="1230" y="708" width="340" height="222" rx="18" />
+  <text class="heading" x="1400" y="742" text-anchor="middle">Auth, Access, and Session Rules</text>
+  <text class="body" x="1400" y="772" text-anchor="middle">One shared auth model</text>
+  <text class="body" x="1400" y="796" text-anchor="middle">Admin browser access via Supabase client + RLS</text>
+  <text class="body" x="1400" y="820" text-anchor="middle">No service-role key in the browser</text>
+  <text class="body" x="1400" y="844" text-anchor="middle">Sticky planner errors until dismissed</text>
+  <text class="body" x="1400" y="868" text-anchor="middle">Save / load / import tied to the same identity</text>
+
+  <rect class="box-current" x="878" y="966" width="318" height="176" rx="18" />
+  <text class="heading" x="1037" y="1000" text-anchor="middle">Unified 2D to 3D Bridge</text>
+  <text class="body" x="1037" y="1030" text-anchor="middle">One planner document drives 2D and 3D</text>
+  <text class="body" x="1037" y="1054" text-anchor="middle">/configurator loads draft or saved-plan preview</text>
+  <text class="body" x="1037" y="1078" text-anchor="middle">Fallback scene keeps the route honest</text>
+  <text class="body" x="1037" y="1102" text-anchor="middle">while capability is still interim</text>
+
+  <rect class="note-current" x="1230" y="966" width="340" height="176" rx="18" />
+  <text class="heading accent-current" x="1400" y="1000" text-anchor="middle">Remaining High-Value Work</text>
+  <text class="body" x="1258" y="1030">- production build and Cloudflare build gates</text>
+  <text class="body" x="1258" y="1058">- workspace and editor state split</text>
+  <text class="body" x="1258" y="1086">- wall joins, snapping, and constrained room tools</text>
+  <text class="body" x="1258" y="1114">- import normalization and admin RLS hardening</text>
+
+  <path class="line-current" d="M1037 400 L1037 436" />
+  <path class="line-current" d="M1037 640 L1037 678" />
+  <path class="line-current" d="M1037 930 L1037 966" />
+  <path class="line-current" d="M1400 400 L1400 436" />
+  <path class="line-current" d="M1400 672 L1400 708" />
+  <path class="line-current" d="M1400 930 L1400 966" />
+  <path class="line-neutral" d="M1196 326 L1230 326" />
+  <path class="line-neutral" d="M1196 530 L1230 530" />
+  <path class="line-neutral" d="M1196 812 L1230 812" />
+
+  <text class="small" x="840" y="1230" text-anchor="middle">Interpretation: keep apps/cad-suite as the planner base, finish build stability, continue extracting planner state, and improve Tldraw behavior without creating a second planner system.</text>
+</svg>

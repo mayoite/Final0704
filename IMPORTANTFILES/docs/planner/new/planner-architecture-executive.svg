@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Planner Executive Architecture Summary</title>
+  <desc id="desc">Simplified executive planner architecture chart with fewer boxes showing the old state, the current canonical planner path, and the remaining work.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f5f0e8; }
+      .left { fill: #fff7f1; stroke: #b86124; stroke-width: 2; }
+      .right { fill: #eef4fa; stroke: #1f3653; stroke-width: 2; }
+      .box-left { fill: #ffffff; stroke: #c96a2b; stroke-width: 2; }
+      .box-right { fill: #ffffff; stroke: #1f3653; stroke-width: 2; }
+      .note { fill: #ffffff; stroke: #72849a; stroke-width: 1.4; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #111c27; }
+      .subtitle { font: 18px 'Segoe UI', Arial, sans-serif; fill: #46586b; }
+      .panel-title-left { font: 700 28px 'Segoe UI', Arial, sans-serif; fill: #9a4e16; }
+      .panel-title-right { font: 700 28px 'Segoe UI', Arial, sans-serif; fill: #17324d; }
+      .heading { font: 700 22px 'Segoe UI', Arial, sans-serif; fill: #17212b; }
+      .body { font: 17px 'Segoe UI', Arial, sans-serif; fill: #24323f; }
+      .small { font: 14px 'Segoe UI', Arial, sans-serif; fill: #46586b; }
+      .line-left { stroke: #c96a2b; stroke-width: 3; fill: none; marker-end: url(#arrowLeft); }
+      .line-right { stroke: #1f3653; stroke-width: 3; fill: none; marker-end: url(#arrowRight); }
+    </style>
+    <marker id="arrowLeft" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#c96a2b" />
+    </marker>
+    <marker id="arrowRight" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#1f3653" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="900" />
+  <text class="title" x="800" y="56" text-anchor="middle">Planner Executive Summary</text>
+  <text class="subtitle" x="800" y="86" text-anchor="middle">Minimal view for leadership or presentation decks.</text>
+
+  <rect class="left" x="60" y="132" width="470" height="690" rx="26" />
+  <rect class="right" x="600" y="132" width="940" height="690" rx="26" />
+
+  <text class="panel-title-left" x="295" y="174" text-anchor="middle">Old State</text>
+  <text class="panel-title-right" x="1070" y="174" text-anchor="middle">Current Direction</text>
+
+  <rect class="box-left" x="100" y="222" width="390" height="178" rx="20" />
+  <text class="heading" x="295" y="260" text-anchor="middle">Why the old state was weak</text>
+  <text class="body" x="295" y="300" text-anchor="middle">Docs, routes, donor trees, and the live planner</text>
+  <text class="body" x="295" y="328" text-anchor="middle">were telling different stories.</text>
+  <text class="body" x="295" y="356" text-anchor="middle">The planner direction was right, but ownership,</text>
+  <text class="body" x="295" y="384" text-anchor="middle">boundaries, and persistence were too messy.</text>
+
+  <rect class="note" x="100" y="448" width="390" height="300" rx="20" />
+  <text class="heading" x="295" y="486" text-anchor="middle">Main old-state risks</text>
+  <text class="body" x="126" y="530">- duplicate planner boundaries</text>
+  <text class="body" x="126" y="562">- monolithic SmartdrawPlanner owner</text>
+  <text class="body" x="126" y="594">- unclear persistence story</text>
+  <text class="body" x="126" y="626">- route naming ahead of real capability</text>
+  <text class="body" x="126" y="658">- build stability blocking deploy confidence</text>
+
+  <rect class="box-right" x="646" y="220" width="266" height="182" rx="20" />
+  <text class="heading" x="779" y="258" text-anchor="middle">Canonical Product</text>
+  <text class="body" x="779" y="298" text-anchor="middle">apps/cad-suite</text>
+  <text class="body" x="779" y="326" text-anchor="middle">/planner is canonical</text>
+  <text class="body" x="779" y="354" text-anchor="middle">/draw is temporary alias</text>
+  <text class="body" x="779" y="382" text-anchor="middle">/configurator is interim preview</text>
+
+  <rect class="box-right" x="936" y="220" width="266" height="182" rx="20" />
+  <text class="heading" x="1069" y="258" text-anchor="middle">Current Planner Gains</text>
+  <text class="body" x="1069" y="298" text-anchor="middle">session boundary extracted</text>
+  <text class="body" x="1069" y="326" text-anchor="middle">quote bridge extracted</text>
+  <text class="body" x="1069" y="354" text-anchor="middle">measurement utilities extracted</text>
+  <text class="body" x="1069" y="382" text-anchor="middle">theme aligned to site CSS</text>
+
+  <rect class="box-right" x="1226" y="220" width="266" height="182" rx="20" />
+  <text class="heading" x="1359" y="258" text-anchor="middle">Interim Data Model</text>
+  <text class="body" x="1359" y="298" text-anchor="middle">legacy catalog is read-only</text>
+  <text class="body" x="1359" y="326" text-anchor="middle">new planner store is write-side</text>
+  <text class="body" x="1359" y="354" text-anchor="middle">24-hour local draft cache only</text>
+  <text class="body" x="1359" y="382" text-anchor="middle">one canonical planner document</text>
+
+  <rect class="note" x="646" y="462" width="846" height="288" rx="20" />
+  <text class="heading" x="1069" y="500" text-anchor="middle">What still matters most</text>
+  <text class="body" x="678" y="546">- make cad-suite production build pass</text>
+  <text class="body" x="678" y="578">- make cad-suite Cloudflare build pass</text>
+  <text class="body" x="678" y="610">- finish splitting workspace state and editor state</text>
+  <text class="body" x="678" y="642">- improve Tldraw with wall joins, constrained room creation, and stronger snapping</text>
+  <text class="body" x="678" y="674">- harden import normalization and admin RLS policy work</text>
+  <text class="small" x="678" y="718">Executive reading: the planner is no longer directionless. The remaining risk is deployment hardening and the last major runtime boundaries.</text>
+
+  <path class="line-left" d="M295 400 L295 448" />
+  <path class="line-right" d="M779 402 L779 462" />
+  <path class="line-right" d="M1069 402 L1069 462" />
+  <path class="line-right" d="M1359 402 L1359 462" />
+</svg>

@@ -2,9 +2,13 @@
   "name": "oando-replication",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev --webpack",
-    "dev:cad": "cd apps/cad-suite && npm run dev",
+    "dev:cad": "npm -w cad-suite run dev",
     "dev:all": "npx -y concurrently \"npm run dev\" \"npm run dev:cad\"",
     "dev:turbo": "next dev --turbo",
     "dev:webpack": "next dev --webpack",
@@ -14,9 +18,10 @@
     "cf:preview": "opennextjs-cloudflare build && wrangler dev",
     "cf:deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf:d1:schema:apply": "wrangler d1 execute oneandonly-backup-db --file cloudflare/d1/backup-schema.sql",
-    "cf:cad:build": "npm --prefix apps/cad-suite run cf:build",
-    "cf:cad:preview": "npm --prefix apps/cad-suite run cf:preview",
-    "cf:cad:deploy": "npm --prefix apps/cad-suite run cf:deploy",
+    "cf:cad:build": "npm -w cad-suite run cf:build",
+    "cf:cad:preview": "npm -w cad-suite run cf:preview",
+    "cf:cad:deploy": "npm -w cad-suite run cf:deploy",
+
     "vercel:preview": "vercel --yes",
     "release:gate": "npm run test:e2e:nav",
     "vercel:prod": "npm run release:gate && vercel --prod --yes",
@@ -103,6 +108,7 @@
     "axe-core": "^4.11.1",
     "axios": "^1.14.0",
     "cheerio": "^1.2.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^17.4.1",
     "eslint": "^10.1.0",
     "eslint-config-next": "^16.2.1",

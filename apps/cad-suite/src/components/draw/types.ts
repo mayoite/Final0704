@@ -3,9 +3,13 @@ export type PlannerDrawingTool = "select" | "hand" | "draw" | "line" | "geo" | "
 
 export interface BoqItem {
   id: string;
+  productId?: string;
+  productSlug?: string;
+  plannerSourceSlug?: string;
   name: string;
   category: string;
   price: number;
+  imageUrl?: string;
   dimensions?: string;
 }
 
@@ -15,19 +19,26 @@ export interface ProductSpecs {
 }
 
 export interface CatalogProduct {
+  id?: string;
+  slug?: string;
   name: string;
   category?: string;
   price?: number;
   flagship_image?: string;
   images?: string[];
   specs?: ProductSpecs;
+  metadata?: Record<string, unknown>;
   [k: string]: unknown;
 }
 
 export interface PlannerShapeMeta {
   text?: string;
+  productId?: string;
+  productSlug?: string;
+  plannerSourceSlug?: string;
   category?: string;
   price?: number;
+  imageUrl?: string;
   dimensions?: string;
   presetId?: string;
   isPlannerItem?: boolean;

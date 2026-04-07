@@ -1,50 +1,46 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
-import {
-  DefaultColorStyle,
-  DefaultDashStyle,
-  DefaultFillStyle,
-  DefaultSizeStyle,
-  GeoShapeGeoStyle,
-} from "@tldraw/tlschema";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getIndices } from "@tldraw/utils";
 import { AssetRecordType, createShapeId, Editor, type TLGeoShape, type TLLineShape } from "tldraw";
 import "tldraw/tldraw.css";
 import { useRouter } from "next/navigation";
 
+import {
+  loadPlannerDocumentFromSupabase,
+  loadPlannerDraftDocument,
+} from "../../features/planner/data";
+import { usePlannerSession } from "../../features/planner/hooks/usePlannerSession";
+import { buildPlannerDocumentFromEditor, loadPlannerDocumentIntoEditor } from "../../features/planner/lib/documentBridge";
+import { runPlannerComplianceCheck } from "../../features/planner/lib/compliance";
+import { configureBasicShapeTool, configureWallTool } from "../../features/planner/lib/editorTools";
+import {
+  deriveViewportState,
+  getShapeMeta,
+  getStructuralShapes,
+  type CanvasMeasurement,
+  type MeasurementUnit,
+} from "../../features/planner/lib/measurements";
+import { buildPlannerQuoteCartItems, calculatePlannerBoqTotal } from "../../features/planner/lib/quoteBridge";
+import {
+  LOCAL_CURRENT_DRAFT_ID,
+  sanitizePlannerPlanName,
+} from "../../features/planner/lib/sessionState";
+import {
+  createPlannerDocument,
+  normalizePlannerDocument,
+  type PlannerDocument as SavedPlannerDocument,
+} from "../../features/planner/model";
+import { PlannerDesktopPanels } from "../../features/planner/ui/PlannerDesktopPanels";
+import { PlannerMobilePanels } from "../../features/planner/ui/PlannerMobilePanels";
+import { PlannerSessionDialog } from "../../features/planner/ui/PlannerSessionDialog";
+import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useQuoteCart } from "@/lib/store/quoteCart";
 
 import { AiCopilot, type AiSuggestion } from "./AiCopilot";
 import { PlannerCanvas } from "./PlannerCanvas";
-import { PlannerDesktopPanels } from "./PlannerDesktopPanels";
-import { PlannerMobilePanels } from "./PlannerMobilePanels";
 import { PlannerToolbar } from "./PlannerToolbar";
-import type { BoqItem, CatalogProduct, PlannerDrawingTool, PlannerShapeMeta, PlannerStep, RoomPreset } from "./types";
-
-const LOCAL_TLDRAW_ASSET_URLS = {
-  fonts: {
-    tldraw_mono: "/cdn/tldraw/fonts/IBMPlexMono-Medium.woff2",
-    tldraw_mono_italic: "/cdn/tldraw/fonts/IBMPlexMono-MediumItalic.woff2",
-    tldraw_mono_bold: "/cdn/tldraw/fonts/IBMPlexMono-Bold.woff2",
-    tldraw_mono_italic_bold: "/cdn/tldraw/fonts/IBMPlexMono-BoldItalic.woff2",
-    tldraw_serif: "/cdn/tldraw/fonts/IBMPlexSerif-Medium.woff2",
-    tldraw_serif_italic: "/cdn/tldraw/fonts/IBMPlexSerif-MediumItalic.woff2",
-    tldraw_serif_bold: "/cdn/tldraw/fonts/IBMPlexSerif-Bold.woff2",
-    tldraw_serif_italic_bold: "/cdn/tldraw/fonts/IBMPlexSerif-BoldItalic.woff2",
-    tldraw_sans: "/cdn/tldraw/fonts/IBMPlexSans-Medium.woff2",
-    tldraw_sans_italic: "/cdn/tldraw/fonts/IBMPlexSans-MediumItalic.woff2",
-    tldraw_sans_bold: "/cdn/tldraw/fonts/IBMPlexSans-Bold.woff2",
-    tldraw_sans_italic_bold: "/cdn/tldraw/fonts/IBMPlexSans-BoldItalic.woff2",
-    tldraw_draw: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Regular.woff2",
-    tldraw_draw_italic: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Regular_Italic.woff2",
-    tldraw_draw_bold: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Bold.woff2",
-    tldraw_draw_italic_bold: "/cdn/tldraw/fonts/Shantell_Sans-Informal_Bold_Italic.woff2",
-  },
-  translations: {
-    en: "/cdn/tldraw/translations/en.json",
-  },
-} as const;
+import type { BoqItem, CatalogProduct, PlannerDrawingTool, PlannerStep, RoomPreset } from "./types";
 
 const ROOM_BOUNDARY_ID = createShapeId("room-boundary");
 
@@ -72,137 +68,36 @@ const ROOM_PRESETS: RoomPreset[] = [
   },
 ];
 
-interface CanvasMeasurement {
-  id: string;
-  caption: string;
-  value: string;
-  x: number;
-  y: number;
-  rotateDeg?: number;
-  tone?: "room" | "selection";
-}
-
-type MeasurementUnit = "mm" | "ft-in";
-type PlannerShape = ReturnType<Editor["getCurrentPageShapes"]>[number];
-type PlannerBounds = NonNullable<ReturnType<Editor["getShapePageBounds"]>>;
-type PlannerLinePoint = TLLineShape["props"]["points"][string];
-
-function formatFeetAndInches(mm: number) {
-  const totalInches = Math.max(0, Math.round(mm / 25.4));
-  const feet = Math.floor(totalInches / 12);
-  const inches = totalInches % 12;
-  return `${feet}' ${inches}"`;
-}
-
-function formatLength(mm: number, unitSystem: MeasurementUnit) {
-  return unitSystem === "ft-in" ? formatFeetAndInches(mm) : `${Math.round(mm)} mm`;
-}
-
-function formatMetricFromBounds(bounds: { w: number; h: number }, unitSystem: MeasurementUnit) {
-  return `W ${formatLength(bounds.w * 10, unitSystem)} x H ${formatLength(bounds.h * 10, unitSystem)}`;
-}
-
-function getMergedBounds(
-  boundsList: PlannerBounds[]
-) {
-  if (boundsList.length === 0) return null;
-
-  const minX = Math.min(...boundsList.map((bounds) => bounds.minX));
-  const minY = Math.min(...boundsList.map((bounds) => bounds.minY));
-  const maxX = Math.max(...boundsList.map((bounds) => bounds.maxX));
-  const maxY = Math.max(...boundsList.map((bounds) => bounds.maxY));
-
-  return {
-    minX,
-    minY,
-    maxX,
-    maxY,
-    w: maxX - minX,
-    h: maxY - minY,
-  };
-}
-
-function getShapeMeta(meta: unknown): PlannerShapeMeta {
-  return meta && typeof meta === "object" ? (meta as PlannerShapeMeta) : {};
-}
-
-function getLinePoints(shape: PlannerShape): PlannerLinePoint[] {
-  if (shape.type !== "line") return [];
-
-  const points = shape.props.points;
-  return Object.values(points)
-    .filter((point): point is PlannerLinePoint => {
-      return (
-        typeof point.id === "string" &&
-        typeof point.index === "string" &&
-        typeof point.x === "number" &&
-        typeof point.y === "number"
-      );
-    })
-    .sort((left, right) => left.index.localeCompare(right.index));
-}
-
-function getStructuralShapes(editor: Editor) {
-  return editor
-    .getCurrentPageShapes()
-    .filter((shape) => {
-      const meta = getShapeMeta(shape.meta);
-      return !meta.isPlannerItem && !meta.isRoomDimension;
-    });
-}
-
-function getMetricLabelForShape(
-  editor: Editor,
-  shapeId: ReturnType<typeof createShapeId>,
-  unitSystem: MeasurementUnit
-) {
-  const shape = editor.getShape(shapeId);
-  const bounds = editor.getShapePageBounds(shapeId);
-
-  if (!shape || !bounds) return null;
-
-  if (shape.type === "line") {
-    const points = getLinePoints(shape);
-
-    if (points.length >= 2) {
-      const length = points.slice(1).reduce((total, point, index) => {
-        const previous = points[index];
-        return total + Math.hypot(point.x - previous.x, point.y - previous.y);
-      }, 0);
-
-      return `Length ${formatLength(length * 10, unitSystem)}`;
-    }
+function getCatalogMetadataValue(product: CatalogProduct, key: string) {
+  if (!product.metadata || typeof product.metadata !== "object" || Array.isArray(product.metadata)) {
+    return undefined;
   }
 
-  return formatMetricFromBounds(bounds, unitSystem);
-}
-
-function configureWallTool(editor: Editor) {
-  editor.setCurrentTool("line");
-  editor.setStyleForNextShapes(DefaultColorStyle, "grey");
-  editor.setStyleForNextShapes(DefaultDashStyle, "solid");
-  editor.setStyleForNextShapes(DefaultSizeStyle, "m");
-}
-
-function configureBasicShapeTool(editor: Editor) {
-  editor.setCurrentTool("geo");
-  editor.setStyleForNextShapes(GeoShapeGeoStyle, "rectangle");
-  editor.setStyleForNextShapes(DefaultColorStyle, "grey");
-  editor.setStyleForNextShapes(DefaultFillStyle, "none");
-  editor.setStyleForNextShapes(DefaultDashStyle, "solid");
-  editor.setStyleForNextShapes(DefaultSizeStyle, "m");
+  const raw = product.metadata[key];
+  return typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : undefined;
 }
 
 export function SmartdrawPlanner({
   catalogProducts = [],
   mode = "desktop",
+  initialDocument = null,
+  initialSaveId = null,
 }: {
   catalogProducts?: CatalogProduct[];
   mode?: "desktop" | "mobile";
+  initialDocument?: SavedPlannerDocument | null;
+  initialSaveId?: string | null;
 }) {
   const router = useRouter();
   const quoteCart = useQuoteCart();
+  const supabase = useMemo(() => {
+    const hasSupabaseEnv = Boolean(
+      process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    );
+    return hasSupabaseEnv ? createSupabaseBrowserClient() : null;
+  }, []);
   const isMobileMode = mode === "mobile";
+  const importInputRef = useRef<HTMLInputElement | null>(null);
 
   const [editor, setEditor] = useState<Editor | null>(null);
   const [boqItems, setBoqItems] = useState<BoqItem[]>([]);
@@ -232,6 +127,10 @@ export function SmartdrawPlanner({
   const [mobileCatalogOpen, setMobileCatalogOpen] = useState(false);
   const [mobileLayersOpen, setMobileLayersOpen] = useState(false);
   const [mobileInspectorOpen, setMobileInspectorOpen] = useState(false);
+  const [planName, setPlanName] = useState(() => sanitizePlannerPlanName(initialDocument?.name ?? "Untitled plan"));
+  const [activeDocumentId, setActiveDocumentId] = useState<string | null>(initialDocument?.id ?? initialSaveId ?? null);
+  const [hydratedInitialDocument, setHydratedInitialDocument] = useState(false);
+
   const canEnterCatalog = hasRoomShellDraft;
   const canEnterMeasure = hasRoomShellDraft;
   const canEnterReview = boqItems.length > 0;
@@ -243,37 +142,28 @@ export function SmartdrawPlanner({
         .filter((shapeId) => {
           const meta = getShapeMeta(editor.getShape(shapeId)?.meta);
           return shapeId !== ROOM_BOUNDARY_ID && !meta.isRoomDimension;
-        }) ??
-      [],
-    [editor]
+        }) ?? [],
+    [editor],
   );
 
   const selectDrawingTool = useCallback(
     (tool: PlannerDrawingTool) => {
       setActiveDrawingTool(tool);
-      if (editor) {
-        if (tool === "line") {
-          configureWallTool(editor);
-          return;
-        }
+      if (!editor) return;
 
-        if (tool === "geo") {
-          configureBasicShapeTool(editor);
-          return;
-        }
-
-        if (tool === "draw") {
-          editor.setCurrentTool("draw");
-          editor.setStyleForNextShapes(DefaultColorStyle, "grey");
-          editor.setStyleForNextShapes(DefaultDashStyle, "solid");
-          editor.setStyleForNextShapes(DefaultSizeStyle, "m");
-          return;
-        }
-
-        editor.setCurrentTool(tool);
+      if (tool === "line") {
+        configureWallTool(editor);
+        return;
       }
+
+      if (tool === "geo") {
+        configureBasicShapeTool(editor);
+        return;
+      }
+
+      editor.setCurrentTool(tool);
     },
-    [editor]
+    [editor],
   );
 
   const applyStepMode = useCallback(
@@ -331,7 +221,28 @@ export function SmartdrawPlanner({
       }
       selectDrawingTool("select");
     },
-    [canEnterCatalog, canEnterMeasure, canEnterReview, isMobileMode, selectDrawingTool]
+    [canEnterCatalog, canEnterMeasure, canEnterReview, isMobileMode, selectDrawingTool],
+  );
+
+  const applyPlannerDocument = useCallback(
+    (document: SavedPlannerDocument) => {
+      const normalized = normalizePlannerDocument(document);
+
+      setPlanName(sanitizePlannerPlanName(normalized.name));
+      setActiveDocumentId(normalized.id ?? null);
+      setUnitSystem(normalized.unitSystem === "imperial" ? "ft-in" : "mm");
+
+      if (editor) {
+        loadPlannerDocumentIntoEditor(editor, normalized);
+      }
+
+      setCurrentStep(normalized.itemCount > 0 ? "measure" : "room");
+      setShowCatalog(true);
+      setShowLayers(true);
+      setShowInspector(true);
+      setActivePanel(normalized.itemCount > 0 ? "inspector" : "catalog");
+    },
+    [editor],
   );
 
   const buildAiSuggestions = useCallback(
@@ -379,59 +290,7 @@ export function SmartdrawPlanner({
 
       setAiSuggestions(suggestions);
     },
-    [currentStep]
-  );
-
-  const runComplianceCheck = useCallback(
-    (shapes: PlannerShape[]) => {
-      if (!editor) return [];
-
-      const warnings: string[] = [];
-      const plannerShapes = shapes.filter((shape) => getShapeMeta(shape.meta).isPlannerItem);
-      let overlapCount = 0;
-      let tightClearanceCount = 0;
-
-      for (let index = 0; index < plannerShapes.length; index += 1) {
-        for (let nextIndex = index + 1; nextIndex < plannerShapes.length; nextIndex += 1) {
-          const boundsA = editor.getShapePageBounds(plannerShapes[index]);
-          const boundsB = editor.getShapePageBounds(plannerShapes[nextIndex]);
-
-          if (!boundsA || !boundsB) continue;
-
-          const isOverlapping = !(
-            boundsA.maxX < boundsB.minX ||
-            boundsA.minX > boundsB.maxX ||
-            boundsA.maxY < boundsB.minY ||
-            boundsA.minY > boundsB.maxY
-          );
-
-          if (isOverlapping) {
-            overlapCount += 1;
-            continue;
-          }
-
-          const clearanceX = Math.max(0, Math.max(boundsA.minX - boundsB.maxX, boundsB.minX - boundsA.maxX));
-          const clearanceY = Math.max(0, Math.max(boundsA.minY - boundsB.maxY, boundsB.minY - boundsA.maxY));
-          const distance = Math.sqrt(clearanceX * clearanceX + clearanceY * clearanceY);
-
-          if (distance > 0 && distance < 90) {
-            tightClearanceCount += 1;
-          }
-        }
-      }
-
-      if (overlapCount > 0) {
-        warnings.push(`CRITICAL: ${overlapCount} workstation(s) are severely overlapping.`);
-      }
-      if (tightClearanceCount > 0) {
-        warnings.push(
-          `COMPLIANCE WARNING: ${tightClearanceCount} module boundary clearances are under the strict 900mm ADA minimum.`
-        );
-      }
-
-      return warnings;
-    },
-    [editor]
+    [currentStep],
   );
 
   const handleMount = useCallback((app: Editor) => {
@@ -458,105 +317,23 @@ export function SmartdrawPlanner({
     if (!editor) return;
 
     const syncViewportState = () => {
-      const camera = editor.getCamera();
-      const pageOrigin = editor.pageToViewport({ x: 0, y: 0 });
+      const viewportState = deriveViewportState(editor, getActionableSelectionIds(), unitSystem);
 
-      setZoomPercent(Math.round(camera.z * 100));
-      setGridState({ originX: pageOrigin.x, originY: pageOrigin.y, zoom: camera.z });
-      const selectionIds = getActionableSelectionIds();
-      setHasSelection(selectionIds.length > 0);
-      setCanUndo(editor.canUndo());
-      setCanRedo(editor.canRedo());
-
-      const structuralBounds = getStructuralShapes(editor)
-        .map((shape) => editor.getShapePageBounds(shape.id))
-        .filter((bounds): bounds is PlannerBounds => bounds !== null);
-      const mergedStructuralBounds = getMergedBounds(structuralBounds);
-
-      if (mergedStructuralBounds) {
-        setRoomMetrics(formatMetricFromBounds(mergedStructuralBounds, unitSystem));
-      } else {
-        setRoomMetrics("No room shell yet");
-      }
-
-      if (selectionIds.length > 0) {
-        setSelectedMetrics(
-          selectionIds.length === 1
-            ? getMetricLabelForShape(editor, selectionIds[0], unitSystem) ?? null
-            : (() => {
-                const selectionBounds = editor.getSelectionPageBounds();
-                return selectionBounds ? formatMetricFromBounds(selectionBounds, unitSystem) : null;
-              })()
-        );
-      } else {
-        setSelectedMetrics(null);
-      }
-
-      const nextMeasurements: CanvasMeasurement[] = [];
-
-      if (mergedStructuralBounds) {
-        const roomWidthAnchor = editor.pageToViewport({
-          x: mergedStructuralBounds.minX + mergedStructuralBounds.w / 2,
-          y: mergedStructuralBounds.minY,
-        });
-        const roomHeightAnchor = editor.pageToViewport({
-          x: mergedStructuralBounds.maxX,
-          y: mergedStructuralBounds.minY + mergedStructuralBounds.h / 2,
-        });
-
-        nextMeasurements.push({
-          id: "room-width",
-          caption: "Room width",
-          value: formatLength(mergedStructuralBounds.w * 10, unitSystem),
-          x: Math.round(roomWidthAnchor.x),
-          y: Math.max(104, Math.round(roomWidthAnchor.y) - 34),
-          tone: "room",
-        });
-        nextMeasurements.push({
-          id: "room-height",
-          caption: "Room depth",
-          value: formatLength(mergedStructuralBounds.h * 10, unitSystem),
-          x: Math.round(roomHeightAnchor.x) + 34,
-          y: Math.max(124, Math.round(roomHeightAnchor.y)),
-          rotateDeg: 90,
-          tone: "room",
-        });
-      }
-
-      if (selectionIds.length > 0) {
-        const selectionBounds = editor.getSelectionPageBounds();
-        const selectionLabel =
-          selectionIds.length === 1
-            ? getMetricLabelForShape(editor, selectionIds[0], unitSystem)
-            : selectionBounds
-              ? formatMetricFromBounds(selectionBounds, unitSystem)
-              : null;
-        const selectionShape = selectionIds.length === 1 ? editor.getShape(selectionIds[0]) : null;
-
-        if (selectionBounds && selectionLabel) {
-          const selectionAnchor = editor.pageToViewport({
-            x: selectionBounds.minX + selectionBounds.w / 2,
-            y: selectionBounds.minY,
-          });
-
-          nextMeasurements.push({
-            id: "selection-metrics",
-            caption: selectionShape?.type === "line" ? "Wall span" : "Selection",
-            value: selectionLabel,
-            x: Math.round(selectionAnchor.x),
-            y: Math.max(104, Math.round(selectionAnchor.y) - 34),
-            tone: "selection",
-          });
-        }
-      }
-
-      setCanvasMeasurements(nextMeasurements);
+      setZoomPercent(viewportState.zoomPercent);
+      setGridState(viewportState.gridState);
+      setHasSelection(viewportState.hasSelection);
+      setCanUndo(viewportState.canUndo);
+      setCanRedo(viewportState.canRedo);
+      setRoomMetrics(viewportState.roomMetrics);
+      setSelectedMetrics(viewportState.selectedMetrics);
+      setCanvasMeasurements(viewportState.canvasMeasurements);
     };
+
     syncViewportState();
     const intervalId = window.setInterval(syncViewportState, 200);
 
     return () => window.clearInterval(intervalId);
-  }, [currentStep, editor, getActionableSelectionIds, unitSystem]);
+  }, [editor, getActionableSelectionIds, unitSystem]);
 
   useEffect(() => {
     if (!editor) return;
@@ -568,18 +345,22 @@ export function SmartdrawPlanner({
         .map((shape) => {
           const meta = getShapeMeta(shape.meta);
           return {
-            id: shape.id,
+            id: String(shape.id),
+            productId: meta.productId,
+            productSlug: meta.productSlug,
+            plannerSourceSlug: meta.plannerSourceSlug,
             name: meta.text || "Custom Module",
             category: meta.category || "Workstations",
-            price: meta.price || 0,
+            price: Number(meta.price ?? 0),
+            imageUrl: meta.imageUrl,
             dimensions: meta.dimensions || "",
-          };
+          } satisfies BoqItem;
         });
       const structuralShapes = getStructuralShapes(editor);
 
       setBoqItems(items);
       setHasRoomShellDraft(structuralShapes.length > 0);
-      const geometricWarnings = runComplianceCheck(shapes);
+      const geometricWarnings = runPlannerComplianceCheck(editor, shapes);
       buildAiSuggestions(items, shapes.length, geometricWarnings);
     };
 
@@ -596,11 +377,120 @@ export function SmartdrawPlanner({
           syncBoq();
         }
       },
-      { source: "user", scope: "document" }
+      { source: "user", scope: "document" },
     );
 
     return () => stopListening();
-  }, [buildAiSuggestions, currentStep, editor, runComplianceCheck]);
+  }, [buildAiSuggestions, editor]);
+
+  const buildCurrentPlannerDocument = useCallback(() => {
+    if (!editor) {
+      return createPlannerDocument({
+        id: activeDocumentId ?? undefined,
+        name: planName,
+        unitSystem: unitSystem === "ft-in" ? "imperial" : "metric",
+      });
+    }
+
+    return buildPlannerDocumentFromEditor(editor, {
+      documentId: activeDocumentId,
+      name: planName,
+      unitSystem,
+    });
+  }, [activeDocumentId, editor, planName, unitSystem]);
+  const buildCurrentPlannerDocumentRef = useRef(buildCurrentPlannerDocument);
+
+  useEffect(() => {
+    buildCurrentPlannerDocumentRef.current = buildCurrentPlannerDocument;
+  }, [buildCurrentPlannerDocument]);
+
+  const {
+    isAuthenticated,
+    sessionBusy,
+    sessionStatusMessage,
+    sessionErrorMessage,
+    sessionDialogOpen,
+    plannerSavedEntries,
+    toolbarSessionModeLabel,
+    toolbarSessionStateLabel,
+    getDraftScope,
+    reportSessionStatus,
+    reportSessionError,
+    clearSessionError,
+    setSessionDialogOpen,
+    handleSaveCloud,
+    handleSaveDraft,
+    handleLoadPlan,
+    handleDeletePlan,
+    handleImportRequest,
+    handleImportFileChange,
+    handleExportJson,
+    handleOpen3d,
+  } = usePlannerSession({
+    activeDocumentId,
+    planName,
+    setActiveDocumentId,
+    setPlanName,
+    supabase,
+    router,
+    buildCurrentPlannerDocument: () => buildCurrentPlannerDocumentRef.current(),
+    applyPlannerDocument,
+  });
+
+  useEffect(() => {
+    if (!editor || hydratedInitialDocument) return;
+
+    let isCancelled = false;
+
+    const hydratePlanner = async () => {
+      let documentToLoad: SavedPlannerDocument | null = null;
+
+      if (initialDocument) {
+        documentToLoad = normalizePlannerDocument(initialDocument);
+      } else if (initialSaveId && supabase) {
+        try {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+
+          if (user?.id) {
+            documentToLoad = await loadPlannerDocumentFromSupabase(supabase, initialSaveId, { userId: user.id });
+          }
+        } catch (error) {
+          if (!isCancelled && error instanceof Error) {
+            reportSessionError(error.message);
+          }
+        }
+      }
+
+      if (!documentToLoad) {
+        documentToLoad = loadPlannerDraftDocument(getDraftScope(LOCAL_CURRENT_DRAFT_ID));
+      }
+
+      if (!isCancelled && documentToLoad) {
+        applyPlannerDocument(documentToLoad);
+      }
+
+      if (!isCancelled) {
+        setHydratedInitialDocument(true);
+      }
+    };
+
+    void hydratePlanner();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [
+    applyPlannerDocument,
+    editor,
+    getDraftScope,
+    hydratedInitialDocument,
+    initialDocument,
+    initialSaveId,
+    reportSessionError,
+    supabase,
+  ]);
 
   const handleDropFurniture = (product: CatalogProduct | { name: string; category: string }) => {
     if (!editor) return;
@@ -629,12 +519,23 @@ export function SmartdrawPlanner({
       }
     }
 
-    const imageUrl = "flagship_image" in product ? product.flagship_image || product.images?.[0] : undefined;
+    const productId = "id" in product && typeof product.id === "string" ? product.id : undefined;
+    const productSlug = "slug" in product && typeof product.slug === "string" ? product.slug : undefined;
+    const plannerSourceSlug =
+      ("plannerSourceSlug" in product && typeof product.plannerSourceSlug === "string"
+        ? product.plannerSourceSlug
+        : undefined) ?? getCatalogMetadataValue(product as CatalogProduct, "plannerSourceSlug") ?? getCatalogMetadataValue(product as CatalogProduct, "sourceSlug");
+    const imageUrl =
+      ("flagship_image" in product ? product.flagship_image || product.images?.[0] : undefined) ?? undefined;
     const meta = {
       text: product.name,
+      productId,
+      productSlug,
+      plannerSourceSlug,
+      imageUrl,
       isPlannerItem: true,
-      price: "price" in product ? product.price || 0 : 0,
-      category: product.category || "Workstations",
+      price: "price" in product ? Number(product.price ?? 0) : 0,
+      category: product.category || getCatalogMetadataValue(product as CatalogProduct, "category") || "Workstations",
       dimensions: dimensions || "",
     };
 
@@ -684,12 +585,13 @@ export function SmartdrawPlanner({
   const handleClearAll = () => {
     if (!editor) return;
 
-    const shapeIds = editor
-      .getCurrentPageShapes()
-      .map((shape) => shape.id);
+    const shapeIds = editor.getCurrentPageShapes().map((shape) => shape.id);
 
     editor.deleteShapes(shapeIds);
+    setActiveDocumentId(null);
+    setPlanName("Untitled plan");
     applyStepMode("room");
+    reportSessionStatus("Planner canvas cleared.");
   };
 
   const handleApplyRoomPreset = useCallback(
@@ -730,7 +632,7 @@ export function SmartdrawPlanner({
             points.map((point, index) => [
               indices[index],
               { id: indices[index], index: indices[index], x: point.x, y: point.y },
-            ])
+            ]),
           ),
         } as TLLineShape["props"],
         meta: { isRoomShell: true, presetId: preset.id, text: preset.name },
@@ -740,7 +642,7 @@ export function SmartdrawPlanner({
       editor.select(ROOM_BOUNDARY_ID);
       editor.zoomToSelection({ animation: { duration: 200 } });
     },
-    [applyStepMode, editor]
+    [applyStepMode, editor],
   );
 
   const handleActivateWallTool = useCallback(() => {
@@ -771,29 +673,14 @@ export function SmartdrawPlanner({
     }
     if (boqItems.length === 0) return;
 
-    const groupedItems = boqItems.reduce((accumulator, item) => {
-      if (!accumulator[item.name]) {
-        accumulator[item.name] = { ...item, qty: 1 };
-      } else {
-        accumulator[item.name].qty += 1;
-      }
-      return accumulator;
-    }, {} as Record<string, BoqItem & { qty: number }>);
-
-    Object.values(groupedItems).forEach((item) => {
-      quoteCart.addItem({
-        id: `planner-${item.name.replace(/\s+/g, "-")}`,
-        name: item.name,
-        qty: item.qty,
-        source: "planner",
-        plannerFamily: item.category,
-      });
+    buildPlannerQuoteCartItems(boqItems).forEach((item) => {
+      quoteCart.addItem(item);
     });
 
     router.push("/quote-cart");
   };
 
-  const totalBoq = boqItems.reduce((total, item) => total + item.price, 0);
+  const totalBoq = calculatePlannerBoqTotal(boqItems);
 
   const adjustZoom = (factor: number) => {
     if (!editor) return;
@@ -840,11 +727,23 @@ export function SmartdrawPlanner({
 
   return (
     <section className="fixed inset-0 z-[100] h-full w-full overflow-hidden bg-page">
+      <input
+        ref={importInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={handleImportFileChange}
+      />
+
       <div className="relative h-full w-full overflow-hidden">
         <PlannerToolbar
           currentStep={currentStep}
           onStepChange={applyStepMode}
           disabledSteps={{ catalog: !canEnterCatalog, measure: !canEnterMeasure, review: !canEnterReview }}
+          planName={planName}
+          sessionModeLabel={toolbarSessionModeLabel}
+          sessionStateLabel={toolbarSessionStateLabel}
+          isSessionBusy={sessionBusy}
           activeDrawingTool={activeDrawingTool}
           onSelectDrawingTool={selectDrawingTool}
           canUndo={canUndo}
@@ -876,13 +775,15 @@ export function SmartdrawPlanner({
           onToggleInspector={() => setShowInspector((current) => !current)}
           onOpenMobileCatalog={() => setMobileCatalogOpen(true)}
           onOpenMobileInspector={() => setMobileInspectorOpen(true)}
+          onSaveDraft={handleSaveDraft}
+          onImport={() => handleImportRequest(importInputRef.current)}
+          onOpenSession={() => setSessionDialogOpen(true)}
           onClearAll={handleClearAll}
           onExport={() => window.print()}
         />
 
         <PlannerCanvas
           currentStep={currentStep}
-          assetUrls={LOCAL_TLDRAW_ASSET_URLS}
           onMount={handleMount}
           isGridVisible={isGridVisible}
           gridState={gridState}
@@ -930,7 +831,7 @@ export function SmartdrawPlanner({
         ) : null}
       </div>
 
-      {showAi ? <AiCopilot suggestions={aiSuggestions} onClose={() => setShowAi(false)} /> : null}
+      {showAi && currentStep !== "room" ? <AiCopilot suggestions={aiSuggestions} onClose={() => setShowAi(false)} /> : null}
 
       {isMobileMode ? (
         <PlannerMobilePanels
@@ -961,6 +862,27 @@ export function SmartdrawPlanner({
           onGenerateQuote={handleGenerateQuote}
         />
       ) : null}
+
+      <PlannerSessionDialog
+        open={sessionDialogOpen}
+        onOpenChange={setSessionDialogOpen}
+        planName={planName}
+        onPlanNameChange={setPlanName}
+        plans={plannerSavedEntries}
+        isAuthenticated={isAuthenticated}
+        isBusy={sessionBusy}
+        statusMessage={sessionStatusMessage}
+        errorMessage={sessionErrorMessage}
+        canOpen3d={Boolean(editor)}
+        onSaveCloud={handleSaveCloud}
+        onSaveDraft={handleSaveDraft}
+        onLoadPlan={handleLoadPlan}
+        onDeletePlan={handleDeletePlan}
+        onImport={() => handleImportRequest(importInputRef.current)}
+        onExportJson={handleExportJson}
+        onOpen3d={handleOpen3d}
+        onDismissError={clearSessionError}
+      />
     </section>
   );
 }

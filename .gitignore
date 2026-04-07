@@ -120,3 +120,20 @@ docs/ops/~$*.xlsx
 .vercel
 cloudflare/
 backup/
+
+# ─── R2 / CDN assets — must NOT be committed to git ──────────────────────────
+# 3D models: fetch from Cloudflare R2 via `npm run cdn:sync` at build/runtime
+public/models/**/*.glb
+public/models/**/*.gltf
+public/models/**/*.fbx
+public/models/**/*.obj
+public/models/**/*.usdz
+apps/cad-suite/public/models/**/*.glb
+apps/cad-suite/public/models/**/*.gltf
+
+# Heavy texture/image bundles (>500 KB individual files tracked separately)
+public/cdn/
+apps/cad-suite/public/cdn/
+
+# Build-time asset zips from R2 sync
+*.assets.zip

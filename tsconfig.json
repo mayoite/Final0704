@@ -38,6 +38,7 @@
   "exclude": [
     "node_modules",
     "scripts",
-    "apps"
+    "apps",
+    "b_yeh73xcndxr"
   ]
 }

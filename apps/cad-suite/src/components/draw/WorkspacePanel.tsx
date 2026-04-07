@@ -67,8 +67,8 @@ export function WorkspacePanel({
         docked
           ? `absolute ${
               side === "left" ? "rounded-r-xl border-r" : "rounded-l-xl border-l"
-            } w-min-panel shadow-theme-float bg-panel border-theme-soft overflow-hidden`
-          : `absolute w-min-panel shadow-theme-float rounded-xl cursor-grab active:cursor-grabbing bg-panel border border-theme-soft overflow-hidden`
+            } w-min-panel shadow-theme-float bg-panel border-theme-soft overflow-hidden backdrop-blur-xl`
+          : `absolute w-min-panel shadow-theme-float rounded-[1.4rem] cursor-grab active:cursor-grabbing bg-panel border border-theme-soft overflow-hidden backdrop-blur-xl`
       }
       initial={{ opacity: 0, x: docked ? 0 : side === "left" ? -20 : 20 }}
       animate={{ opacity: 1, x: 0 }}

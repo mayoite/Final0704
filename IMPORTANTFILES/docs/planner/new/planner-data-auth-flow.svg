@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1760" height="1120" viewBox="0 0 1760 1120" role="img" aria-labelledby="title desc">
+  <title id="title">Planner Data and Auth Flow</title>
+  <desc id="desc">Planner data flow and auth flow diagram showing the browser runtime, shared auth model, read-only legacy catalog, new planner write-side store, local draft cache, and 2D to 3D document flow.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f4efe8; }
+      .shell { fill: #eef4fa; stroke: #1f3653; stroke-width: 2; }
+      .data { fill: #ffffff; stroke: #1f3653; stroke-width: 2; }
+      .read { fill: #f8fbff; stroke: #56718d; stroke-width: 1.8; }
+      .write { fill: #fff7f1; stroke: #b86124; stroke-width: 1.8; }
+      .cache { fill: #fffdf7; stroke: #b58a28; stroke-width: 1.8; }
+      .note { fill: #ffffff; stroke: #7a8ca0; stroke-width: 1.4; }
+      .title { font: 700 34px 'Segoe UI', Arial, sans-serif; fill: #111c27; }
+      .subtitle { font: 18px 'Segoe UI', Arial, sans-serif; fill: #45576a; }
+      .heading { font: 700 22px 'Segoe UI', Arial, sans-serif; fill: #17212b; }
+      .body { font: 17px 'Segoe UI', Arial, sans-serif; fill: #24323f; }
+      .small { font: 14px 'Segoe UI', Arial, sans-serif; fill: #45576a; }
+      .line-read { stroke: #1f3653; stroke-width: 3; fill: none; marker-end: url(#arrowRead); }
+      .line-write { stroke: #b86124; stroke-width: 3; fill: none; marker-end: url(#arrowWrite); }
+      .line-cache { stroke: #b58a28; stroke-width: 2.6; fill: none; marker-end: url(#arrowCache); }
+      .line-neutral { stroke: #6c7c8f; stroke-width: 2.4; fill: none; marker-end: url(#arrowNeutral); }
+    </style>
+    <marker id="arrowRead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#1f3653" />
+    </marker>
+    <marker id="arrowWrite" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#b86124" />
+    </marker>
+    <marker id="arrowCache" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#b58a28" />
+    </marker>
+    <marker id="arrowNeutral" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M0,0 L12,6 L0,12 z" fill="#6c7c8f" />
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1760" height="1120" />
+  <text class="title" x="880" y="54" text-anchor="middle">Planner Data and Auth Flow</text>
+  <text class="subtitle" x="880" y="84" text-anchor="middle">Read path, write path, auth rules, cache behavior, and 2D-to-3D document reuse.</text>
+
+  <rect class="shell" x="86" y="146" width="582" height="784" rx="28" />
+  <text class="heading" x="377" y="188" text-anchor="middle">Browser Runtime</text>
+
+  <rect class="data" x="126" y="228" width="502" height="178" rx="20" />
+  <text class="heading" x="377" y="266" text-anchor="middle">Planner UI and Runtime Shell</text>
+  <text class="body" x="377" y="304" text-anchor="middle">/planner</text>
+  <text class="body" x="377" y="332" text-anchor="middle">SmartdrawPlanner + PlannerCanvas + panels</text>
+  <text class="body" x="377" y="360" text-anchor="middle">PlannerSessionDialog + quote bridge + import flow</text>
+
+  <rect class="data" x="126" y="448" width="502" height="178" rx="20" />
+  <text class="heading" x="377" y="486" text-anchor="middle">Shared Auth Model</text>
+  <text class="body" x="377" y="524" text-anchor="middle">Supabase browser client</text>
+  <text class="body" x="377" y="552" text-anchor="middle">general user login + admin login in one system</text>
+  <text class="body" x="377" y="580" text-anchor="middle">admin access governed by RLS, never service-role</text>
+
+  <rect class="data" x="126" y="668" width="502" height="218" rx="20" />
+  <text class="heading" x="377" y="706" text-anchor="middle">Canonical Planner Document</text>
+  <text class="body" x="377" y="744" text-anchor="middle">product id + slug references</text>
+  <text class="body" x="377" y="772" text-anchor="middle">measurement stored canonically in mm</text>
+  <text class="body" x="377" y="800" text-anchor="middle">save / load / import / quote all use the same shape</text>
+  <text class="body" x="377" y="828" text-anchor="middle">2D and 3D both read from this model</text>
+
+  <rect class="read" x="760" y="172" width="410" height="210" rx="22" />
+  <text class="heading" x="965" y="212" text-anchor="middle">Legacy Read-Only Catalog</text>
+  <text class="body" x="965" y="250" text-anchor="middle">existing product source used by homepage / products</text>
+  <text class="body" x="965" y="278" text-anchor="middle">planner reads through normalized adapter</text>
+  <text class="body" x="965" y="306" text-anchor="middle">no new writes go back here during the interim period</text>
+
+  <rect class="write" x="760" y="444" width="410" height="238" rx="22" />
+  <text class="heading" x="965" y="484" text-anchor="middle">New Planner Write-Side Store</text>
+  <text class="body" x="965" y="522" text-anchor="middle">canonical planner saves</text>
+  <text class="body" x="965" y="550" text-anchor="middle">imports, session metadata, new planner-managed products</text>
+  <text class="body" x="965" y="578" text-anchor="middle">write target while dual-store architecture is interim</text>
+  <text class="body" x="965" y="606" text-anchor="middle">admin browser access still filtered by auth + RLS</text>
+
+  <rect class="cache" x="760" y="744" width="410" height="154" rx="22" />
+  <text class="heading" x="965" y="784" text-anchor="middle">Local Draft Cache</text>
+  <text class="body" x="965" y="822" text-anchor="middle">24-hour temporary browser cache only</text>
+  <text class="body" x="965" y="850" text-anchor="middle">not a second canonical store</text>
+
+  <rect class="shell" x="1262" y="172" width="408" height="252" rx="24" />
+  <text class="heading" x="1466" y="214" text-anchor="middle">Read Flow</text>
+  <text class="body" x="1466" y="252" text-anchor="middle">planner requests normalized products</text>
+  <text class="body" x="1466" y="280" text-anchor="middle">catalog adapter resolves stable ids and slugs</text>
+  <text class="body" x="1466" y="308" text-anchor="middle">planner document stores references, not full product rows</text>
+  <text class="body" x="1466" y="336" text-anchor="middle">quote and BOQ resolve back to the same catalog contract</text>
+
+  <rect class="shell" x="1262" y="472" width="408" height="252" rx="24" />
+  <text class="heading" x="1466" y="514" text-anchor="middle">Write Flow</text>
+  <text class="body" x="1466" y="552" text-anchor="middle">save cloud, load cloud, import, delete plan</text>
+  <text class="body" x="1466" y="580" text-anchor="middle">all travel through one planner session boundary</text>
+  <text class="body" x="1466" y="608" text-anchor="middle">authenticated user scope controls ownership</text>
+  <text class="body" x="1466" y="636" text-anchor="middle">sticky errors remain visible until dismissed</text>
+
+  <rect class="shell" x="1262" y="772" width="408" height="158" rx="24" />
+  <text class="heading" x="1466" y="814" text-anchor="middle">2D to 3D Reuse</text>
+  <text class="body" x="1466" y="852" text-anchor="middle">/configurator loads saved plan or draft preview</text>
+  <text class="body" x="1466" y="880" text-anchor="middle">same canonical planner document feeds the 3D scene</text>
+
+  <path class="line-read" d="M628 304 L760 304" />
+  <path class="line-write" d="M628 778 L760 778" />
+  <path class="line-write" d="M628 536 L760 536" />
+  <path class="line-cache" d="M628 818 L760 818" />
+  <path class="line-neutral" d="M1170 304 L1262 304" />
+  <path class="line-neutral" d="M1170 562 L1262 562" />
+  <path class="line-neutral" d="M1170 821 L1262 821" />
+  <path class="line-neutral" d="M377 406 L377 448" />
+  <path class="line-neutral" d="M377 626 L377 668" />
+
+  <rect class="note" x="86" y="962" width="1584" height="108" rx="20" />
+  <text class="heading" x="878" y="1002" text-anchor="middle">Key Rule</text>
+  <text class="body" x="878" y="1042" text-anchor="middle">Read products from the old catalog. Write planner documents and new planner-managed product data to the new store. Keep local drafts temporary. Use one shared auth model and one canonical planner document across 2D, 3D, save, load, import, and quote.</text>
+</svg>

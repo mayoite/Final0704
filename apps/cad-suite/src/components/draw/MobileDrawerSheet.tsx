@@ -28,15 +28,15 @@ export function MobileDrawerSheet({
     <Drawer.Root open={open} onOpenChange={onOpenChange}>
       <Drawer.Trigger asChild>{trigger}</Drawer.Trigger>
       <Drawer.Portal>
-        <Drawer.Overlay className="fixed inset-0 bg-black/40 z-sheet backdrop-blur-sm" />
+        <Drawer.Overlay className="fixed inset-0 z-sheet bg-[color:rgba(7,13,18,0.38)] backdrop-blur-sm" />
         <Drawer.Content
-          className="fixed bottom-0 left-0 right-0 z-sheet flex flex-col bg-panel border-t border-theme-soft rounded-t-2xl"
+          className="fixed bottom-0 left-0 right-0 z-sheet flex flex-col bg-panel border-t border-theme-soft rounded-t-[1.6rem] shadow-theme-float backdrop-blur-xl"
           style={{ maxHeight: "85svh" }}
           aria-label={title}
         >
           {/* Drag handle */}
           <div className="flex justify-center pt-3 pb-2 shrink-0">
-            <div className="w-10 h-1 rounded-full bg-muted opacity-40" aria-hidden="true" />
+            <div className="w-10 h-1 rounded-full bg-[color:var(--planner-border-strong)] opacity-70" aria-hidden="true" />
           </div>
 
           {/* Header */}

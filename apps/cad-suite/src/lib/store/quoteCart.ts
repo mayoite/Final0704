@@ -1,4 +1,7 @@
 "use client";
+// @cad-suite:ui-store — UI-peripheral only. Must NOT hold canvas, editor, Three.js,
+// Konva, or tldraw state. Canvas state lives exclusively in tldraw's Editor API
+// and tldraw's own store. This store handles quote cart lifecycle only.
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
