@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getCatalog } from "@/lib/getProducts";
+import { listPlannerManagedProductsForPlannerCatalog } from "./plannerManagedProducts";
 import {
   normalizePlannerCatalogProducts,
   mergePlannerCatalogProducts,
@@ -37,7 +38,9 @@ export {
 async function resolvePlannerManagedProductsInput(
   plannerManagedProducts: GetPlannerCatalogProductsOptions["plannerManagedProducts"],
 ): Promise<readonly PlannerCatalogProduct[]> {
-  if (!plannerManagedProducts) return [];
+  if (!plannerManagedProducts) {
+    return listPlannerManagedProductsForPlannerCatalog();
+  }
   if (typeof plannerManagedProducts === "function") {
     return (await plannerManagedProducts()) ?? [];
   }

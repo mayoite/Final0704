@@ -119,7 +119,7 @@ The planner is in an interim transition state.
 | Planner direction and docs | Established | 85% |
 | Theme alignment | Site CSS and typography reuse wired in | 65% |
 | Phase 1 refactor | Session, panel, measurement, and quote boundaries extracted | 70% |
-| Phase 2 document/save/load/import foundation | Core document and planner session flow implemented, but write-side store, admin RLS, and final import normalization remain open | 75% |
+| Phase 2 document/save/load/import foundation | Core document/session flow is live, measurement persistence is normalized, and planner save schema/RLS hardening is in repo; write-side product store and merged adapter remain open | 80% |
 | Phase 3 2D/3D document bridge | Basic bridge implemented with honest preview route | 65% |
 | Session/cache behavior | Sticky error state plus 24-hour local draft cache implemented | 100% |
 | Build and deploy stability | Not solved yet | 20% |
@@ -131,10 +131,10 @@ The planner is in an interim transition state.
 - legacy catalog normalization for planner reads is real
 - separate planner-managed product storage is still planned, not live
 - the merged old-read/new-write product adapter is still planned, not live
-- import normalization is partly implemented, not fully closed
-- planner-specific admin RLS is still open
+- import normalization is implemented through the planner document model and saved-row restoration now routes through canonical normalization
+- planner-specific admin RLS is implemented in repo through a `planner_saves` reconciliation migration
 - admin browser access without service-role exposure is an architectural rule, not yet a proven planner workflow
-- `planner_saves` migrations currently drift and need cleanup before deployment confidence is deserved
+- `planner_saves` migrations drifted; a reconciliation migration is now in repo, but it still needs environment application and verification
 
 ### Engineering rules
 
@@ -222,9 +222,9 @@ What is not live today:
 
 ## Immediate risks
 
-1. `planner_saves` migration drift
+1. `planner_saves` reconciliation migration still needs to be applied and verified
 2. planner build/deploy still not clean
-3. planner-specific admin RLS not implemented
+3. planner admin browser workflow not yet verified end-to-end
 4. import and measurement normalization not fully closed across reload and editor restore
 
 ## Target Planner Architecture

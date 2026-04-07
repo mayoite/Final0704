@@ -28,6 +28,13 @@ export {
 } from "./plannerCatalogCore";
 
 export {
+  deletePlannerManagedProduct,
+  listPlannerManagedProductsForPlannerCatalog,
+  plannerManagedProductRowToCatalogProduct,
+  upsertPlannerManagedProduct,
+} from "./plannerManagedProducts";
+
+export {
   parsePlannerDocumentImportFile,
   parsePlannerDocumentImportText,
   parsePlannerDocumentImportValue,

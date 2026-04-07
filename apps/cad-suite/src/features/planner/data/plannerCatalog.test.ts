@@ -13,9 +13,14 @@ import {
 import { getPlannerCatalogProducts } from "./plannerCatalog";
 
 const getCatalogMock = vi.fn<() => Promise<CompatCategory[]>>();
+const listPlannerManagedProductsForPlannerCatalogMock = vi.fn<() => Promise<PlannerCatalogProduct[]>>();
 
 vi.mock("@/lib/getProducts", () => ({
   getCatalog: getCatalogMock,
+}));
+
+vi.mock("./plannerManagedProducts", () => ({
+  listPlannerManagedProductsForPlannerCatalog: listPlannerManagedProductsForPlannerCatalogMock,
 }));
 
 describe("planner catalog adapter", () => {
@@ -72,6 +77,8 @@ describe("planner catalog adapter", () => {
   beforeEach(() => {
     getCatalogMock.mockReset();
     getCatalogMock.mockResolvedValue(catalog);
+    listPlannerManagedProductsForPlannerCatalogMock.mockReset();
+    listPlannerManagedProductsForPlannerCatalogMock.mockResolvedValue([]);
   });
 
   function buildManagedProduct(legacyProduct: PlannerCatalogProduct): PlannerCatalogProduct {
@@ -161,5 +168,18 @@ describe("planner catalog adapter", () => {
     expect(mergedProducts).toHaveLength(1);
     expect(mergedProducts[0].id).toBe("managed-prod-1");
     expect(resolvePlannerCatalogProductById(mergedProducts, "prod-1")?.id).toBe("managed-prod-1");
+  });
+
+  it("uses the planner-managed product source when present in the write-side store", async () => {
+    listPlannerManagedProductsForPlannerCatalogMock.mockResolvedValueOnce([
+      buildManagedProduct(normalizePlannerCatalogProducts(catalog)[0]),
+    ]);
+
+    const products = await getPlannerCatalogProducts();
+
+    expect(products).toHaveLength(1);
+    expect(products[0].id).toBe("managed-prod-1");
+    expect(resolvePlannerCatalogProductById(products, "prod-1")?.id).toBe("managed-prod-1");
+    expect(listPlannerManagedProductsForPlannerCatalogMock).toHaveBeenCalledTimes(1);
   });
 });

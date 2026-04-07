@@ -31,3 +31,13 @@ export type {
   PlannerSaveWrite,
   PlannerUnitSystem,
 } from "./plannerDocument";
+
+export {
+  plannerManagedProductRowSchema,
+  plannerManagedProductWriteSchema,
+} from "./plannerManagedProduct";
+
+export type {
+  PlannerManagedProductRow,
+  PlannerManagedProductWrite,
+} from "./plannerManagedProduct";
