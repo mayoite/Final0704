@@ -44,6 +44,7 @@ export interface PlannerShapeMeta {
   isPlannerItem?: boolean;
   isRoomShell?: boolean;
   isRoomDimension?: boolean;
+  structureType?: "wall" | "wall-segment" | "door-opening" | "room-shell";
 }
 
 export interface RoomPreset {

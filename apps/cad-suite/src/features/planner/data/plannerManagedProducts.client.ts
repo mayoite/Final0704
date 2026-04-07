@@ -1,57 +1,25 @@
-import "server-only";
-
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import type { PlannerCatalogProduct } from "./plannerCatalogCore";
 import {
   plannerManagedProductWriteSchema,
   type PlannerManagedProductRow,
   type PlannerManagedProductWrite,
 } from "../model";
-import {
-  normalizePlannerManagedProductRow,
-  plannerManagedProductRowToCatalogProduct,
-} from "./plannerManagedProductsShared";
-import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
+import { normalizePlannerManagedProductRow } from "./plannerManagedProductsShared";
 
-async function resolveServerClient() {
-  try {
-    return await createServerSupabaseClient();
-  } catch {
-    return null;
-  }
-}
-
-function isMissingPlannerManagedProductsTable(message: string): boolean {
-  const normalized = message.toLowerCase();
-  return (
-    normalized.includes("planner_managed_products") &&
-    (normalized.includes("could not find the table") ||
-      normalized.includes("relation") && normalized.includes("does not exist"))
-  );
-}
-
-export async function listPlannerManagedProductsForPlannerCatalog(): Promise<PlannerCatalogProduct[]> {
-  const client = await resolveServerClient();
-  if (!client) return [];
-
+export async function listPlannerManagedProductsFromSupabase(
+  client: SupabaseClient,
+): Promise<PlannerManagedProductRow[]> {
   const { data, error } = await client
     .from("planner_managed_products")
     .select("*")
     .order("updated_at", { ascending: false });
 
   if (error) {
-    if (isMissingPlannerManagedProductsTable(error.message ?? "")) {
-      // Deploy-safe fallback until planner-managed product migrations are applied.
-      return [];
-    }
     throw new Error(`Unable to load planner-managed products: ${error.message}`);
   }
 
-  return (data ?? [])
-    .map((row) => normalizePlannerManagedProductRow(row))
-    .filter((row) => row.active)
-    .map((row) => plannerManagedProductRowToCatalogProduct(row));
+  return (data ?? []).map((row) => normalizePlannerManagedProductRow(row));
 }
 
 export async function upsertPlannerManagedProduct(

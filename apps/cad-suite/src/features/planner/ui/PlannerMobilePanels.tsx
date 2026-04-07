@@ -2,11 +2,12 @@
 
 import type { Editor } from "tldraw";
 
-import { CatalogPanel } from "../../../components/draw/CatalogPanel";
-import { InspectorPanel } from "../../../components/draw/InspectorPanel";
-import { LayersPanel } from "../../../components/draw/LayersPanel";
-import { MobileDrawerSheet } from "../../../components/draw/MobileDrawerSheet";
-import type { BoqItem, CatalogProduct, PlannerStep, RoomPreset } from "../../../components/draw/types";
+import type { BoqItem, CatalogProduct, PlannerStep, RoomPreset } from "@/components/draw/types";
+
+import { CatalogPanel } from "./CatalogPanel";
+import { InspectorPanel } from "./InspectorPanel";
+import { LayersPanel } from "./LayersPanel";
+import { MobileDrawerSheet } from "./MobileDrawerSheet";
 
 interface PlannerMobilePanelsProps {
   editor: Editor | null;
@@ -18,6 +19,7 @@ interface PlannerMobilePanelsProps {
   canContinueFromRoom: boolean;
   roomMetrics: string;
   selectedMetrics: string | null;
+  selectionDimensions: import("../lib/editorTools").PlannerSelectionDimensions | null;
   unitSystem: "mm" | "ft-in";
   mobileCatalogOpen: boolean;
   mobileLayersOpen: boolean;
@@ -30,8 +32,14 @@ interface PlannerMobilePanelsProps {
   onApplyRoomPreset: (preset: RoomPreset) => void;
   onActivateWallTool: () => void;
   onActivateBasicShapeTool: () => void;
+  onAddWallSegment: () => void;
+  onAddDoorOpening: () => void;
+  onResolveWallJoins: () => void;
   onFitSelection: () => void;
+  onAlignSelection: (operation: "left" | "center-horizontal" | "right" | "top" | "center-vertical" | "bottom") => void;
+  onDistributeSelection: (operation: "horizontal" | "vertical") => void;
   onToggleSnap: () => void;
+  onUpdateSelectionDimensions: (next: { widthMm?: number; heightMm?: number | null }) => void;
   onUnitSystemChange: (unit: "mm" | "ft-in") => void;
   onGenerateQuote: () => void;
 }
@@ -46,6 +54,7 @@ export function PlannerMobilePanels({
   canContinueFromRoom,
   roomMetrics,
   selectedMetrics,
+  selectionDimensions,
   unitSystem,
   mobileCatalogOpen,
   mobileLayersOpen,
@@ -58,8 +67,14 @@ export function PlannerMobilePanels({
   onApplyRoomPreset,
   onActivateWallTool,
   onActivateBasicShapeTool,
+  onAddWallSegment,
+  onAddDoorOpening,
+  onResolveWallJoins,
   onFitSelection,
+  onAlignSelection,
+  onDistributeSelection,
   onToggleSnap,
+  onUpdateSelectionDimensions,
   onUnitSystemChange,
   onGenerateQuote,
 }: PlannerMobilePanelsProps) {
@@ -78,9 +93,13 @@ export function PlannerMobilePanels({
             currentStep={currentStep}
             canPlaceFurniture={currentStep === "catalog"}
             roomPresets={roomPresets}
+            unitSystem={unitSystem}
             onApplyRoomPreset={onApplyRoomPreset}
             onActivateWallTool={onActivateWallTool}
             onActivateBasicShapeTool={onActivateBasicShapeTool}
+            onAddWallSegment={onAddWallSegment}
+            onAddDoorOpening={onAddDoorOpening}
+            onResolveWallJoins={onResolveWallJoins}
             onDropFurniture={(product) => {
               onDropFurniture(product);
               onOpenCatalogChange(false);
@@ -104,6 +123,8 @@ export function PlannerMobilePanels({
             editor={editor}
             unitSystem={unitSystem}
             onFitSelection={onFitSelection}
+            onAlignSelection={onAlignSelection}
+            onDistributeSelection={onDistributeSelection}
             onClose={() => onOpenLayersChange(false)}
             pinned={false}
             onTogglePin={() => {}}
@@ -126,10 +147,12 @@ export function PlannerMobilePanels({
             canContinueFromRoom={canContinueFromRoom}
             roomMetrics={roomMetrics}
             selectedMetrics={selectedMetrics}
+            selectionDimensions={selectionDimensions}
             unitSystem={unitSystem}
             onUnitSystemChange={onUnitSystemChange}
             isSnapMode={isSnapMode}
             onToggleSnap={onToggleSnap}
+            onUpdateSelectionDimensions={onUpdateSelectionDimensions}
             onGenerateQuote={() => {
               onGenerateQuote();
               onOpenInspectorChange(false);

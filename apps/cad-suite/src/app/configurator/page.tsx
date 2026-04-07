@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 
 import {
@@ -10,7 +10,8 @@ import {
   summarizePlannerDocument,
   type PlannerDocument,
 } from "@/features/planner/3d";
-import { loadPlannerDocumentFromSupabase, loadPlannerDraftDocument } from "@/features/planner/data";
+import { loadPlannerDraftDocument } from "@/features/planner/data/plannerDraft";
+import { loadPlannerDocumentFromSupabase } from "@/features/planner/data/plannerSaves";
 import {
   formatArea,
   formatLength,
@@ -20,7 +21,7 @@ import { createPlannerDocument } from "@/features/planner/model";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 const FALLBACK_DOCUMENT = createPlannerDocument({
-  id: "configurator-open-studio",
+  id: "00000000-0000-0000-0000-000000000000",
   name: "Open Studio calibration scene",
   projectName: "Fallback viewer sample",
   sceneJson: {
@@ -82,7 +83,7 @@ const FALLBACK_DOCUMENT = createPlannerDocument({
 
 type ViewerMode = "draft-preview" | "saved-plan" | "fallback" | "error";
 
-export default function ConfiguratorPage() {
+function ConfiguratorPageContent() {
   const searchParams = useSearchParams();
   const [plannerDocument, setPlannerDocument] = useState<PlannerDocument>(FALLBACK_DOCUMENT);
   const [viewerSource, setViewerSource] = useState("Fallback viewer scene");
@@ -314,5 +315,23 @@ export default function ConfiguratorPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function ConfiguratorPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-page text-body">
+          <div className="mx-auto flex min-h-screen max-w-[1640px] items-center justify-center px-4 py-8 sm:px-6 lg:px-8">
+            <div className="rounded-[1.6rem] border border-theme-soft bg-panel px-6 py-5 typ-caption-lg text-body shadow-theme-panel">
+              Loading configurator preview...
+            </div>
+          </div>
+        </main>
+      }
+    >
+      <ConfiguratorPageContent />
+    </Suspense>
   );
 }

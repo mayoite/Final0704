@@ -137,7 +137,7 @@ export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
       label: "Government",
       image: "/images/montage/dmrc-1.png",
       description: "Complete workstation rollout for the Patna Metro project headquarters.",
-      link: "/projects/dmrc"
+      link: "/portfolio"
     },
     {
       id: "titan-hq",
@@ -145,7 +145,7 @@ export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
       label: "Corporate",
       image: "/images/montage/titan-blue-1.png",
       description: "Full-floor operations zone including executive cabins and staff zones.",
-      link: "/projects/titan"
+      link: "/portfolio"
     },
     {
       id: "green-desk-1",
@@ -153,7 +153,7 @@ export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
       label: "Industrial",
       image: "/images/montage/green-desk-1.png",
       description: "Custom layout optimized for durability and heavy-duty documentation flow.",
-      link: "/projects/tatasteel"
+      link: "/portfolio"
     },
     {
       id: "tvs-bihar",
@@ -161,7 +161,7 @@ export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
       label: "Automobile",
       image: "/images/montage/dmrc-2.png",
       description: "Modular seating and desk systems for regional service hubs.",
-      link: "/projects/tvs"
+      link: "/portfolio"
     },
     {
       id: "boardroom-client",
@@ -169,7 +169,7 @@ export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
       label: "Corporate",
       image: "/images/client-projects/meeting-room.png",
       description: "Custom conference table with ergonomic high-back executive seating.",
-      link: "/projects/boardroom"
+      link: "/portfolio"
     },
     {
       id: "open-office-client",
@@ -177,7 +177,7 @@ export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
       label: "Enterprise",
       image: "/images/client-projects/open-office-1.png",
       description: "Scalable 100+ seater open plan layout with acoustic screening.",
-      link: "/projects/operations"
+      link: "/portfolio"
     },
     {
       id: "green-workstations-client",
@@ -185,7 +185,7 @@ export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
       label: "Public Sector",
       image: "/images/client-projects/green-workstations.png",
       description: "Modular workstations featuring integrated storage hubs and privacy dividers.",
-      link: "/projects/collaborative"
+      link: "/portfolio"
     },
     {
       id: "blue-workstations-client",
@@ -193,7 +193,7 @@ export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
       label: "Institutional",
       image: "/images/client-projects/blue-workstations.png",
       description: "Ergonomic linear workstations with task-focused layout optimization.",
-      link: "/projects/technical"
+      link: "/portfolio"
     }
   ]
 } as const;

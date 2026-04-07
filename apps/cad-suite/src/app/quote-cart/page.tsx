@@ -35,12 +35,6 @@ export default function QuoteCartPage() {
             >
               Back to Planner
             </Link>
-            <Link
-              href="/draw"
-              className="rounded-full border border-theme-soft bg-[color:var(--planner-panel)] px-5 py-3 typ-cta text-[color:var(--planner-primary)] transition hover:bg-[color:var(--planner-primary-soft)]"
-            >
-              Open Draw
-            </Link>
             {items.length > 0 ? (
               <button
                 type="button"
@@ -66,12 +60,6 @@ export default function QuoteCartPage() {
               >
                 Go to Planner
               </Link>
-              <Link
-                href="/draw"
-                className="rounded-full border border-theme-soft bg-[color:var(--planner-panel)] px-5 py-3 typ-cta text-[color:var(--planner-primary)] transition hover:bg-[color:var(--planner-primary-soft)]"
-              >
-                Go to Draw
-              </Link>
             </div>
           </section>
         ) : (
@@ -89,6 +77,9 @@ export default function QuoteCartPage() {
                         {item.source === "planner" ? "Added from planner" : "Added from catalog"}
                         {item.plannerFamily ? ` - ${item.plannerFamily}` : ""}
                       </p>
+                      {item.plannerDimensions ? (
+                        <p className="mt-1 text-sm text-body">Planner dimensions: {item.plannerDimensions}</p>
+                      ) : null}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">

@@ -157,6 +157,7 @@ export const plannerSaveWriteSchema = plannerSaveRowSchema.omit({
 
 export const plannerSaveSummarySchema = plannerSaveRowSchema.pick({
   id: true,
+  user_id: true,
   name: true,
   project_name: true,
   client_name: true,

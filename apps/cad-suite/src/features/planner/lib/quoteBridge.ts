@@ -39,5 +39,6 @@ export function buildPlannerQuoteCartItems(items: BoqItem[]): QuoteCartItem[] {
     image: item.imageUrl,
     source: "planner",
     plannerFamily: item.category,
+    plannerDimensions: item.dimensions,
   }));
 }

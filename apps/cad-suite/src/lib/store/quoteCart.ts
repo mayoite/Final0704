@@ -1,7 +1,5 @@
 "use client";
-// @cad-suite:ui-store — UI-peripheral only. Must NOT hold canvas, editor, Three.js,
-// Konva, or tldraw state. Canvas state lives exclusively in tldraw's Editor API
-// and tldraw's own store. This store handles quote cart lifecycle only.
+// @cad-suite:ui-store - UI-peripheral only. Must not hold canvas/editor state.
 
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
@@ -12,10 +10,9 @@ export interface QuoteCartItem {
   qty: number;
   image?: string;
   href?: string;
-  /** "planner" = came from the floor planner; "catalog" = added via product browse */
   source?: "planner" | "catalog";
-  /** Series/family name — used to group planner items on the quote page */
   plannerFamily?: string;
+  plannerDimensions?: string;
 }
 
 interface QuoteCartState {
@@ -27,7 +24,7 @@ interface QuoteCartState {
   clearCart: () => void;
 }
 
-function totalQty(items: QuoteCartItem[]): number {
+function totalQty(items: QuoteCartItem[]) {
   return items.reduce((sum, item) => sum + item.qty, 0);
 }
 
@@ -43,9 +40,7 @@ export const useQuoteCart = create<QuoteCartState>()(
 
           const nextItems = existing
             ? state.items.map((item) =>
-                item.id === incoming.id
-                  ? { ...item, qty: item.qty + qtyToAdd }
-                  : item,
+                item.id === incoming.id ? { ...item, qty: item.qty + qtyToAdd } : item,
               )
             : [
                 ...state.items,
@@ -57,6 +52,7 @@ export const useQuoteCart = create<QuoteCartState>()(
                   href: incoming.href,
                   source: incoming.source,
                   plannerFamily: incoming.plannerFamily,
+                  plannerDimensions: incoming.plannerDimensions,
                 },
               ];
 
@@ -71,9 +67,7 @@ export const useQuoteCart = create<QuoteCartState>()(
         set((state) => {
           const normalizedQty = Math.max(0, Math.floor(qty));
           const nextItems = state.items
-            .map((item) =>
-              item.id === id ? { ...item, qty: normalizedQty } : item,
-            )
+            .map((item) => (item.id === id ? { ...item, qty: normalizedQty } : item))
             .filter((item) => item.qty > 0);
           return { items: nextItems, totalQty: totalQty(nextItems) };
         }),
@@ -90,4 +84,3 @@ export const useQuoteCart = create<QuoteCartState>()(
     },
   ),
 );
-

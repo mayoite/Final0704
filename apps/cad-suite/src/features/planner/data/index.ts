@@ -27,12 +27,9 @@ export {
   resolvePlannerCatalogProductBySlug,
 } from "./plannerCatalogCore";
 
-// export {
-//   deletePlannerManagedProduct,
-//   listPlannerManagedProductsForPlannerCatalog,
-//   plannerManagedProductRowToCatalogProduct,
-//   upsertPlannerManagedProduct,
-// } from "./plannerManagedProducts";
+// Keep this barrel client-safe.
+// Server-only planner managed product APIs should be imported directly
+// from "./plannerManagedProducts" inside server modules.
 
 export {
   parsePlannerDocumentImportFile,

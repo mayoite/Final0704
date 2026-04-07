@@ -1,19 +1,27 @@
 # Planner Detailed Plan
 
-Generated: 2026-04-07
+Generated: 2026-04-08
 
 Related diagram: [planner-old-vs-new-architecture.svg](/C:/claude0104 - Copy/IMPORTANTFILES/docs/planner/new/planner-old-vs-new-architecture.svg)
 
 ## Position
 
-`apps/cad-suite` is good.
+The CAD Suite planner app (`apps/cad-suite`) is good.
 
 It is not the wrong system.
 It is the right system in rough shape.
 
 That distinction matters.
 
-The planner should be improved from `apps/cad-suite`, not replaced by a second app and not rebuilt around historical root docs.
+The planner should be improved from the CAD Suite planner app, not replaced by a second app and not rebuilt around historical root docs.
+
+## Naming Rule
+
+Use product-role names first in this document.
+
+- `CAD Suite planner app` means `apps/cad-suite`
+- `Archived donor planner snapshot` means `07docs/Backupcad`
+- `Historical planner docs` means old planner material, not live runtime truth
 
 ## Additional Constraints
 
@@ -47,26 +55,43 @@ Interpretation:
 
 | Area | Status | Rough completion |
 |---|---|---|
-| Planner direction and docs | Established | 85% |
-| Theme alignment | Site CSS and typography reuse wired in | 65% |
-| Phase 1 refactor | Session, panel, measurement, and quote boundaries extracted | 70% |
-| Phase 2 document/save/load/import foundation | Core document/session flow is live, measurement persistence is normalized, and planner save schema/RLS hardening is in repo; write-side product store and merged adapter remain open | 80% |
-| Phase 3 2D/3D document bridge | Basic bridge implemented with honest preview route | 65% |
-| Session/cache behavior | Sticky error state plus 24-hour local draft cache implemented | 100% |
-| Build and deploy stability | Not solved yet | 20% |
-| Final production hardening | Not done | 15% |
+| Planner direction and docs | Established and close to repo truth; final package cleanup and ownership publishing remain | 85% |
+| Theme alignment | Action hierarchy, responsive planner chrome, and site-token alignment are now implemented and browser-validated | 85% |
+| Phase 1 refactor | Session, measurement, quote, workspace-state, planner UI ownership, and planner-grade editing helpers exist; final polish remains | 90% |
+| Phase 2 document/save/load/import foundation | Core document/session flow is live, measurement persistence is normalized, write-side schema is reconciled in repo, and admin browser paths exist; live-browser proof still remains | 90% |
+| Phase 3 2D/3D document bridge | Document-driven 3D viewer, donor walkthrough concepts, and honest preview route are live | 90% |
+| Session/cache behavior | 24-hour local draft cache and session status/error UI are implemented | 100% |
+| Build and deploy stability | `npm -w cad-suite run build`, `npm -w cad-suite run cf:build`, and `npm run test:planner` are green on the current branch | 90% |
+| Final production hardening | Not done | 20% |
+
+### Verification notes
+
+- `npm -w cad-suite run build`: passes on 2026-04-08
+- `npm -w cad-suite run cf:build`: passes on 2026-04-08
+- `npm run test:planner`: passes on 2026-04-08, including planner save repository access-mode coverage and quote-bridge coverage
+- built-app route probe confirms `/planner`, `/draw`, `/planner-saved/[id]`, and `/configurator` return `200` on 2026-04-07
+- built-app browser probe verifies planner action hierarchy and responsive shell behavior at desktop `1980x1080` and mobile `390x844` on 2026-04-07
 
 ### Recheck corrections
 
 - canonical planner document schema is implemented
 - Supabase-backed `planner_saves` persistence is implemented
 - legacy catalog normalization is implemented for planner reads
-- the separate planner-managed product write store is still planned, not implemented
-- the merged adapter over legacy-read and new-write product sources is still planned, not implemented
+- the merged adapter over legacy-read and new-write product sources is implemented in the planner catalog layer
 - semantic import normalization exists and saved-row reload now routes back through canonical normalization
 - planner-specific admin RLS is implemented in repo through a reconciliation migration on `planner_saves`
-- admin browser access without service-role exposure is the intended rule, but not yet proven through a planner-specific workflow
+- `planner_managed_products` now has a reconciliation migration in repo and a tolerant runtime read path for pre-reconciliation table shapes
+- planner save repository helpers now support `owner` and `admin` access modes, preserving original owner `user_id` on admin updates while keeping browser-side admin delete blocked
+- planner session workflow now includes admin browser surfaces for plan oversight and planner-managed product maintenance through the normal Supabase client
+- admin browser access without service-role exposure is the intended rule and now has a real planner code path, but it is still not fully proven through a live browser session
 - `planner_saves` migrations showed schema drift; a reconciliation migration is now in repo, but it still needs to be applied and verified per environment
+- the repo still contains a root `src/app/planner` placeholder route, so planner cleanup is not actually finished
+- `SmartdrawPlanner.tsx` is now a thinner planner shell backed by `features/planner/hooks/usePlannerWorkspace.ts`
+- planner toolbar, canvas, step bar, and panel bodies now live under `features/planner/ui`
+- planner-derived measurement displays now flow through `features/planner/lib/measurements.ts`, including room preset cards under the planner catalog surface
+- planner UI state now lives in `features/planner/hooks/usePlannerUiState.ts` and feeds `usePlannerWorkspace.ts`
+- planner runtime now exposes wall-segment, door-opening, wall-join, alignment, distribution, snap, and selection-dimension tooling on top of Tldraw
+- `/draw` now redirects to `/planner` in the CAD Suite app
 
 ## Interim Read/Write Split
 
@@ -114,8 +139,8 @@ It does need one clean contract.
 |---|---|
 | Planner document save store | Live through `planner_saves` |
 | Legacy planner catalog adapter | Live |
-| Planner-managed product write store | Not live |
-| Merged legacy-read plus new-write product adapter | Not live |
+| Planner-managed product write store | Live in repo through model, browser helpers, and the reconciliation migration, pending environment rollout |
+| Merged legacy-read plus new-write product adapter | Live in code and tests with tolerant mapping around older write-side table shapes |
 
 ## Visual System Alignment
 
@@ -276,21 +301,26 @@ Current gap:
 - browser client safety rule is implemented by architecture
 - planner admin workflow is not yet verified end-to-end
 
-## Persistence Risk
+## Persistence Risks
 
-The persistence layer is implemented, and the repo now contains a reconciliation migration for `planner_saves`.
+The persistence layer is implemented, but the migration story is still risky.
 
-Current issue:
+Current issues:
 
 - there are two `planner_saves` migrations
 - the earlier migration and later migration do not fully agree on the table shape and defaults
 - the later migration uses `CREATE TABLE IF NOT EXISTS`, so it would not repair an already-created earlier table
 - the new reconciliation migration exists to normalize the table shape and RLS behavior, but it still has to be applied in real environments
+- there are also two `planner_managed_products` create migrations
+- the earlier `planner_managed_products` migration and later `planner_managed_products` migration define materially different schemas
+- the current TypeScript model and helpers align with the later simplified schema, not the earlier planner-managed-products migration shape
 
 Practical effect:
 
 - different environments could end up with different `planner_saves` schemas
+- different environments could also end up with different `planner_managed_products` schemas
 - save/load behavior can look correct in code while failing or drifting in deployment
+- planner-managed product reads and writes can appear implemented while targeting the wrong columns in some environments
 
 This should be treated as a real Phase 0 blocker, not a documentation nit
 
@@ -309,26 +339,28 @@ This should be treated as a real Phase 0 blocker, not a documentation nit
 
 | Problem | Evidence | Impact |
 |---|---|---|
-| Build plumbing is unstable | CAD build currently fails in app boundary | Blocks deployment |
-| Planner is too monolithic | [SmartdrawPlanner.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/components/draw/SmartdrawPlanner.tsx) owns too much behavior | Hard to evolve safely |
-| Route duplication | `/planner` and `/draw` both render same runtime in [planner/page.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/app/planner/page.tsx:17) and [draw/page.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/app/draw/page.tsx:16) | Redundant QA and unclear canonical route |
-| Persistence is still interim | Save/load/import and local draft now exist, but schema hardening, RLS, and build stability are not finished | Planner continuity is better, but not yet production-final |
+| Persistence migrations drift | `planner_saves` and `planner_managed_products` both needed reconciliation migrations relative to runtime code; repo drift is now corrected, but environment rollout still matters | Deployment safety still depends on migration application order |
+| Planner test gate was red | `npm run test:planner` is now green after removing the bad `server-only` test boundary | Planner verification is materially stronger than the earlier docs implied |
+| Planner orchestration is still dense | [SmartdrawPlanner.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/components/draw/SmartdrawPlanner.tsx) is now a thinner shell, but the extracted workspace hook still owns substantial state | Further separation is still warranted |
+| Route duplication | `/draw` is now a compatibility redirect in [page.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/app/draw/page.tsx:1), but the root placeholder planner still keeps some repo-level route ambiguity | Public CAD Suite route strategy is now much cleaner |
+| Feature ownership is still split | Most planner UI bodies now live under `features/planner/ui`, but `SmartdrawPlanner.tsx`, `AiCopilot.tsx`, and shared planner types still sit under `components/draw` | Planner module ownership is much better, but not fully collapsed |
+| Persistence is still interim | Save/load/import and local draft now exist, but schema hardening and admin workflow are not finished | Planner continuity is better, but not yet production-final |
 | 3D route is still interim | `/configurator` now reads the canonical planner document as an honest preview in [configurator/page.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/app/configurator/page.tsx:76) | Product promise still needs restraint |
-| Remaining monolith debt exists | `SmartdrawPlanner.tsx` is smaller, but still owns editor, shell, and quote behavior | More boundary work is still required |
+| Remaining monolith debt exists | `SmartdrawPlanner.tsx` now delegates session flow, workspace orchestration, and UI-state ownership, but `components/draw` still contains planner shell entrypoints and shared types | More ownership cleanup is still required |
 
 ## Old vs Current vs Target
 
 | System | Lives Where | Truth Status | Strength | Weakness | Recommendation |
 |---|---|---|---|---|---|
-| Historical root planner | `src/app/planner`, `src/app/planner2`, `src/components/planner`, `src/lib/planner` | Not present in live source | Historical product intent | Not runnable in this repo | Treat as reference only |
-| Current public planner | `apps/cad-suite/src/app/planner`, `apps/cad-suite/src/components/draw` | Live | Best public route, catalog, quote fit | Build instability and monolith | Keep as canonical base |
-| Donor planner snapshot | `07docs/Backupcad` | Reference snapshot | Persistence and 3D structure | Wrong product boundary | Port selected capabilities only |
-| Archived duplicate donor trees | `apps/cad-suite/b_yeh73xcndxr` and `b_yeh73xcndxr` | Removed | Preserved prior work before cleanup | Previously caused confusion and drift | Keep `07docs/Backupcad` as the sole donor snapshot |
+| Historical root planner | `src/app/planner`, `src/components/planner` | Still present as a live placeholder route in the root app | Preserves a compatibility surface | Placeholder content still creates planner ambiguity | Treat as compatibility debt or retire it explicitly |
+| CAD Suite planner app | `apps/cad-suite/src/app/planner`, `apps/cad-suite/src/components/draw`, `apps/cad-suite/src/features/planner` | Live | Best public route, catalog, quote fit | Remaining ownership split and environment rollout work | Keep as canonical base |
+| Archived donor planner snapshot | `07docs/Backupcad` | Reference snapshot | Persistence and 3D structure | Wrong product boundary | Port selected capabilities only |
+| Archived duplicate donor trees | Removed from current archive paths | Removed | The repo now keeps one donor snapshot at `07docs/Backupcad` | Future duplication would reintroduce planner ambiguity | Keep one donor snapshot only |
 | Target planner system | `apps/cad-suite/src/features/planner/*` | Planned | One code boundary, one route strategy, one persistence story | Requires disciplined refactor | Build this |
 
 ## Feature Comparison
 
-| Feature | Historical Root Planner | Current CAD Suite | Backupcad Donor | Target Planner |
+| Feature | Historical Root Planner | CAD Suite Planner App | Archived Donor Snapshot | Target Planner |
 |---|---|---|---|---|
 | Public `/planner` route | Documented only | Yes | No | Yes |
 | Public quote-cart handoff | Intended | Yes | No | Yes |
@@ -352,33 +384,50 @@ This should be treated as a real Phase 0 blocker, not a documentation nit
 | Route | Source | Current Role | Keep? |
 |---|---|---|---|
 | `/planner` | [apps/cad-suite/src/app/planner/page.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/app/planner/page.tsx:4) | Canonical public planner | Yes |
-| `/draw` | [apps/cad-suite/src/app/draw/page.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/app/draw/page.tsx:4) | Duplicate planner entry | Temporary alias only |
+| `/draw` | [apps/cad-suite/src/app/draw/page.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/app/draw/page.tsx:1) | Compatibility redirect to `/planner` | Keep only as temporary alias |
 | `/configurator` | [apps/cad-suite/src/app/configurator/page.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/app/configurator/page.tsx:76) | Honest interim 3D preview route | Keep route, do not oversell it |
 
 ### Current planner runtime pieces
 
 | File | Current Responsibility | Future Responsibility |
 |---|---|---|
-| [SmartdrawPlanner.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/components/draw/SmartdrawPlanner.tsx) | Large planner owner with extracted session and measurement boundaries | Split further into shell, state, quote bridge, geometry, UI |
-| [PlannerCanvas.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/components/draw/PlannerCanvas.tsx) | Tldraw wrapper | Remain as canvas wrapper |
-| [PlannerDesktopPanels.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/ui/PlannerDesktopPanels.tsx) | Desktop planner chrome under planner feature UI | Keep under planner UI module |
-| [PlannerMobilePanels.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/ui/PlannerMobilePanels.tsx) | Mobile planner chrome under planner feature UI | Keep under planner UI module |
+| [SmartdrawPlanner.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/components/draw/SmartdrawPlanner.tsx) | Planner shell and route-facing composition owner | Keep slimming this shell as feature hooks and UI ownership improve |
+| [usePlannerWorkspace.ts](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/hooks/usePlannerWorkspace.ts) | Planner editor sync and action orchestration over extracted UI/session boundaries | Keep narrowing this hook toward editor-centric responsibilities |
+| [usePlannerUiState.ts](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/hooks/usePlannerUiState.ts) | Planner shell UI state boundary | Keep as the UI-state owner for shell controls and panel state |
+| [PlannerCanvas.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/ui/PlannerCanvas.tsx) | Tldraw wrapper | Remain as canvas wrapper |
+| [PlannerDesktopPanels.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/ui/PlannerDesktopPanels.tsx) | Desktop planner composition under planner feature UI | Keep as planner-owned desktop composition boundary |
+| [PlannerMobilePanels.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/ui/PlannerMobilePanels.tsx) | Mobile planner composition under planner feature UI | Keep as planner-owned mobile composition boundary |
 | [usePlannerSession.ts](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/hooks/usePlannerSession.ts) | Planner session, draft, import, and save/load workflow | Keep as planner session boundary and extend carefully |
+| [PlannerSessionDialog.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/ui/PlannerSessionDialog.tsx) | Session dialog for owner saves, admin oversight, and planner-managed products | Keep as the planner admin browser workflow surface |
+| [Planner3DViewer.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/3d/Planner3DViewer.tsx) | Document-driven 3D viewer with orbit and walkthrough controls | Keep as the planner-owned 3D mode surface |
 | [quoteBridge.ts](/C:/claude0104 - Copy/apps/cad-suite/src/features/planner/lib/quoteBridge.ts) | Planner BOQ grouping and quote-cart payload mapping | Keep as the planner quote bridge |
 | [AiCopilot.tsx](/C:/claude0104 - Copy/apps/cad-suite/src/components/draw/AiCopilot.tsx) | Heuristic suggestion UI | Keep as planner-side assistant UI |
 | [quoteCart.ts](/C:/claude0104 - Copy/apps/cad-suite/src/lib/store/quoteCart.ts) | Quote cart state | Keep, but use via planner quote bridge |
 
+## Planner Module Map
+
+| Boundary | Owner | Live files | Notes |
+|---|---|---|---|
+| Route entry | CAD Suite app router | `src/app/planner`, `src/app/planner-saved/[id]`, `src/app/configurator`, `src/app/draw` | `/planner` is canonical and `/draw` is now compatibility-only |
+| Planner shell composition | `components/draw` | `SmartdrawPlanner.tsx`, `AiCopilot.tsx`, shared planner draw types | This is the remaining shell bridge that still needs eventual collapse into `features/planner` |
+| Planner feature hooks | `features/planner/hooks` | `usePlannerWorkspace.ts`, `usePlannerUiState.ts`, `usePlannerSession.ts` | Workspace handles editor orchestration, UI hook owns shell state, session hook owns persistence/auth workflow |
+| Planner feature UI | `features/planner/ui` | toolbar, canvas, step bar, panels, session dialog, mobile sheet | Planner chrome and control surfaces now live under one feature boundary |
+| Planner data + model | `features/planner/data`, `features/planner/model` | catalog adapter, save repository, planner-managed products, document schemas | This is the canonical planner persistence and normalization layer |
+| Planner logic | `features/planner/lib` | measurements, editor tools, quote bridge, document bridge, session state | Core planner calculations and transformation utilities live here |
+| Planner 3D | `features/planner/3d` | `Planner3DViewer.tsx` | Canonical document-driven 3D mode surface |
+| Shared quote sink | `src/lib/store/quoteCart.ts`, `src/app/quote-cart` | quote cart store and quote-cart route | Planner hands off through `quoteBridge.ts`, not direct ad hoc payloads |
+
 ## Donor Extraction Plan
 
-Use `07docs/Backupcad` as the clean donor snapshot.
+Use the archived donor planner snapshot (`07docs/Backupcad`) as the clean donor reference.
 
 ### Port from donor
 
 | Donor File | Capability To Extract | Port Strategy |
 |---|---|---|
-| [07docs/Backupcad/lib/store.ts](/C:/claude0104 - Copy/07docs/Backupcad/lib/store.ts:12) | Explicit planner store structure | Rebuild as CAD-suite planner store, do not copy blindly |
+| [07docs/Backupcad/lib/store.ts](/C:/claude0104 - Copy/07docs/Backupcad/lib/store.ts:12) | Explicit planner store structure | Rebuild as the CAD Suite planner store, do not copy blindly |
 | [07docs/Backupcad/components/floor-planner/editor.tsx](/C:/claude0104 - Copy/07docs/Backupcad/components/floor-planner/editor.tsx:31) | Save/load and editor workflow | Extract persistence and session concepts |
-| [07docs/Backupcad/components/floor-planner/viewer-3d.tsx](/C:/claude0104 - Copy/07docs/Backupcad/components/floor-planner/viewer-3d.tsx:18) | 3D viewer shell | Port later as optional planner mode |
+| [07docs/Backupcad/components/floor-planner/viewer-3d.tsx](/C:/claude0104 - Copy/07docs/Backupcad/components/floor-planner/viewer-3d.tsx:18) | 3D viewer shell | Already ported as the basis for walkthrough-capable planner 3D mode |
 
 ## Persistence And Import Strategy
 
@@ -391,14 +440,14 @@ That means:
 - one planner plan table family
 - one save/load contract
 - one source of truth for saved plans
-- no parallel planner storage models across CAD-suite and donor code
+- no parallel planner storage models across the CAD Suite planner app and donor code
 
 ### Target persistence model
 
 | Concern | Target |
 |---|---|
 | Canonical backend | Supabase |
-| Canonical saved-plan owner | `apps/cad-suite` |
+| Canonical saved-plan owner | CAD Suite planner app (`apps/cad-suite`) |
 | Plan document format | Single planner document model |
 | Drafts | Local draft fallback is acceptable, but only as a 24-hour non-canonical cache |
 | Quote linkage | Saved plan can still produce quote-cart payload |
@@ -552,17 +601,17 @@ Package decisions should follow the actual canonical planner path, not the donor
 
 | Package | Current Signal | Planned Use |
 |---|---|---|
-| `react-konva` and `konva` | No live usage found in `apps/cad-suite/src` | Reserve for secondary 2D canvas tooling or overlays if Tldraw is not the right fit for a sub-surface |
-| `@thi.ng/geom-hull` | No live usage found in `apps/cad-suite/src` | Reserve for polygon hull generation and room-outline cleanup |
-| `alpha-shape` | No live usage found in `apps/cad-suite/src` | Reserve for polygon boundary reconstruction and enclosure calculations |
-| `bezier-js` | No live usage found in `apps/cad-suite/src` | Reserve for curves, rounded corners, and wall-path calculations |
-| `line-intersect` | No live usage found in `apps/cad-suite/src` | Reserve for wall joins, segment intersections, and measurement rules |
-| `@tanstack/react-query` | No live planner usage found in `apps/cad-suite/src` | Reserve for planner async data synchronization if persistence surfaces grow |
-| `html2canvas` | No live usage found in `apps/cad-suite/src` | Reserve for planner image snapshots and raster export capture |
-| `jspdf` | No live usage found in `apps/cad-suite/src` | Reserve for PDF export, quote summaries, and printable planner output |
-| `jszip` | No live usage found in `apps/cad-suite/src` | Reserve for bundled export packages and planner asset archives |
-| `axios` | No live usage found in `apps/cad-suite/src` | Reserve for external planner API integration if native `fetch` is not enough |
-| `point-in-polygon` | No live usage found in `apps/cad-suite/src` | Reserve for polygon containment checks and layout validation rules |
+| `react-konva` and `konva` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for secondary 2D canvas tooling or overlays if Tldraw is not the right fit for a sub-surface |
+| `@thi.ng/geom-hull` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for polygon hull generation and room-outline cleanup |
+| `alpha-shape` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for polygon boundary reconstruction and enclosure calculations |
+| `bezier-js` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for curves, rounded corners, and wall-path calculations |
+| `line-intersect` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for wall joins, segment intersections, and measurement rules |
+| `@tanstack/react-query` | No live planner usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for planner async data synchronization if persistence surfaces grow |
+| `html2canvas` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for planner image snapshots and raster export capture |
+| `jspdf` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for PDF export, quote summaries, and printable planner output |
+| `jszip` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for bundled export packages and planner asset archives |
+| `axios` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for external planner API integration if native `fetch` is not enough |
+| `point-in-polygon` | No live usage found in the CAD Suite planner app source (`apps/cad-suite/src`) | Reserve for polygon containment checks and layout validation rules |
 
 ## Detailed Delivery Plan
 
@@ -570,24 +619,29 @@ Package decisions should follow the actual canonical planner path, not the donor
 
 ### Goal
 
-Make current CAD-suite planner build and deploy reliably without changing the product direction.
+Keep the CAD Suite planner app verified and deployable without pretending the remaining drift is solved.
 
 ### Tasks
 
 | Task | Outcome |
 |---|---|
-| Fix workspace and Turbopack package resolution | `apps/cad-suite` build stops failing on missing packages |
-| Make `npm -w cad-suite run build` pass | Local production build gate restored |
-| Make `npm -w cad-suite run cf:build` pass | Cloudflare build gate restored |
+| Keep `npm -w cad-suite run build` passing while planner refactors continue | Local production build gate stays green |
+| Keep `npm -w cad-suite run cf:build` passing and document the Windows/OpenNext caveat | Cloudflare build gate stays green and reproducible |
+| Make `npm run test:planner` pass | Planner verification gate becomes useful again |
+| Reconcile `planner_saves` migrations against actual environments | Saved-plan persistence stops depending on schema luck |
+| Reconcile `planner_managed_products` migrations with the runtime TypeScript model | Write-side planner products stop drifting by environment |
 | Resolve small planner contract drift | Remove obvious broken prop expectations |
-| Lock `/planner` as canonical in docs | Route strategy becomes explicit |
+| Confirm `/planner`, `/draw`, `/planner-saved/[id]`, and `/configurator` in browser after the build gates | Route truth is verified, not assumed from build output |
+| Lock `/planner` as canonical in docs and decide the `/draw` compatibility strategy | Route strategy becomes explicit |
 | Document current measurement bugs and mismatches | Measurement work starts from observed failures |
 
 ### Exit Gate
 
-- CAD-suite build passes
+- CAD Suite planner app build passes
 - Cloudflare build passes
-- `/planner` is deployable
+- planner test suite passes
+- persistence migrations are reconciled
+- `/planner` is deployable and browser-verified
 
 ## Phase 1: Refactor Without Product Drift
 
@@ -602,7 +656,7 @@ Keep current UX and split the monolith.
 | Extract planner shell from `SmartdrawPlanner.tsx` | Cleaner route/runtime boundary |
 | Extract quote generation logic | Stable BOQ and cart contract |
 | Extract geometry and measurement logic | Easier future enhancements |
-| Move panel components into planner feature module | Cleaner ownership |
+| Move toolbar, canvas, and panel bodies into the planner feature module | Cleaner ownership |
 | Separate UI state from editor state | Lower coupling |
 | Create centralized measurement utilities | Same values power labels, inspectors, and quote calculations |
 | Define canonical unit and conversion boundaries | No hidden unit drift in runtime |
@@ -634,6 +688,9 @@ Add save/load and draft continuity to the real public planner.
 | Add import dialog in planner shell | Import is easy, visible, and fast |
 | Bind save/load permissions to shared auth model | One admin and general-user auth system governs planner data |
 | Define admin RLS and browser-access boundaries | Admin can safely operate from browser surfaces without exposed secrets |
+| Reconcile `planner_managed_products` schema and migration history | Write-side planner products become operational instead of repo-only |
+| Add admin-capable planner repository paths instead of owner-only helpers | Admin RLS can be exercised by real planner code |
+| Add planner admin browser workflow | Admin save/product oversight becomes a real planner surface instead of a rule on paper |
 | Normalize imported dimensions into canonical units | Imported geometry becomes trustworthy inside the planner |
 | Persist measurement metadata where necessary | Saves preserve unit assumptions and calibration state |
 
@@ -657,7 +714,7 @@ Make 3D a mode of the planner, not a different planner.
 
 | Task | Outcome |
 |---|---|
-| Port donor viewer shell | CAD-suite gains 3D surface |
+| Port donor viewer shell | CAD Suite planner app gains 3D surface and walkthrough controls |
 | Map planner document to 3D scene | Same data powers 2D and 3D |
 | Add mode toggle | Planner stays unified |
 | Keep `/configurator` honest | Route reflects actual capability |
@@ -678,10 +735,10 @@ Remove planner confusion from the repo.
 
 | Task | Outcome |
 |---|---|
-| Keep `07docs/Backupcad` as the sole archival donor snapshot | Cleaner repo and clearer extraction source |
+| Keep the archived donor planner snapshot (`07docs/Backupcad`) as the sole archival donor snapshot | Cleaner repo and clearer extraction source |
 | Demote `/draw` to alias or redirect | Cleaner public entry strategy |
 | Rewrite stale planner docs | Docs match live system |
-| Add final architecture doc and module map | Faster onboarding |
+| Add final architecture doc and module map | Faster onboarding and ownership clarity |
 
 ### Exit Gate
 
@@ -693,14 +750,14 @@ Remove planner confusion from the repo.
 
 | Dimension | Old / Current Reality | New / Target Reality |
 |---|---|---|
-| Product boundary | Split across docs, CAD-suite, donor copies | Single boundary in `apps/cad-suite` |
+| Product boundary | Split across docs, the CAD Suite planner app, and donor copies | Single boundary in `apps/cad-suite` |
 | Public route strategy | `/planner` plus duplicate `/draw` | `/planner` canonical, others secondary |
-| 2D engine | Tldraw in CAD-suite, Fabric in donor | Tldraw only |
+| 2D engine | Tldraw in the CAD Suite planner app, Fabric in donor | Tldraw only |
 | Persistence | Donor app only | In canonical planner |
 | 3D | Donor app only, placeholder-grade | Optional mode under same planner |
-| Quote flow | Strong only in CAD-suite | Strong and formalized |
-| Catalog integration | Strong only in CAD-suite | Formalized under planner data layer |
-| Deployment fit | Only CAD-suite matches deployment plan | Fully aligned with deployment plan |
+| Quote flow | Strong only in the CAD Suite planner app | Strong and formalized |
+| Catalog integration | Strong only in the CAD Suite planner app | Formalized under planner data layer |
+| Deployment fit | Only the CAD Suite planner app matches deployment plan | Fully aligned with deployment plan |
 | Documentation accuracy | Poor | Accurate and repo-backed |
 | Measurement model | Scattered and partly implicit | Explicit canonical unit, conversion, and import normalization |
 
@@ -718,7 +775,7 @@ More precisely:
 
 The plan is:
 
-1. stabilize CAD-suite
+1. stabilize the CAD Suite planner app
 2. refactor the planner into a real feature module
 3. make Supabase the one canonical saved-plan store
 4. add an easy import flow into that same planner document model
@@ -727,5 +784,5 @@ The plan is:
 7. keep only the planner packages that serve the canonical path
 8. port persistence patterns from the donor snapshot
 9. add optional 3D later
-10. keep `07docs/Backupcad` as the only donor snapshot
+10. keep the archived donor planner snapshot (`07docs/Backupcad`) as the only donor snapshot
 11. rewrite docs to match the truth

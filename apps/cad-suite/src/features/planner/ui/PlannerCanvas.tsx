@@ -2,9 +2,9 @@
 
 import { Tldraw, type TLComponents } from "tldraw";
 
-import type { CanvasMeasurement } from "../../features/planner/lib/measurements";
+import type { PlannerStep } from "@/components/draw/types";
 
-import type { PlannerStep } from "./types";
+import type { CanvasMeasurement } from "../lib/measurements";
 
 interface PlannerCanvasProps {
   currentStep: PlannerStep;

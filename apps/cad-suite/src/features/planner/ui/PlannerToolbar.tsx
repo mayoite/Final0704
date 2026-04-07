@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 
 import { StepBar } from "./StepBar";
-import type { PlannerDrawingTool, PlannerStep } from "./types";
+import type { PlannerDrawingTool, PlannerStep } from "@/components/draw/types";
 
 interface PlannerToolbarProps {
   currentStep: PlannerStep;
@@ -125,8 +125,14 @@ export function PlannerToolbar({
   const sessionIndicatorClass = isSessionBusy
     ? "bg-[color:var(--planner-accent)] animate-pulse"
     : "bg-[color:var(--planner-primary)]";
+  const secondaryActionClass =
+    "flex items-center gap-1.5 rounded-xl border border-theme-soft bg-[color:var(--planner-panel-strong)] px-3 py-2 typ-caption-lg font-semibold text-muted transition-all enabled:hover:border-[color:var(--planner-border-hover)] enabled:hover:bg-[color:var(--planner-primary-soft)] enabled:hover:text-[color:var(--planner-primary)] disabled:cursor-not-allowed disabled:opacity-35";
   const utilityActionClass =
     "flex items-center gap-1.5 rounded-xl border border-theme-soft bg-[color:var(--planner-panel-strong)] px-3 py-2 typ-caption-lg font-semibold text-muted transition-all enabled:hover:border-[color:var(--planner-border-hover)] enabled:hover:bg-[color:var(--planner-primary-soft)] enabled:hover:text-[color:var(--planner-primary)] disabled:cursor-not-allowed disabled:opacity-35";
+  const accentActionClass =
+    "flex items-center gap-1.5 rounded-xl border border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)]/50 px-3 py-2 typ-caption-lg font-semibold text-[color:var(--planner-accent-strong)] transition-all enabled:hover:bg-[color:var(--planner-accent-soft)] enabled:hover:text-[color:var(--planner-accent-strong)] disabled:cursor-not-allowed disabled:opacity-35";
+  const primaryActionClass =
+    "flex items-center gap-1.5 rounded-xl bg-[color:var(--planner-primary)] px-3.5 py-2 typ-caption-lg font-semibold text-white shadow-theme-panel transition-all enabled:hover:bg-[color:var(--planner-primary-hover)] disabled:cursor-not-allowed disabled:bg-[color:var(--planner-surface-muted)] disabled:text-[color:var(--planner-text-subtle)] disabled:shadow-none";
   const panelToggleClass = (isOpen: boolean) =>
     `rounded-lg border p-2 transition-all ${
       isOpen
@@ -148,11 +154,13 @@ export function PlannerToolbar({
                 <span className="rounded-full border border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)]/50 px-2.5 py-1 typ-caption font-semibold uppercase tracking-[0.18em] text-[color:var(--planner-accent-strong)]">
                   Planner Shell
                 </span>
-                <span className="typ-caption-lg text-subtle">
-                  Build, save, and review from one aligned workspace.
-                </span>
+                {!isMobileMode ? (
+                  <span className="typ-caption-lg text-subtle">
+                    Build, save, and review from one aligned workspace.
+                  </span>
+                ) : null}
               </div>
-              <StepBar current={currentStep} onChange={onStepChange} disabledSteps={disabledSteps} />
+              <StepBar current={currentStep} onChange={onStepChange} disabledSteps={disabledSteps} compact={isMobileMode} />
             </div>
 
             <div className="flex flex-wrap items-stretch gap-2 xl:max-w-[35rem] xl:justify-end">
@@ -190,10 +198,25 @@ export function PlannerToolbar({
               <div className="flex flex-wrap items-center gap-2">
                 <button
                   type="button"
+                  onClick={onOpenSession}
+                  disabled={isSessionBusy}
+                  aria-label="Open planner session controls"
+                  className={primaryActionClass}
+                >
+                  {isSessionBusy ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <FolderOpen className="h-3.5 w-3.5" aria-hidden="true" />
+                  )}
+                  <span>{isMobileMode ? "Plans" : "Plan Sessions"}</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={onSaveDraft}
                   disabled={isSessionBusy}
                   aria-label="Save a local planner draft"
-                  className="flex items-center gap-1.5 rounded-xl border border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)]/50 px-3 py-2 typ-caption-lg font-semibold text-[color:var(--planner-accent-strong)] transition-all hover:bg-[color:var(--planner-accent-soft)] disabled:cursor-not-allowed disabled:opacity-35"
+                  className={accentActionClass}
                 >
                   <Save className="h-3.5 w-3.5" aria-hidden="true" />
                   <span>{isMobileMode ? "Save" : "Save Draft"}</span>
@@ -205,33 +228,19 @@ export function PlannerToolbar({
                     onClick={onImport}
                     disabled={isSessionBusy}
                     aria-label="Import planner document JSON"
-                    className={utilityActionClass}
+                    className={secondaryActionClass}
                   >
                     <Import className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Import</span>
                   </button>
                 ) : null}
-
-                <button
-                  type="button"
-                  onClick={onOpenSession}
-                  aria-label="Open planner session controls"
-                  className="flex items-center gap-1.5 rounded-xl bg-[color:var(--planner-primary)] px-3.5 py-2 typ-caption-lg font-semibold text-white shadow-theme-panel transition-all hover:bg-[color:var(--planner-primary-hover)]"
-                >
-                  {isSessionBusy ? (
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <FolderOpen className="h-3.5 w-3.5" aria-hidden="true" />
-                  )}
-                  <span>{isMobileMode ? "Plans" : "Plan Sessions"}</span>
-                </button>
               </div>
             </div>
           </div>
 
           <div className="h-px bg-[linear-gradient(90deg,rgba(127,106,82,0.08)_0%,rgba(127,106,82,0.34)_32%,rgba(31,54,83,0.18)_100%)]" />
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className={isMobileMode ? "flex items-center gap-2 overflow-x-auto pb-1" : "flex flex-wrap items-center gap-2"}>
           <div className="flex shrink-0 items-center gap-1 rounded-xl border border-theme-soft bg-[color:var(--planner-panel-strong)] px-1.5 py-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
             {drawingTools.map((tool) => {
               const isActive = activeDrawingTool === tool.id;
@@ -244,7 +253,7 @@ export function PlannerToolbar({
                   aria-label={`Activate ${tool.label} tool`}
                   className={`flex items-center gap-1 rounded-lg px-2.5 py-1.5 typ-caption font-semibold transition-all ${
                     isActive
-                      ? "bg-[color:var(--planner-primary)] text-white shadow-theme-panel"
+                      ? "border border-[color:var(--planner-primary)] bg-[color:var(--planner-primary)] text-white shadow-theme-panel"
                       : "text-subtle hover:bg-[color:var(--planner-primary-soft)] hover:text-[color:var(--planner-primary)]"
                   }`}
                   title={tool.label}
@@ -288,7 +297,7 @@ export function PlannerToolbar({
             aria-label={isSnapMode ? "Disable geometric snapping" : "Enable geometric snapping"}
             className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 typ-caption-lg font-semibold tracking-wide transition-all ${
               isSnapMode
-                ? "border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)] text-[color:var(--planner-accent-strong)]"
+                ? "border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)] text-[color:var(--planner-accent-strong)] shadow-[inset_0_0_0_1px_rgba(127,106,82,0.08)]"
                 : "border-theme-soft bg-panel text-subtle hover:bg-[color:var(--planner-primary-soft)] hover:text-[color:var(--planner-primary)]"
             }`}
           >
@@ -301,7 +310,7 @@ export function PlannerToolbar({
             aria-label={isGridVisible ? "Hide drawing grid" : "Show drawing grid"}
             className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 typ-caption-lg font-semibold tracking-wide transition-all ${
               isGridVisible
-                ? "border-[color:var(--planner-primary-soft)] bg-[color:var(--planner-primary-soft)] text-[color:var(--planner-primary)]"
+                ? "border-[color:var(--planner-primary-soft)] bg-[color:var(--planner-primary-soft)] text-[color:var(--planner-primary)] shadow-[inset_0_0_0_1px_rgba(31,54,83,0.08)]"
                 : "border-theme-soft bg-panel text-subtle hover:bg-[color:var(--planner-primary-soft)] hover:text-[color:var(--planner-primary)]"
             }`}
           >

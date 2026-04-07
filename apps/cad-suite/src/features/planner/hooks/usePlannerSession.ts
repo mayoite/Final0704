@@ -5,15 +5,28 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import {
   deletePlannerDocumentFromSupabase,
-  deletePlannerDraftDocument,
   listPlannerDocumentsFromSupabase,
   loadPlannerDocumentFromSupabase,
-  loadPlannerDraftDocument,
-  parsePlannerDocumentImportFile,
   savePlannerDocumentToSupabase,
+  type PlannerRepositoryAccessMode,
+} from "../data/plannerSaves";
+import {
+  deletePlannerDraftDocument,
+  loadPlannerDraftDocument,
   savePlannerDraftDocument,
-} from "../data";
-import type { PlannerDocument, PlannerSaveSummary } from "../model";
+} from "../data/plannerDraft";
+import {
+  deletePlannerManagedProduct,
+  listPlannerManagedProductsFromSupabase,
+  upsertPlannerManagedProduct,
+} from "../data/plannerManagedProducts.client";
+import { parsePlannerDocumentImportFile } from "../data/plannerImport";
+import type {
+  PlannerDocument,
+  PlannerManagedProductRow,
+  PlannerManagedProductWrite,
+  PlannerSaveSummary,
+} from "../model";
 import {
   buildPlannerToolbarSessionStateLabel,
   createPlannerExportPayload,
@@ -41,21 +54,32 @@ interface PlannerDraftScope {
   userId?: string;
 }
 
+function buildPlannerOwnerLabel(userId?: string | null) {
+  if (!userId) return "Unknown owner";
+  return `${userId.slice(0, 8)}...${userId.slice(-4)}`;
+}
+
 function buildPlannerSavedEntries({
   cloudPlans,
   getDraftScope,
+  accessMode = "owner",
+  includeLocalDraft = true,
 }: {
   cloudPlans: PlannerSaveSummary[];
   getDraftScope: (documentId: string) => PlannerDraftScope;
+  accessMode?: PlannerRepositoryAccessMode;
+  includeLocalDraft?: boolean;
 }) {
   const entries: PlannerSavedEntry[] = [];
-  const localDraft = loadPlannerDraftDocument(getDraftScope(LOCAL_CURRENT_DRAFT_ID));
+  const localDraft = includeLocalDraft ? loadPlannerDraftDocument(getDraftScope(LOCAL_CURRENT_DRAFT_ID)) : null;
 
   if (localDraft) {
     entries.push({
       id: LOCAL_CURRENT_DRAFT_ID,
       name: localDraft.name,
       source: "local",
+      accessMode: "owner",
+      canDelete: true,
       updatedAtLabel: formatPlannerSavedPlanTimestamp(localDraft.updatedAt ?? localDraft.createdAt),
       itemCount: localDraft.itemCount,
       detail: formatDimensionPair(
@@ -71,6 +95,10 @@ function buildPlannerSavedEntries({
       id: plan.id,
       name: plan.name,
       source: "cloud",
+      accessMode,
+      ownerUserId: plan.user_id ?? undefined,
+      ownerLabel: accessMode === "admin" ? buildPlannerOwnerLabel(plan.user_id) : undefined,
+      canDelete: accessMode === "owner",
       updatedAtLabel: formatPlannerSavedPlanTimestamp(plan.updated_at),
       itemCount: plan.item_count,
       detail: formatDimensionPair(
@@ -95,13 +123,18 @@ export function usePlannerSession({
   applyPlannerDocument,
 }: PlannerSessionOptions) {
   const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [authRole, setAuthRole] = useState<"customer" | "admin" | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [cloudPlans, setCloudPlans] = useState<PlannerSaveSummary[]>([]);
+  const [adminCloudPlans, setAdminCloudPlans] = useState<PlannerSaveSummary[]>([]);
+  const [plannerManagedProducts, setPlannerManagedProducts] = useState<PlannerManagedProductRow[]>([]);
   const [sessionBusy, setSessionBusy] = useState(false);
   const [sessionStatusMessage, setSessionStatusMessage] = useState<string | null>(null);
   const [sessionErrorMessage, setSessionErrorMessage] = useState<string | null>(null);
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
   const [localDraftVersion, setLocalDraftVersion] = useState(0);
+  const [activeCloudAccessMode, setActiveCloudAccessMode] = useState<PlannerRepositoryAccessMode>("owner");
+  const [activeCloudOwnerUserId, setActiveCloudOwnerUserId] = useState<string | null>(null);
 
   const reportSessionStatus = useCallback((message: string | null) => {
     setSessionStatusMessage(message);
@@ -126,8 +159,11 @@ export function usePlannerSession({
   const syncSessionInventory = useCallback(async () => {
     if (!supabase) {
       setAuthUserId(null);
+      setAuthRole(null);
       setIsAuthenticated(false);
       setCloudPlans([]);
+      setAdminCloudPlans([]);
+      setPlannerManagedProducts([]);
       setLocalDraftVersion((value) => value + 1);
       return;
     }
@@ -141,16 +177,52 @@ export function usePlannerSession({
       setAuthUserId(nextUserId);
       setIsAuthenticated(Boolean(nextUserId));
 
-      if (nextUserId) {
-        const savedPlans = await listPlannerDocumentsFromSupabase(supabase, { userId: nextUserId });
-        setCloudPlans(savedPlans);
-      } else {
+      if (!nextUserId) {
+        setAuthRole(null);
         setCloudPlans([]);
+        setAdminCloudPlans([]);
+        setPlannerManagedProducts([]);
+        return;
+      }
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", nextUserId)
+        .maybeSingle();
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      const nextRole = profileData?.role === "admin" ? "admin" : "customer";
+      setAuthRole(nextRole);
+
+      const savedPlans = await listPlannerDocumentsFromSupabase(supabase, {
+        userId: nextUserId,
+        accessMode: "owner",
+      });
+      setCloudPlans(savedPlans);
+
+      if (nextRole === "admin") {
+        const [allPlans, managedProducts] = await Promise.all([
+          listPlannerDocumentsFromSupabase(supabase, { userId: nextUserId, accessMode: "admin" }),
+          listPlannerManagedProductsFromSupabase(supabase),
+        ]);
+
+        setAdminCloudPlans(allPlans);
+        setPlannerManagedProducts(managedProducts);
+      } else {
+        setAdminCloudPlans([]);
+        setPlannerManagedProducts([]);
       }
     } catch (error) {
       setAuthUserId(null);
+      setAuthRole(null);
       setIsAuthenticated(false);
       setCloudPlans([]);
+      setAdminCloudPlans([]);
+      setPlannerManagedProducts([]);
       if (error instanceof Error) {
         reportSessionError(error.message);
       }
@@ -175,13 +247,21 @@ export function usePlannerSession({
 
     setSessionBusy(true);
     try {
+      const saveAccessMode =
+        authRole === "admin" && activeCloudAccessMode === "admin" && activeDocumentId ? "admin" : "owner";
       const savedDocument = await savePlannerDocumentToSupabase(supabase, buildCurrentPlannerDocument(), {
         userId: authUserId ?? undefined,
         saveId: activeDocumentId ?? undefined,
+        ownerUserId: saveAccessMode === "admin" ? activeCloudOwnerUserId ?? undefined : undefined,
+        accessMode: saveAccessMode,
       });
 
       setPlanName(savedDocument.name);
       setActiveDocumentId(savedDocument.id ?? null);
+      setActiveCloudAccessMode(saveAccessMode);
+      setActiveCloudOwnerUserId(
+        saveAccessMode === "admin" ? activeCloudOwnerUserId ?? authUserId ?? null : authUserId ?? null,
+      );
       reportSessionStatus(`Cloud save updated: ${savedDocument.name}`);
       await syncSessionInventory();
     } catch (error) {
@@ -190,7 +270,10 @@ export function usePlannerSession({
       setSessionBusy(false);
     }
   }, [
+    activeCloudAccessMode,
+    activeCloudOwnerUserId,
     activeDocumentId,
+    authRole,
     authUserId,
     buildCurrentPlannerDocument,
     isAuthenticated,
@@ -224,6 +307,8 @@ export function usePlannerSession({
           }
 
           applyPlannerDocument(draft);
+          setActiveCloudAccessMode("owner");
+          setActiveCloudOwnerUserId(authUserId ?? null);
           reportSessionStatus(`Loaded local draft: ${draft.name}`);
           return;
         }
@@ -235,6 +320,8 @@ export function usePlannerSession({
 
         const cloudDocument = await loadPlannerDocumentFromSupabase(supabase, plan.id, {
           userId: authUserId ?? undefined,
+          ownerUserId: plan.ownerUserId,
+          accessMode: plan.accessMode,
         });
 
         if (!cloudDocument) {
@@ -243,6 +330,8 @@ export function usePlannerSession({
         }
 
         applyPlannerDocument(cloudDocument);
+        setActiveCloudAccessMode(plan.accessMode === "admin" ? "admin" : "owner");
+        setActiveCloudOwnerUserId(plan.ownerUserId ?? authUserId ?? null);
         reportSessionStatus(`Loaded cloud plan: ${cloudDocument.name}`);
       } catch (error) {
         reportSessionError(error instanceof Error ? error.message : "Unable to load planner document.");
@@ -261,6 +350,11 @@ export function usePlannerSession({
           deletePlannerDraftDocument(getDraftScope(plan.id));
           setLocalDraftVersion((value) => value + 1);
           reportSessionStatus("Local draft removed.");
+          return;
+        }
+
+        if (plan.accessMode === "admin") {
+          reportSessionError("Admin oversight does not allow browser-side delete for other users' plans.");
           return;
         }
 
@@ -301,6 +395,8 @@ export function usePlannerSession({
         }
 
         applyPlannerDocument(parsed.document);
+        setActiveCloudAccessMode("owner");
+        setActiveCloudOwnerUserId(authUserId ?? null);
         reportSessionStatus(`Imported planner JSON: ${parsed.document.name}`);
         savePlannerDraftDocument(parsed.document, getDraftScope(LOCAL_CURRENT_DRAFT_ID));
         setLocalDraftVersion((value) => value + 1);
@@ -311,7 +407,7 @@ export function usePlannerSession({
         setSessionBusy(false);
       }
     },
-    [applyPlannerDocument, getDraftScope, reportSessionError, reportSessionStatus],
+    [applyPlannerDocument, authUserId, getDraftScope, reportSessionError, reportSessionStatus],
   );
 
   const handleExportJson = useCallback(() => {
@@ -335,12 +431,79 @@ export function usePlannerSession({
     router.push(`/configurator?draft=${VIEWER_PREVIEW_DRAFT_ID}`);
   }, [buildCurrentPlannerDocument, getDraftScope, router]);
 
+  const handleUpsertManagedProduct = useCallback(
+    async (product: PlannerManagedProductWrite) => {
+      if (authRole !== "admin") {
+        reportSessionError("Admin role is required to manage planner products.");
+        return;
+      }
+      if (!supabase) {
+        reportSessionError("Supabase is not configured in this environment.");
+        return;
+      }
+
+      setSessionBusy(true);
+      try {
+        const savedProduct = await upsertPlannerManagedProduct(supabase, product);
+        setPlannerManagedProducts((current) => {
+          const next = [...current.filter((entry) => entry.id !== savedProduct.id), savedProduct];
+          return next.sort((left, right) => right.updated_at.localeCompare(left.updated_at));
+        });
+        reportSessionStatus(`Planner-managed product saved: ${savedProduct.name}`);
+      } catch (error) {
+        reportSessionError(error instanceof Error ? error.message : "Unable to save planner-managed product.");
+      } finally {
+        setSessionBusy(false);
+      }
+    },
+    [authRole, reportSessionError, reportSessionStatus, supabase],
+  );
+
+  const handleDeleteManagedProduct = useCallback(
+    async (id: string) => {
+      if (authRole !== "admin") {
+        reportSessionError("Admin role is required to manage planner products.");
+        return;
+      }
+      if (!supabase) {
+        reportSessionError("Supabase is not configured in this environment.");
+        return;
+      }
+
+      setSessionBusy(true);
+      try {
+        const deleted = await deletePlannerManagedProduct(supabase, id);
+        if (deleted) {
+          setPlannerManagedProducts((current) => current.filter((entry) => entry.id !== id));
+        }
+        reportSessionStatus(deleted ? "Planner-managed product removed." : "Planner-managed product was not found.");
+      } catch (error) {
+        reportSessionError(error instanceof Error ? error.message : "Unable to delete planner-managed product.");
+      } finally {
+        setSessionBusy(false);
+      }
+    },
+    [authRole, reportSessionError, reportSessionStatus, supabase],
+  );
+
   const plannerSavedEntries = useMemo(() => {
     void localDraftVersion;
     return buildPlannerSavedEntries({ cloudPlans, getDraftScope });
   }, [cloudPlans, getDraftScope, localDraftVersion]);
 
-  const toolbarSessionModeLabel = isAuthenticated ? "Cloud + local drafts" : "Local draft mode";
+  const plannerAdminSavedEntries = useMemo(() => {
+    if (authRole !== "admin") return [];
+
+    return buildPlannerSavedEntries({
+      cloudPlans: adminCloudPlans,
+      getDraftScope,
+      accessMode: "admin",
+      includeLocalDraft: false,
+    });
+  }, [adminCloudPlans, authRole, getDraftScope]);
+
+  const toolbarSessionModeLabel =
+    authRole === "admin" ? "Admin + cloud drafts" : isAuthenticated ? "Cloud + local drafts" : "Local draft mode";
   const toolbarSessionStateLabel = buildPlannerToolbarSessionStateLabel({
     sessionBusy,
     sessionErrorMessage,
@@ -350,12 +513,16 @@ export function usePlannerSession({
 
   return {
     authUserId,
+    authRole,
+    isAdmin: authRole === "admin",
     isAuthenticated,
     sessionBusy,
     sessionStatusMessage,
     sessionErrorMessage,
     sessionDialogOpen,
     plannerSavedEntries,
+    plannerAdminSavedEntries,
+    plannerManagedProducts,
     toolbarSessionModeLabel,
     toolbarSessionStateLabel,
     getDraftScope,
@@ -372,5 +539,7 @@ export function usePlannerSession({
     handleImportFileChange,
     handleExportJson,
     handleOpen3d,
+    handleUpsertManagedProduct,
+    handleDeleteManagedProduct,
   };
 }

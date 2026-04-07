@@ -12,8 +12,10 @@ import {
 } from "./plannerCatalogCore";
 import { getPlannerCatalogProducts } from "./plannerCatalog";
 
-const getCatalogMock = vi.fn<() => Promise<CompatCategory[]>>();
-const listPlannerManagedProductsForPlannerCatalogMock = vi.fn<() => Promise<PlannerCatalogProduct[]>>();
+const { getCatalogMock, listPlannerManagedProductsForPlannerCatalogMock } = vi.hoisted(() => ({
+  getCatalogMock: vi.fn<() => Promise<CompatCategory[]>>(),
+  listPlannerManagedProductsForPlannerCatalogMock: vi.fn<() => Promise<PlannerCatalogProduct[]>>(),
+}));
 
 vi.mock("@/lib/getProducts", () => ({
   getCatalog: getCatalogMock,

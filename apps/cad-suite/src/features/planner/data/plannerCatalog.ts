@@ -1,5 +1,3 @@
-import "server-only";
-
 import { getCatalog } from "@/lib/getProducts";
 import { listPlannerManagedProductsForPlannerCatalog } from "./plannerManagedProducts";
 import {

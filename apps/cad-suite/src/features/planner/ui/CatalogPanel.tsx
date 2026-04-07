@@ -15,8 +15,10 @@ import {
   Building2,
   Square,
 } from "lucide-react";
-import type { CatalogProduct, PlannerStep, RoomPreset } from "./types";
 import type { Editor } from "tldraw";
+import type { CatalogProduct, PlannerStep, RoomPreset } from "@/components/draw/types";
+
+import { formatDimensionPair, type MeasurementUnit } from "../lib/measurements";
 
 interface CatalogPanelProps {
   products: CatalogProduct[];
@@ -24,9 +26,13 @@ interface CatalogPanelProps {
   currentStep: PlannerStep;
   canPlaceFurniture: boolean;
   roomPresets: RoomPreset[];
+  unitSystem: MeasurementUnit;
   onApplyRoomPreset: (preset: RoomPreset) => void;
   onActivateWallTool: () => void;
   onActivateBasicShapeTool: () => void;
+  onAddWallSegment: () => void;
+  onAddDoorOpening: () => void;
+  onResolveWallJoins: () => void;
   onDropFurniture: (prod: CatalogProduct | { name: string; category: string }) => void;
   onClose: () => void;
   pinned: boolean;
@@ -40,9 +46,13 @@ export function CatalogPanel({
   currentStep,
   canPlaceFurniture,
   roomPresets,
+  unitSystem,
   onApplyRoomPreset,
   onActivateWallTool,
   onActivateBasicShapeTool,
+  onAddWallSegment,
+  onAddDoorOpening,
+  onResolveWallJoins,
   onDropFurniture,
   onClose,
   pinned,
@@ -128,7 +138,7 @@ export function CatalogPanel({
                       <p className="mt-1 typ-caption text-subtle">{preset.summary}</p>
                     </div>
                     <div className="rounded-lg border border-theme-soft bg-panel px-2 py-1 typ-caption font-semibold text-subtle">
-                      {preset.widthMm} x {preset.heightMm}
+                      {formatDimensionPair(preset.widthMm, preset.heightMm, unitSystem)}
                     </div>
                   </div>
                 </button>
@@ -173,11 +183,20 @@ export function CatalogPanel({
             <button onClick={onActivateWallTool} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
               <PenTool className="w-3.5 h-3.5 text-[color:var(--planner-accent-strong)]" /> Multipoint Wall Chain
             </button>
+            <button onClick={onAddWallSegment} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
+              <Square className="w-3.5 h-3.5 text-[color:var(--planner-primary)]" /> Wall Segment
+            </button>
             <button onClick={onActivateBasicShapeTool} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
               <Square className="w-3.5 h-3.5 text-[color:var(--planner-primary)]" /> Basic Room Shape
             </button>
+            <button onClick={onAddDoorOpening} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
+              <DoorOpen className="w-3.5 h-3.5 text-[color:var(--planner-accent-strong)]" /> Door Opening
+            </button>
             <button onClick={() => editor?.setCurrentTool("draw")} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
               <span className="text-sm font-bold text-[color:var(--planner-primary)]">~</span> Freehand Trace
+            </button>
+            <button onClick={onResolveWallJoins} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
+              <Building2 className="w-3.5 h-3.5 text-[color:var(--planner-primary)]" /> Resolve Wall Joins
             </button>
           </div>
         </Section>

@@ -2,7 +2,8 @@
 
 import React from "react";
 import { Tag, Settings2, Box, FileText, Magnet, X, MousePointer2, Pin, PinOff } from "lucide-react";
-import type { BoqItem, PlannerStep } from "./types";
+import type { BoqItem, PlannerStep } from "@/components/draw/types";
+import type { PlannerSelectionDimensions } from "../lib/editorTools";
 
 interface InspectorPanelProps {
   boqItems: BoqItem[];
@@ -11,10 +12,12 @@ interface InspectorPanelProps {
   canContinueFromRoom: boolean;
   roomMetrics: string;
   selectedMetrics: string | null;
+  selectionDimensions: PlannerSelectionDimensions | null;
   unitSystem: "mm" | "ft-in";
   onUnitSystemChange: (unit: "mm" | "ft-in") => void;
   isSnapMode: boolean;
   onToggleSnap: () => void;
+  onUpdateSelectionDimensions: (next: { widthMm?: number; heightMm?: number | null }) => void;
   onGenerateQuote: () => void;
   onClose: () => void;
   pinned: boolean;
@@ -29,10 +32,12 @@ export function InspectorPanel({
   canContinueFromRoom,
   roomMetrics,
   selectedMetrics,
+  selectionDimensions,
   unitSystem,
   onUnitSystemChange,
   isSnapMode,
   onToggleSnap,
+  onUpdateSelectionDimensions,
   onGenerateQuote,
   onClose,
   pinned,
@@ -40,6 +45,8 @@ export function InspectorPanel({
   showPinToggle = true,
 }: InspectorPanelProps) {
   const [tab, setTab] = React.useState<"items" | "settings">("items");
+  const [widthInput, setWidthInput] = React.useState("");
+  const [heightInput, setHeightInput] = React.useState("");
   const isRoomStep = currentStep === "room";
   const isCatalogStep = currentStep === "catalog";
   const isMeasureStep = currentStep === "measure";
@@ -62,6 +69,15 @@ export function InspectorPanel({
       : isMeasureStep
         ? "Select walls or items to inspect measurements before review."
         : "Review the measured plan and generate the quote.";
+
+  React.useEffect(() => {
+    setWidthInput(selectionDimensions ? String(selectionDimensions.widthMm) : "");
+    setHeightInput(
+      selectionDimensions && typeof selectionDimensions.heightMm === "number"
+        ? String(selectionDimensions.heightMm)
+        : "",
+    );
+  }, [selectionDimensions]);
 
   return (
     <div className="flex h-full flex-col bg-transparent">
@@ -204,6 +220,50 @@ export function InspectorPanel({
                 {selectedMetrics ?? "Select a wall or item to inspect exact size."}
               </p>
             </div>
+            <div className="p-3 scheme-section-soft rounded-xl border border-theme-soft">
+              <h4 className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">Inspector Edit</h4>
+              {selectionDimensions ? (
+                <div className="space-y-3">
+                  <p className="typ-caption-lg text-body">{selectionDimensions.shapeName}</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="typ-caption text-subtle">
+                      {selectionDimensions.mode === "line" ? "Length mm" : "Width mm"}
+                      <input
+                        value={widthInput}
+                        onChange={(event) => setWidthInput(event.target.value)}
+                        className="mt-1 w-full rounded-lg border border-theme-soft bg-[color:var(--planner-panel-strong)] px-2.5 py-2 typ-caption-lg text-body outline-none transition focus:border-[color:var(--planner-primary)]"
+                      />
+                    </label>
+                    <label className="typ-caption text-subtle">
+                      {selectionDimensions.mode === "line" ? "Locked" : "Depth mm"}
+                      <input
+                        value={selectionDimensions.mode === "line" ? "n/a" : heightInput}
+                        disabled={selectionDimensions.mode === "line"}
+                        onChange={(event) => setHeightInput(event.target.value)}
+                        className="mt-1 w-full rounded-lg border border-theme-soft bg-[color:var(--planner-panel-strong)] px-2.5 py-2 typ-caption-lg text-body outline-none transition focus:border-[color:var(--planner-primary)] disabled:opacity-50"
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onUpdateSelectionDimensions({
+                        widthMm: Number.parseInt(widthInput || "0", 10) || undefined,
+                        heightMm:
+                          selectionDimensions.mode === "line"
+                            ? null
+                            : Number.parseInt(heightInput || "0", 10) || undefined,
+                      })
+                    }
+                    className="w-full rounded-xl bg-[color:var(--planner-primary)] py-2.5 text-[0.84rem] font-semibold text-white shadow-theme-panel transition-all hover:bg-[color:var(--planner-primary-hover)]"
+                  >
+                    Apply Size
+                  </button>
+                </div>
+              ) : (
+                <p className="typ-caption-lg text-subtle">Select one wall or one item to edit dimensions.</p>
+              )}
+            </div>
             <div className="mt-4 p-3 scheme-section-soft rounded-xl border border-theme-soft">
               <h4 className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">Shortcuts</h4>
               <div className="space-y-1.5 text-[0.78rem] text-body">
@@ -221,4 +281,3 @@ export function InspectorPanel({
     </div>
   );
 }
-

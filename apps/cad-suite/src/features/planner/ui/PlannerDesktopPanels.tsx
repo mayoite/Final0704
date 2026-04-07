@@ -2,11 +2,12 @@
 
 import type { Editor } from "tldraw";
 
-import { CatalogPanel } from "../../../components/draw/CatalogPanel";
-import { InspectorPanel } from "../../../components/draw/InspectorPanel";
-import { LayersPanel } from "../../../components/draw/LayersPanel";
-import { WorkspacePanel } from "../../../components/draw/WorkspacePanel";
-import type { BoqItem, CatalogProduct, PlannerStep, RoomPreset } from "../../../components/draw/types";
+import type { BoqItem, CatalogProduct, PlannerStep, RoomPreset } from "@/components/draw/types";
+
+import { CatalogPanel } from "./CatalogPanel";
+import { InspectorPanel } from "./InspectorPanel";
+import { LayersPanel } from "./LayersPanel";
+import { WorkspacePanel } from "./WorkspacePanel";
 
 interface PlannerDesktopPanelsProps {
   editor: Editor | null;
@@ -18,6 +19,7 @@ interface PlannerDesktopPanelsProps {
   canContinueFromRoom: boolean;
   roomMetrics: string;
   selectedMetrics: string | null;
+  selectionDimensions: import("../lib/editorTools").PlannerSelectionDimensions | null;
   unitSystem: "mm" | "ft-in";
   showCatalog: boolean;
   showLayers: boolean;
@@ -31,7 +33,12 @@ interface PlannerDesktopPanelsProps {
   onApplyRoomPreset: (preset: RoomPreset) => void;
   onActivateWallTool: () => void;
   onActivateBasicShapeTool: () => void;
+  onAddWallSegment: () => void;
+  onAddDoorOpening: () => void;
+  onResolveWallJoins: () => void;
   onFitSelection: () => void;
+  onAlignSelection: (operation: "left" | "center-horizontal" | "right" | "top" | "center-vertical" | "bottom") => void;
+  onDistributeSelection: (operation: "horizontal" | "vertical") => void;
   onCloseCatalog: () => void;
   onCloseLayers: () => void;
   onCloseInspector: () => void;
@@ -42,6 +49,7 @@ interface PlannerDesktopPanelsProps {
   onFocusLayers: () => void;
   onFocusInspector: () => void;
   onToggleSnap: () => void;
+  onUpdateSelectionDimensions: (next: { widthMm?: number; heightMm?: number | null }) => void;
   onUnitSystemChange: (unit: "mm" | "ft-in") => void;
   onGenerateQuote: () => void;
 }
@@ -56,6 +64,7 @@ export function PlannerDesktopPanels({
   canContinueFromRoom,
   roomMetrics,
   selectedMetrics,
+  selectionDimensions,
   unitSystem,
   showCatalog,
   showLayers,
@@ -69,7 +78,12 @@ export function PlannerDesktopPanels({
   onApplyRoomPreset,
   onActivateWallTool,
   onActivateBasicShapeTool,
+  onAddWallSegment,
+  onAddDoorOpening,
+  onResolveWallJoins,
   onFitSelection,
+  onAlignSelection,
+  onDistributeSelection,
   onCloseCatalog,
   onCloseLayers,
   onCloseInspector,
@@ -80,6 +94,7 @@ export function PlannerDesktopPanels({
   onFocusLayers,
   onFocusInspector,
   onToggleSnap,
+  onUpdateSelectionDimensions,
   onUnitSystemChange,
   onGenerateQuote,
 }: PlannerDesktopPanelsProps) {
@@ -102,9 +117,13 @@ export function PlannerDesktopPanels({
             currentStep={currentStep}
             canPlaceFurniture={currentStep === "catalog"}
             roomPresets={roomPresets}
+            unitSystem={unitSystem}
             onApplyRoomPreset={onApplyRoomPreset}
             onActivateWallTool={onActivateWallTool}
             onActivateBasicShapeTool={onActivateBasicShapeTool}
+            onAddWallSegment={onAddWallSegment}
+            onAddDoorOpening={onAddDoorOpening}
+            onResolveWallJoins={onResolveWallJoins}
             onDropFurniture={onDropFurniture}
             onClose={onCloseCatalog}
             pinned={catalogPinned}
@@ -129,10 +148,12 @@ export function PlannerDesktopPanels({
             canContinueFromRoom={canContinueFromRoom}
             roomMetrics={roomMetrics}
             selectedMetrics={selectedMetrics}
+            selectionDimensions={selectionDimensions}
             unitSystem={unitSystem}
             onUnitSystemChange={onUnitSystemChange}
             isSnapMode={isSnapMode}
             onToggleSnap={onToggleSnap}
+            onUpdateSelectionDimensions={onUpdateSelectionDimensions}
             onGenerateQuote={onGenerateQuote}
             onClose={onCloseInspector}
             pinned={inspectorPinned}
@@ -155,6 +176,8 @@ export function PlannerDesktopPanels({
             editor={editor}
             unitSystem={unitSystem}
             onFitSelection={onFitSelection}
+            onAlignSelection={onAlignSelection}
+            onDistributeSelection={onDistributeSelection}
             onClose={onCloseLayers}
             pinned={layersPinned}
             onTogglePin={onToggleLayersPin}

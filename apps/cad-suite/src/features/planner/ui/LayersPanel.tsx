@@ -14,8 +14,9 @@ import {
 } from "lucide-react";
 import { createShapeId, type Editor } from "tldraw";
 
-import { getMetricLabelForShape, type MeasurementUnit } from "../../features/planner/lib/measurements";
-import type { PlannerShapeMeta } from "./types";
+import type { PlannerShapeMeta } from "@/components/draw/types";
+
+import { getMetricLabelForShape, type MeasurementUnit } from "../lib/measurements";
 
 const ROOM_BOUNDARY_SHAPE_ID = createShapeId("room-boundary");
 
@@ -24,6 +25,8 @@ interface LayersPanelProps {
   unitSystem: MeasurementUnit;
   onClose: () => void;
   onFitSelection: () => void;
+  onAlignSelection: (operation: "left" | "center-horizontal" | "right" | "top" | "center-vertical" | "bottom") => void;
+  onDistributeSelection: (operation: "horizontal" | "vertical") => void;
   pinned: boolean;
   onTogglePin: () => void;
   showPinToggle?: boolean;
@@ -50,6 +53,8 @@ export function LayersPanel({
   unitSystem,
   onClose,
   onFitSelection,
+  onAlignSelection,
+  onDistributeSelection,
   pinned,
   onTogglePin,
   showPinToggle = true,
@@ -74,6 +79,12 @@ export function LayersPanel({
         name:
           typeof meta.text === "string" && meta.text.trim().length > 0
             ? meta.text
+            : meta.structureType === "door-opening"
+              ? "Door Opening"
+              : meta.structureType === "wall-segment"
+                ? "Wall Segment"
+                : meta.structureType === "room-shell"
+                  ? "Room Shell"
             : shape.type === "image"
               ? "Placed Image"
               : shape.type === "geo"
@@ -180,6 +191,40 @@ export function LayersPanel({
           <div className="flex items-center justify-center rounded-lg border border-theme-soft px-3 py-2 typ-caption font-semibold uppercase tracking-wider text-subtle">
             {layerEntries.length} layers
           </div>
+        </div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => onAlignSelection("left")}
+            disabled={actionableSelectedIds.length < 2}
+            className="rounded-lg border border-theme-soft bg-[color:var(--planner-panel-strong)] px-3 py-2 typ-caption-lg font-semibold text-strong transition-all enabled:hover:bg-[color:var(--planner-primary-soft)] enabled:hover:text-[color:var(--planner-primary)] disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            Align Left
+          </button>
+          <button
+            type="button"
+            onClick={() => onAlignSelection("top")}
+            disabled={actionableSelectedIds.length < 2}
+            className="rounded-lg border border-theme-soft bg-[color:var(--planner-panel-strong)] px-3 py-2 typ-caption-lg font-semibold text-strong transition-all enabled:hover:bg-[color:var(--planner-primary-soft)] enabled:hover:text-[color:var(--planner-primary)] disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            Align Top
+          </button>
+          <button
+            type="button"
+            onClick={() => onDistributeSelection("horizontal")}
+            disabled={actionableSelectedIds.length < 3}
+            className="rounded-lg border border-theme-soft bg-[color:var(--planner-panel-strong)] px-3 py-2 typ-caption-lg font-semibold text-strong transition-all enabled:hover:bg-[color:var(--planner-primary-soft)] enabled:hover:text-[color:var(--planner-primary)] disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            Space X
+          </button>
+          <button
+            type="button"
+            onClick={() => onDistributeSelection("vertical")}
+            disabled={actionableSelectedIds.length < 3}
+            className="rounded-lg border border-theme-soft bg-[color:var(--planner-panel-strong)] px-3 py-2 typ-caption-lg font-semibold text-strong transition-all enabled:hover:bg-[color:var(--planner-primary-soft)] enabled:hover:text-[color:var(--planner-primary)] disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            Space Y
+          </button>
         </div>
       </div>
 

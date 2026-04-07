@@ -14,7 +14,7 @@ const tools = [
   {
     title: "Draw",
     description: "Draw and visualize your office layouts with our robust 2D smart diagramming engine.",
-    href: "/draw",
+    href: "/configurator",
     icon: DraftingCompass,
     badge: "New",
   },
