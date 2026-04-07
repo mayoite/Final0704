@@ -84,6 +84,15 @@ async function resolveServerClient() {
   }
 }
 
+function isMissingPlannerManagedProductsTable(message: string): boolean {
+  const normalized = message.toLowerCase();
+  return (
+    normalized.includes("planner_managed_products") &&
+    (normalized.includes("could not find the table") ||
+      normalized.includes("relation") && normalized.includes("does not exist"))
+  );
+}
+
 export async function listPlannerManagedProductsForPlannerCatalog(): Promise<PlannerCatalogProduct[]> {
   const client = await resolveServerClient();
   if (!client) return [];
@@ -95,6 +104,10 @@ export async function listPlannerManagedProductsForPlannerCatalog(): Promise<Pla
     .order("updated_at", { ascending: false });
 
   if (error) {
+    if (isMissingPlannerManagedProductsTable(error.message ?? "")) {
+      // Deploy-safe fallback until planner-managed product migrations are applied.
+      return [];
+    }
     throw new Error(`Unable to load planner-managed products: ${error.message}`);
   }
 
