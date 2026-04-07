@@ -79,6 +79,14 @@ export function formatDimensionPair(widthMm: number, depthMm: number, unitSystem
   return `${formatLength(widthMm, unitSystem)} x ${formatLength(depthMm, unitSystem)}`;
 }
 
+export function formatArea(areaMm2: number, unitSystem: MeasurementUnit) {
+  if (unitSystem === "ft-in") {
+    return `${(areaMm2 / 92903.04).toFixed(1)} sq ft`;
+  }
+
+  return `${(areaMm2 / 1000000).toFixed(1)} m2`;
+}
+
 export function getShapeMeta(meta: unknown): PlannerShapeMeta {
   return meta && typeof meta === "object" ? (meta as PlannerShapeMeta) : {};
 }

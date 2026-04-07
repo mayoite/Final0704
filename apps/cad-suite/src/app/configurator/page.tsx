@@ -7,13 +7,15 @@ import { useSearchParams } from "next/navigation";
 import {
   Planner3DViewer,
   buildPlanner3DSceneDocument,
-  formatAreaSqm,
-  formatMeters,
-  formatMm,
   summarizePlannerDocument,
   type PlannerDocument,
 } from "@/features/planner/3d";
 import { loadPlannerDocumentFromSupabase, loadPlannerDraftDocument } from "@/features/planner/data";
+import {
+  formatArea,
+  formatLength,
+  plannerUnitSystemToMeasurementUnit,
+} from "@/features/planner/lib/measurements";
 import { createPlannerDocument } from "@/features/planner/model";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -79,10 +81,6 @@ const FALLBACK_DOCUMENT = createPlannerDocument({
 });
 
 type ViewerMode = "draft-preview" | "saved-plan" | "fallback" | "error";
-
-function formatItemDimensions(item: ReturnType<typeof buildPlanner3DSceneDocument>["items"][number]) {
-  return `${formatMm(item.sizeMm.widthMm)} x ${formatMm(item.sizeMm.depthMm)} x ${formatMm(item.sizeMm.heightMm)}`;
-}
 
 export default function ConfiguratorPage() {
   const searchParams = useSearchParams();
@@ -173,6 +171,7 @@ export default function ConfiguratorPage() {
 
   const sceneDocument = useMemo(() => buildPlanner3DSceneDocument(plannerDocument), [plannerDocument]);
   const summary = useMemo(() => summarizePlannerDocument(plannerDocument), [plannerDocument]);
+  const measurementUnit = plannerUnitSystemToMeasurementUnit(plannerDocument.unitSystem);
   const viewerModeLabel =
     viewerMode === "draft-preview"
       ? "Interim 3D preview"
@@ -193,6 +192,8 @@ export default function ConfiguratorPage() {
       : viewerMode === "saved-plan"
         ? "Saved-plan previews come from the canonical planner document store."
         : "Fallback scenes exist so the route stays honest even when no real planner document is available.";
+  const formatItemDimensions = (item: ReturnType<typeof buildPlanner3DSceneDocument>["items"][number]) =>
+    `${formatLength(item.sizeMm.widthMm, measurementUnit)} x ${formatLength(item.sizeMm.depthMm, measurementUnit)} x ${formatLength(item.sizeMm.heightMm, measurementUnit)}`;
 
   return (
     <main className="min-h-screen bg-page text-body">
@@ -232,16 +233,16 @@ export default function ConfiguratorPage() {
               <div className="typ-caption font-semibold uppercase tracking-[0.16em] text-muted">Room</div>
               <div className="mt-2 text-base font-semibold text-strong">{sceneDocument.title}</div>
               <div className="mt-1 typ-caption-lg text-body">
-                {formatMeters(sceneDocument.room.widthMm)} x {formatMeters(sceneDocument.room.depthMm)}
+                {formatLength(sceneDocument.room.widthMm, measurementUnit)} x {formatLength(sceneDocument.room.depthMm, measurementUnit)}
               </div>
-              <div className="mt-1 typ-caption text-subtle">Wall height {formatMm(sceneDocument.room.wallHeightMm)}</div>
+              <div className="mt-1 typ-caption text-subtle">Wall height {formatLength(sceneDocument.room.wallHeightMm, measurementUnit)}</div>
             </div>
 
             <div className="rounded-[1.4rem] border border-theme-soft bg-[color:var(--planner-panel-strong)] p-4 shadow-theme-panel">
               <div className="typ-caption font-semibold uppercase tracking-[0.16em] text-muted">Scene</div>
               <div className="mt-2 text-base font-semibold text-strong">{summary.itemCount} items in frame</div>
-              <div className="mt-1 typ-caption-lg text-body">Room area {formatAreaSqm(summary.roomAreaSqm * 1000000)}</div>
-              <div className="mt-1 typ-caption text-subtle">Footprint {summary.totalFootprintSqm.toFixed(1)} m2</div>
+              <div className="mt-1 typ-caption-lg text-body">Room area {formatArea(summary.roomAreaSqm * 1000000, measurementUnit)}</div>
+              <div className="mt-1 typ-caption text-subtle">Footprint {formatArea(summary.totalFootprintSqm * 1000000, measurementUnit)}</div>
               <div className="mt-1 typ-caption text-subtle">Largest item {summary.largestItemName ?? "n/a"}</div>
             </div>
           </div>
@@ -268,7 +269,7 @@ export default function ConfiguratorPage() {
                     </div>
                     <div className="mt-2 typ-caption-lg text-body">{formatItemDimensions(item)}</div>
                     <div className="mt-1 typ-caption text-subtle">
-                      Center {formatMm(item.centerMm.xMm)} x {formatMm(item.centerMm.yMm)} | Rotation {Math.round(item.rotationDeg ?? 0)} deg
+                      Center {formatLength(item.centerMm.xMm, measurementUnit)} x {formatLength(item.centerMm.yMm, measurementUnit)} | Rotation {Math.round(item.rotationDeg ?? 0)} deg
                     </div>
                   </div>
                 ))

@@ -489,14 +489,14 @@ export function isPlannerSaveRow(value: unknown): value is PlannerSaveRow {
 }
 
 export function normalizePlannerDocument(input: unknown): PlannerDocument {
-  const parsed = plannerDocumentSchema.safeParse(input);
-  if (parsed.success) return finalizePlannerDocument(parsed.data, isRecord(input) ? input : null);
-
   const envelope = plannerDocumentImportEnvelopeSchema.safeParse(input);
   if (envelope.success) return finalizePlannerDocument(envelope.data.document, isRecord(input) ? input : null);
 
   const row = plannerSaveRowSchema.safeParse(input);
   if (row.success) return finalizePlannerDocument(mapRowToDocumentLike(row.data), isRecord(input) ? input : null);
+
+  const parsed = plannerDocumentSchema.safeParse(input);
+  if (parsed.success) return finalizePlannerDocument(parsed.data, isRecord(input) ? input : null);
 
   const loose = input && typeof input === "object" ? (input as Record<string, unknown>) : {};
   return finalizePlannerDocument(
@@ -545,23 +545,7 @@ export function plannerDocumentToSaveRow(
 }
 
 export function plannerSaveRowToDocument(row: PlannerSaveRow): PlannerDocument {
-  return plannerDocumentSchema.parse({
-    schemaVersion: PLANNER_DOCUMENT_SCHEMA_VERSION,
-    id: row.id,
-    name: row.name,
-    projectName: row.project_name,
-    clientName: row.client_name,
-    preparedBy: row.prepared_by,
-    roomWidthMm: row.room_width_mm,
-    roomDepthMm: row.room_depth_mm,
-    seatTarget: row.seat_target,
-    unitSystem: row.unit_system,
-    sceneJson: row.scene_json,
-    itemCount: row.item_count,
-    thumbnailUrl: row.thumbnail_url,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  });
+  return normalizePlannerDocument(row);
 }
 
 export function summarizePlannerDocument(document: PlannerDocument) {

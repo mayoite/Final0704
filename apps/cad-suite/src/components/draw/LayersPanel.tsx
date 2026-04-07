@@ -14,13 +14,14 @@ import {
 } from "lucide-react";
 import { createShapeId, type Editor } from "tldraw";
 
-import { getMetricLabelForShape } from "../../features/planner/lib/measurements";
+import { getMetricLabelForShape, type MeasurementUnit } from "../../features/planner/lib/measurements";
 import type { PlannerShapeMeta } from "./types";
 
 const ROOM_BOUNDARY_SHAPE_ID = createShapeId("room-boundary");
 
 interface LayersPanelProps {
   editor: Editor | null;
+  unitSystem: MeasurementUnit;
   onClose: () => void;
   onFitSelection: () => void;
   pinned: boolean;
@@ -35,13 +36,18 @@ function getShapeMeta(meta: unknown): PlannerShapeMeta {
 function formatShapeMetrics(
   editor: Editor,
   shapeId: ReturnType<typeof createShapeId>,
-  shapeType: string
+  shapeType: string,
+  unitSystem: MeasurementUnit,
 ) {
-  return getMetricLabelForShape(editor, shapeId, "mm") ?? (shapeType === "line" ? "Length unavailable" : "No geometry");
+  return (
+    getMetricLabelForShape(editor, shapeId, unitSystem) ??
+    (shapeType === "line" ? "Length unavailable" : "No geometry")
+  );
 }
 
 export function LayersPanel({
   editor,
+  unitSystem,
   onClose,
   onFitSelection,
   pinned,
@@ -77,11 +83,11 @@ export function LayersPanel({
                 : shape.type === "draw"
                   ? "Freehand Wall"
                   : shape.type,
-        metrics: formatShapeMetrics(editor, shape.id, shape.type),
+        metrics: formatShapeMetrics(editor, shape.id, shape.type, unitSystem),
       };
       })
       .reverse();
-  }, [editor]);
+  }, [editor, unitSystem]);
 
   const actionableSelectedIds =
     editor

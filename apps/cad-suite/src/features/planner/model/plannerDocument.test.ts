@@ -88,6 +88,59 @@ describe("planner document model", () => {
     expect(invalid.errors.length).toBeGreaterThan(0);
   });
 
+  it("normalizes planner save rows when restoring from persisted data", () => {
+    const restored = plannerSaveRowToDocument({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      user_id: "550e8400-e29b-41d4-a716-446655440001",
+      name: "Saved Imperial Import",
+      project_name: null,
+      client_name: null,
+      prepared_by: null,
+      room_width_mm: 20,
+      room_depth_mm: 15,
+      seat_target: 10,
+      unit_system: "metric",
+      item_count: 1,
+      thumbnail_url: null,
+      created_at: "2026-04-07T00:00:00.000Z",
+      updated_at: "2026-04-07T00:00:00.000Z",
+      scene_json: {
+        type: "cad-suite-planner-scene",
+        version: 1,
+        measurement: {
+          canonicalUnit: "ft",
+          displayUnit: "ft-in",
+          sourceUnit: "ft",
+        },
+        room: {
+          widthMm: 20,
+          depthMm: 15,
+          wallHeightMm: 10,
+          wallThicknessMm: 1,
+          floorThicknessMm: 1,
+          originMm: { xMm: 2, yMm: 3 },
+        },
+        items: [
+          {
+            id: "item-1",
+            name: "Bench",
+            category: "seating",
+            centerMm: { xMm: 6, yMm: 4 },
+            sizeMm: { widthMm: 5, depthMm: 2, heightMm: 3 },
+            rotationDeg: 0,
+          },
+        ],
+        tldrawSnapshot: {},
+      },
+    });
+
+    expect(restored).toMatchObject({
+      unitSystem: "imperial",
+      roomWidthMm: 6096,
+      roomDepthMm: 4572,
+    });
+  });
+
   it("normalizes imported geometry into canonical millimeters and keeps measurement metadata", () => {
     const parsed = parsePlannerDocumentImport({
       schemaVersion: 1,

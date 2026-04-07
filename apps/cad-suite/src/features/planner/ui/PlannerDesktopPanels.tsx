@@ -153,6 +153,7 @@ export function PlannerDesktopPanels({
         >
           <LayersPanel
             editor={editor}
+            unitSystem={unitSystem}
             onFitSelection={onFitSelection}
             onClose={onCloseLayers}
             pinned={layersPinned}

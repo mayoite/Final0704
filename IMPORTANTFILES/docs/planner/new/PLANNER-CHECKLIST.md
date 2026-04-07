@@ -32,7 +32,7 @@ Use this with `PLANNER-DETAILED-PLAN.md`.
 | Planner direction and docs | Established | 85% |
 | Theme alignment | Site CSS and typography reuse wired in | 65% |
 | Phase 1 refactor | Session, panel, measurement, and quote boundaries extracted | 70% |
-| Phase 2 document/save/load/import foundation | Core document and session flow implemented, but write-side store and final import normalization remain open | 75% |
+| Phase 2 document/save/load/import foundation | Core document/session flow is live, measurement persistence is normalized, and planner save schema/RLS hardening is in repo; write-side product store and merged adapter remain open | 80% |
 | Phase 3 2D/3D document bridge | Basic bridge implemented with honest preview route | 65% |
 | Session/cache behavior | Sticky error state plus 24-hour local draft cache implemented | 100% |
 | Build and deploy stability | Not solved yet | 20% |
@@ -48,10 +48,10 @@ Use this with `PLANNER-DETAILED-PLAN.md`.
 
 ## Recheck Notes
 
-- `planner_saves` exists and is protected by owner-based RLS, but planner-specific admin RLS policy work is not defined yet
+- `planner_saves` now has owner-managed RLS plus planner admin read/update oversight groundwork through `profiles.role = 'admin'`
 - planner product reads still come only from the legacy catalog adapter; there is no live `planner_managed_products` write-side store yet
-- import validation exists and semantic scene geometry is normalized toward canonical `mm`, but the save-row restore path and 2D editor restore path still leave measurement work incomplete
-- browser admin access is a documented rule and the normal browser Supabase client exists, but the planner-specific admin browser workflow is not yet proven end-to-end
+- import validation exists, semantic scene geometry is normalized toward canonical `mm`, and saved-row restore now routes back through canonical normalization
+- browser admin access is a documented rule and the normal browser Supabase client exists; `planner_saves` now has admin read/update groundwork, but the end-to-end planner admin browser workflow is still not proven
 
 ## Package Decisions
 
@@ -123,7 +123,7 @@ Use this with `PLANNER-DETAILED-PLAN.md`.
 
 ## Phase 0 Checklist
 
-- [ ] Reconcile `planner_saves` migration drift before deployment
+- [x] Add a reconciliation migration for `planner_saves` schema drift before deployment
 - [ ] Make `npm -w cad-suite run build` pass
 - [ ] Make `npm -w cad-suite run cf:build` pass
 - [ ] Confirm planner routes still load after build fixes
@@ -161,23 +161,24 @@ Use this with `PLANNER-DETAILED-PLAN.md`.
 - [x] Make local draft cache expire after 24 hours and auto-clean
 - [x] Add import dialog inside planner shell
 - [x] Add import validator and mapper
-- [ ] Normalize imported geometry into canonical units
-- [ ] Persist measurement metadata where required
+- [x] Normalize imported geometry into canonical units
+- [x] Persist measurement metadata where required
 - [x] Bind save/load/import to one shared auth model
 - [x] Keep planner session errors sticky until dismissed
-- [ ] Define admin RLS policies for browser-side admin work
+- [x] Add planner save admin read/update oversight groundwork under shared `profiles`/`app_role` RLS checks
 - [ ] Confirm admin browser access works without service-role exposure
 
 ### Phase 2 Recheck Detail
 
-- `Normalize imported geometry into canonical units`: partial
+- `Normalize imported geometry into canonical units`: done in repo
   - semantic planner document normalization exists
-  - remaining gap: saved-row restore and 2D editor restore are not fully normalized
-- `Persist measurement metadata where required`: partial
-  - `sceneJson.measurement` is written
-  - remaining gap: metadata is not yet enforced consistently across reload and configurator presentation
-- `Define admin RLS policies for browser-side admin work`: not done
-  - only user-owned `planner_saves` RLS is present today
+  - saved-row restore now routes back through canonical normalization
+- `Persist measurement metadata where required`: done in repo
+  - `sceneJson.measurement` is written and survives saved-row restoration
+- `Define admin RLS policies for browser-side admin work`: groundwork done
+  - `planner_saves` owner policies are explicit
+  - authenticated admins can now read and update planner saves through `profiles.role = 'admin'`
+  - insert/delete remain owner-scoped only
 - `Confirm admin browser access works without service-role exposure`: not done
   - browser client exists and service-role remains server-only, but planner-specific admin access is not proven
 

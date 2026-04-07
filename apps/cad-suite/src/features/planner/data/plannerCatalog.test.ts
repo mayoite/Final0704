@@ -1,13 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { CompatCategory } from "@/lib/getProducts";
 
 import {
+  mergePlannerCatalogProducts,
   normalizePlannerCatalogProducts,
+  type PlannerCatalogProduct,
   resolvePlannerCatalogProductById,
   resolvePlannerCatalogProductByReference,
   resolvePlannerCatalogProductBySlug,
 } from "./plannerCatalogCore";
+import { getPlannerCatalogProducts } from "./plannerCatalog";
+
+const getCatalogMock = vi.fn<() => Promise<CompatCategory[]>>();
+
+vi.mock("@/lib/getProducts", () => ({
+  getCatalog: getCatalogMock,
+}));
 
 describe("planner catalog adapter", () => {
   const catalog: CompatCategory[] = [
@@ -60,6 +69,27 @@ describe("planner catalog adapter", () => {
     },
   ];
 
+  beforeEach(() => {
+    getCatalogMock.mockReset();
+    getCatalogMock.mockResolvedValue(catalog);
+  });
+
+  function buildManagedProduct(legacyProduct: PlannerCatalogProduct): PlannerCatalogProduct {
+    return {
+      ...legacyProduct,
+      id: "managed-prod-1",
+      slug: "alpha-desk-v2",
+      price: 52000,
+      images: [],
+      flagship_image: "",
+      metadata: {
+        ...legacyProduct.metadata,
+        source: "planner-managed",
+        rollout: "managed",
+      },
+    };
+  }
+
   it("normalizes the legacy catalog into planner-ready products", () => {
     const products = normalizePlannerCatalogProducts(catalog);
 
@@ -83,16 +113,53 @@ describe("planner catalog adapter", () => {
       plannerCatalogSlug: "alpha-desk",
       plannerCatalogCategoryId: "cat-1",
       plannerCatalogSeriesId: "series-1",
+      plannerCatalogLookupIds: ["prod-1"],
+      plannerCatalogLookupSlugs: ["alpha-desk"],
+      plannerCatalogLookupSourceSlugs: ["alpha-desk"],
     });
   });
 
-  it("resolves planner catalog products by id, slug, and source slug", () => {
-    const products = normalizePlannerCatalogProducts(catalog);
+  it("merges managed products over legacy data and preserves legacy aliases for lookup", () => {
+    const legacyProducts = normalizePlannerCatalogProducts(catalog);
+    const managedProducts = [buildManagedProduct(legacyProducts[0])];
+    const products = mergePlannerCatalogProducts(legacyProducts, managedProducts);
 
+    expect(products).toHaveLength(1);
+    expect(products[0]).toMatchObject({
+      id: "managed-prod-1",
+      slug: "alpha-desk-v2",
+      plannerSourceSlug: "alpha-desk",
+      price: 52000,
+      flagship_image: "/desk.png",
+      images: ["/desk-1.png"],
+    });
+
+    expect(resolvePlannerCatalogProductById(products, "managed-prod-1")?.name).toBe("Alpha Desk");
     expect(resolvePlannerCatalogProductById(products, "prod-1")?.name).toBe("Alpha Desk");
+    expect(resolvePlannerCatalogProductBySlug(products, "alpha-desk-v2")?.name).toBe("Alpha Desk");
     expect(resolvePlannerCatalogProductBySlug(products, "alpha-desk")?.name).toBe("Alpha Desk");
     expect(
       resolvePlannerCatalogProductByReference(products, { plannerSourceSlug: "alpha-desk" })?.name,
     ).toBe("Alpha Desk");
+    expect(products[0].metadata).toMatchObject({
+      source: "planner-managed",
+      rollout: "managed",
+      plannerCatalogLookupIds: ["managed-prod-1", "prod-1"],
+      plannerCatalogLookupSlugs: ["alpha-desk-v2", "alpha-desk"],
+    });
+  });
+
+  it("keeps the legacy fetch path by default and merges an optional managed source when supplied", async () => {
+    const legacyOnlyProducts = await getPlannerCatalogProducts();
+    const mergedProducts = await getPlannerCatalogProducts({
+      plannerManagedProducts: async () => [buildManagedProduct(normalizePlannerCatalogProducts(catalog)[0])],
+    });
+
+    expect(getCatalogMock).toHaveBeenCalledTimes(2);
+    expect(legacyOnlyProducts).toHaveLength(1);
+    expect(legacyOnlyProducts[0].id).toBe("prod-1");
+    expect(mergedProducts).toHaveLength(1);
+    expect(mergedProducts[0].id).toBe("managed-prod-1");
+    expect(resolvePlannerCatalogProductById(mergedProducts, "prod-1")?.id).toBe("managed-prod-1");
   });
 });

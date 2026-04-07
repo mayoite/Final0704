@@ -102,6 +102,7 @@ export function PlannerMobilePanels({
         {mobileLayersOpen ? (
           <LayersPanel
             editor={editor}
+            unitSystem={unitSystem}
             onFitSelection={onFitSelection}
             onClose={() => onOpenLayersChange(false)}
             pinned={false}

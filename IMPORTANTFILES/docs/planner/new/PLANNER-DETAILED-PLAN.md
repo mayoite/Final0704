@@ -50,7 +50,7 @@ Interpretation:
 | Planner direction and docs | Established | 85% |
 | Theme alignment | Site CSS and typography reuse wired in | 65% |
 | Phase 1 refactor | Session, panel, measurement, and quote boundaries extracted | 70% |
-| Phase 2 document/save/load/import foundation | Core document and planner session flow implemented, but write-side store, admin RLS, and final import normalization remain open | 75% |
+| Phase 2 document/save/load/import foundation | Core document/session flow is live, measurement persistence is normalized, and planner save schema/RLS hardening is in repo; write-side product store and merged adapter remain open | 80% |
 | Phase 3 2D/3D document bridge | Basic bridge implemented with honest preview route | 65% |
 | Session/cache behavior | Sticky error state plus 24-hour local draft cache implemented | 100% |
 | Build and deploy stability | Not solved yet | 20% |
@@ -63,10 +63,10 @@ Interpretation:
 - legacy catalog normalization is implemented for planner reads
 - the separate planner-managed product write store is still planned, not implemented
 - the merged adapter over legacy-read and new-write product sources is still planned, not implemented
-- semantic import normalization exists, but the save-row reload path and editor restore path still leave measurement work incomplete
-- planner-specific admin RLS is not implemented yet
+- semantic import normalization exists and saved-row reload now routes back through canonical normalization
+- planner-specific admin RLS is implemented in repo through a reconciliation migration on `planner_saves`
 - admin browser access without service-role exposure is the intended rule, but not yet proven through a planner-specific workflow
-- `planner_saves` migrations currently show schema drift and should be treated as a deployment risk
+- `planner_saves` migrations showed schema drift; a reconciliation migration is now in repo, but it still needs to be applied and verified per environment
 
 ## Interim Read/Write Split
 
@@ -272,19 +272,20 @@ But the permission model must still separate:
 
 Current gap:
 
-- user-owned planner save RLS exists
-- planner-specific admin access policies do not exist yet
-- browser client safety rule is implemented by architecture, but planner admin workflow is not yet verified end-to-end
+- user-owned planner save RLS exists and admin read/update oversight RLS is now added in repo
+- browser client safety rule is implemented by architecture
+- planner admin workflow is not yet verified end-to-end
 
 ## Persistence Risk
 
-The persistence layer is implemented, but the migrations are not clean enough to trust without review.
+The persistence layer is implemented, and the repo now contains a reconciliation migration for `planner_saves`.
 
 Current issue:
 
 - there are two `planner_saves` migrations
 - the earlier migration and later migration do not fully agree on the table shape and defaults
 - the later migration uses `CREATE TABLE IF NOT EXISTS`, so it would not repair an already-created earlier table
+- the new reconciliation migration exists to normalize the table shape and RLS behavior, but it still has to be applied in real environments
 
 Practical effect:
 
