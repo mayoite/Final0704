@@ -12,8 +12,10 @@ import {
 import { createClient as createServerSupabaseClient } from "@/lib/supabase/server";
 
 function normalizePlannerManagedProductRow(row: unknown): PlannerManagedProductRow {
+  const rowObject = row && typeof row === "object" && !Array.isArray(row) ? row : {};
+
   return plannerManagedProductRowSchema.parse({
-    ...row,
+    ...rowObject,
     images: Array.isArray((row as PlannerManagedProductRow | undefined)?.images)
       ? (row as PlannerManagedProductRow).images
       : [],

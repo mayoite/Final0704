@@ -225,13 +225,11 @@ export function isPlannerSceneEnvelope(value: unknown): value is PlannerSceneEnv
 export function getPlannerSceneEnvelope(sceneJson: PlannerJsonValue): PlannerSceneEnvelope | null {
   if (isPlannerSceneEnvelope(sceneJson)) return sceneJson;
 
-  if (
-    sceneJson &&
-    typeof sceneJson === "object" &&
-    "plannerScene" in sceneJson &&
-    isPlannerSceneEnvelope((sceneJson as { plannerScene?: unknown }).plannerScene)
-  ) {
-    return (sceneJson as { plannerScene: PlannerSceneEnvelope }).plannerScene;
+  if (sceneJson && typeof sceneJson === "object" && !Array.isArray(sceneJson)) {
+    const obj = sceneJson as Record<string, unknown>;
+    if (isPlannerSceneEnvelope(obj.plannerScene)) {
+      return obj.plannerScene;
+    }
   }
 
   return null;
@@ -268,7 +266,7 @@ export function buildPlannerDocumentFromEditor(
     roomDepthMm: room.depthMm,
     seatTarget: options.seatTarget ?? 10,
     unitSystem: options.unitSystem === "ft-in" ? "imperial" : "metric",
-    sceneJson,
+    sceneJson: sceneJson as unknown as PlannerJsonValue,
     itemCount: items.length,
     thumbnailUrl: options.thumbnailUrl ?? null,
   });

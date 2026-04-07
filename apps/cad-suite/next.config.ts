@@ -8,7 +8,7 @@ const projectRoot = dirname(fileURLToPath(import.meta.url));
 const nextConfig: NextConfig = {
   reactCompiler: true,
   turbopack: {
-    root: projectRoot,
+    root: dirname(dirname(projectRoot)), // Point to workspace root to find hoisted node_modules
   },
 };
 
