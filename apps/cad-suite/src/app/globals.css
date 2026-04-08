@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
-@import "../../../../src/app/theme-tokens.css";
-@import "../../../../src/app/theme-utilities.css";
-@import "../../../../src/app/typography.css";
-@import "../../../../src/app/surfaces.css";
-@import "../../../../src/app/borders-radii.css";
-@import "../../../../src/app/interactive.css";
+@import "./theme-tokens.css";
+@import "./theme-utilities.css";
+@import "./typography.css";
+@import "./surfaces.css";
+@import "./borders-radii.css";
+@import "./interactive.css";
 
 @layer base {
   :root {
