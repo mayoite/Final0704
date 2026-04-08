@@ -1,10 +1,14 @@
 import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { NextConfig } from "next";
-import { initOpenNextCloudflareForDev } from "@opennextjs/cloudflare";
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = dirname(dirname(projectRoot));
+const shouldInitOpenNextCloudflareForDev =
+  process.env.NODE_ENV !== "production" &&
+  !process.env.VERCEL &&
+  !process.env.VERCEL_ENV &&
+  process.env.CI !== "true";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
@@ -17,9 +21,15 @@ const nextConfig: NextConfig = {
 };
 
 // OpenNext Cloudflare dev wiring is only needed for local dev.
-// Running it during production builds can trigger filesystem assumptions.
-if (process.env.NODE_ENV !== "production") {
-  void initOpenNextCloudflareForDev();
+// Production and hosted CI builds should not load Cloudflare's workerd binary.
+if (shouldInitOpenNextCloudflareForDev) {
+  void import("@opennextjs/cloudflare")
+    .then(({ initOpenNextCloudflareForDev }) => {
+      initOpenNextCloudflareForDev();
+    })
+    .catch(() => {
+      // Local dev can continue without the adapter when the package is unavailable.
+    });
 }
 
 export default nextConfig;

@@ -250,6 +250,17 @@ const nextConfig = {
 
 module.exports = nextConfig;
 
-import("@opennextjs/cloudflare").then(({ initOpenNextCloudflareForDev }) => {
-  initOpenNextCloudflareForDev();
-});
+const shouldInitOpenNextCloudflareForDev =
+  process.env.NODE_ENV !== "production" &&
+  !isHostedVercelRuntime &&
+  process.env.CI !== "true";
+
+if (shouldInitOpenNextCloudflareForDev) {
+  import("@opennextjs/cloudflare")
+    .then(({ initOpenNextCloudflareForDev }) => {
+      initOpenNextCloudflareForDev();
+    })
+    .catch(() => {
+      // Local dev should not fail hard if the Cloudflare adapter is unavailable.
+    });
+}
