@@ -31,7 +31,8 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "cdn:sync": "node scripts/sync_r2_assets.mjs",
-    "supabase:backup": "npx tsx scripts/backup_supabase.ts"
+    "supabase:backup": "npx tsx scripts/backup_supabase.ts",
+    "audit:emails:com": "node scripts/audit_com_emails.mjs"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
