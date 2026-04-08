@@ -7,7 +7,11 @@ import type { BoqItem, CatalogProduct, PlannerStep, RoomPreset } from "@/compone
 import { CatalogPanel } from "./CatalogPanel";
 import { InspectorPanel } from "./InspectorPanel";
 import { LayersPanel } from "./LayersPanel";
-import { WorkspacePanel } from "./WorkspacePanel";
+import {
+  DEFAULT_PLANNER_PANEL_DOCK_GAP_PX,
+  DEFAULT_PLANNER_PANEL_WIDTH_PX,
+  WorkspacePanel,
+} from "./WorkspacePanel";
 
 interface PlannerDesktopPanelsProps {
   editor: Editor | null;
@@ -52,6 +56,8 @@ interface PlannerDesktopPanelsProps {
   onUpdateSelectionDimensions: (next: { widthMm?: number; heightMm?: number | null }) => void;
   onUnitSystemChange: (unit: "mm" | "ft-in") => void;
   onGenerateQuote: () => void;
+  topInsetPx?: number;
+  panelDockedSpanPx?: number;
 }
 
 export function PlannerDesktopPanels({
@@ -97,9 +103,10 @@ export function PlannerDesktopPanels({
   onUpdateSelectionDimensions,
   onUnitSystemChange,
   onGenerateQuote,
+  topInsetPx = 188,
+  panelDockedSpanPx = DEFAULT_PLANNER_PANEL_WIDTH_PX + DEFAULT_PLANNER_PANEL_DOCK_GAP_PX,
 }: PlannerDesktopPanelsProps) {
-  const rightPanelOffset = showInspector ? 336 : 0;
-  const toolbarOffsetPx = 188;
+  const rightPanelOffset = showInspector && inspectorPinned ? panelDockedSpanPx : 0;
 
   return (
     <>
@@ -110,7 +117,7 @@ export function PlannerDesktopPanels({
           docked={catalogPinned}
           isActive={activePanel === "catalog"}
           onFocus={onFocusCatalog}
-          topPx={toolbarOffsetPx}
+          topPx={topInsetPx}
         >
           <CatalogPanel
             products={catalogProducts}
@@ -140,7 +147,7 @@ export function PlannerDesktopPanels({
           docked={inspectorPinned}
           isActive={activePanel === "inspector"}
           onFocus={onFocusInspector}
-          topPx={toolbarOffsetPx}
+          topPx={topInsetPx}
         >
           <InspectorPanel
             boqItems={boqItems}
@@ -171,7 +178,7 @@ export function PlannerDesktopPanels({
           isActive={activePanel === "layers"}
           onFocus={onFocusLayers}
           offsetPx={rightPanelOffset}
-          topPx={toolbarOffsetPx}
+          topPx={topInsetPx}
         >
           <LayersPanel
             editor={editor}

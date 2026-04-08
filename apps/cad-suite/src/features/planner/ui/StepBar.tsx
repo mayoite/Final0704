@@ -1,11 +1,11 @@
 "use client";
 
 import React from "react";
-import { Boxes, CheckCircle2, DoorOpen, Ruler } from "lucide-react";
+import { Boxes, CheckCircle2, LayoutDashboard, Ruler } from "lucide-react";
 import type { PlannerStep } from "@/components/draw/types";
 
 const STEPS: { key: PlannerStep; label: string; icon: React.ReactNode }[] = [
-  { key: "room", label: "Room Shell", icon: <DoorOpen className="w-4 h-4" /> },
+  { key: "room", label: "Space", icon: <LayoutDashboard className="w-4 h-4" /> },
   { key: "catalog", label: "Catalog", icon: <Boxes className="w-4 h-4" /> },
   { key: "measure", label: "Measure", icon: <Ruler className="w-4 h-4" /> },
   { key: "review", label: "Review", icon: <CheckCircle2 className="w-4 h-4" /> },
@@ -25,7 +25,7 @@ export function StepBar({ current, onChange, disabledSteps = {}, compact = false
 
   return (
     <div
-      className={`flex items-center gap-1.5 ${compactLayout ? "overflow-x-auto pb-1" : "flex-wrap"}`}
+      className={`flex items-center gap-1 font-sans ${compactLayout ? "overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "flex-wrap"}`}
     >
       {STEPS.map((step, i) => {
         const isActive = step.key === current;
@@ -39,26 +39,27 @@ export function StepBar({ current, onChange, disabledSteps = {}, compact = false
             onClick={() => {
               if (!isDisabled) onChange(step.key);
             }}
-            className={`group flex shrink-0 items-center gap-2.5 rounded-[1.1rem] border text-left transition-all duration-200 ${
-              compactLayout ? "min-w-[6.4rem] px-2.5 py-2" : "min-w-[8.1rem] px-3 py-2.5"
+            className={`group flex h-8 shrink-0 items-center gap-1.5 border text-left transition-all duration-200 ${
+              compactLayout ? "min-w-[5.5rem] px-2.5" : "min-w-[6.5rem] px-3"
             } ${
               isActive
-                ? "border-[color:var(--planner-primary)] bg-[linear-gradient(135deg,var(--planner-primary)_0%,var(--planner-primary-hover)_100%)] text-white shadow-theme-panel"
+                ? "border-[color:var(--planner-primary)] bg-[color:var(--planner-primary)] text-white shadow-theme-panel"
                 : isDone
-                  ? "border-[color:var(--planner-accent-soft)] bg-[linear-gradient(180deg,rgba(232,223,212,0.72)_0%,rgba(255,255,255,0.92)_100%)] text-[color:var(--planner-primary)] hover:border-[color:var(--planner-accent)] hover:bg-[linear-gradient(180deg,rgba(232,223,212,0.92)_0%,rgba(255,255,255,1)_100%)]"
+                  ? "border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)]/52 text-[color:var(--planner-accent-strong)] hover:border-[color:var(--planner-accent)] hover:bg-[color:var(--planner-accent-soft)]/72"
                   : isDisabled
-                    ? "border-theme-soft scheme-section-soft text-[color:var(--planner-text-subtle)]/55 cursor-not-allowed"
-                    : "border-theme-soft bg-[color:var(--planner-panel-strong)] text-subtle hover:border-[color:var(--planner-border-hover)] hover:bg-[color:var(--planner-panel)] hover:text-[color:var(--planner-primary)]"
+                    ? "cursor-not-allowed border-theme-soft bg-[color:var(--planner-surface-soft)] text-[color:var(--planner-text-subtle)]/55"
+                    : "border-theme-soft bg-[color:var(--planner-panel-strong)] text-subtle shadow-[inset_0_1px_0_rgba(255,255,255,0.68)] hover:border-[color:var(--planner-border-hover)] hover:bg-[color:var(--planner-panel)] hover:text-[color:var(--planner-primary)]"
             }`}
             aria-current={isActive ? "step" : undefined}
             aria-disabled={isDisabled}
+            title={step.label}
           >
             <span
-              className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all ${
+              className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border transition-all ${
                 isActive
                   ? "border-white/20 bg-white/14 text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]"
-                  : isDone
-                    ? "border-[color:var(--planner-accent-strong)]/18 bg-white/70 text-[color:var(--planner-accent-strong)]"
+                : isDone
+                    ? "border-[color:var(--planner-accent-strong)]/18 bg-white/72 text-[color:var(--planner-accent-strong)]"
                     : isDisabled
                       ? "border-theme-soft bg-[color:var(--planner-surface-soft)] text-[color:var(--planner-text-subtle)]/55"
                       : "border-theme-soft bg-[color:var(--planner-surface-soft)] text-[color:var(--planner-primary)]"
@@ -66,23 +67,8 @@ export function StepBar({ current, onChange, disabledSteps = {}, compact = false
             >
               {isDone ? <CheckCircle2 className="h-4 w-4" /> : step.icon}
             </span>
-            <span className="min-w-0">
-              <span
-                className={`block typ-caption font-semibold uppercase tracking-[0.16em] ${
-                  compactLayout
-                    ? "hidden"
-                    : isActive
-                      ? "text-white/72"
-                      : isDone
-                        ? "text-[color:var(--planner-accent-strong)]"
-                        : "text-muted"
-                }`}
-              >
-                Stage {i + 1}
-              </span>
-              <span className={`block font-semibold tracking-[0.01em] ${compactLayout ? "text-[0.78rem]" : "mt-0.5 text-[0.82rem]"}`}>
-                {step.label}
-              </span>
+            <span className={`truncate font-semibold tracking-[0.01em] text-[12px]`}>
+              {step.label}
             </span>
           </button>
         );

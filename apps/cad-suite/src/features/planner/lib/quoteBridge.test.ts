@@ -17,7 +17,7 @@ describe("planner quote bridge", () => {
       plannerSourceSlug: "alpha-desk",
       name: "Alpha Desk",
       category: "Desks",
-      price: 45000,
+      price: 0,
       imageUrl: "/desk.png",
       dimensions: "1600 x 800 x 750 mm",
     },
@@ -28,7 +28,7 @@ describe("planner quote bridge", () => {
       plannerSourceSlug: "alpha-desk",
       name: "Alpha Desk",
       category: "Desks",
-      price: 45000,
+      price: 0,
       imageUrl: "/desk.png",
       dimensions: "1600 x 800 x 750 mm",
     },
@@ -39,54 +39,80 @@ describe("planner quote bridge", () => {
       plannerSourceSlug: "task-chair",
       name: "Task Chair",
       category: "Seating",
-      price: 16000,
+      price: 0,
       imageUrl: "/chair.png",
       dimensions: "640 x 640 x 980 mm",
     },
   ];
 
-  it("calculates the boq total from raw planner items", () => {
-    expect(calculatePlannerBoqTotal(boqItems)).toBe(106000);
+  it("does not calculate planner BOQ pricing totals", () => {
+    expect(calculatePlannerBoqTotal(boqItems)).toBe(0);
   });
 
   it("groups repeated planner items by stable product identity", () => {
     const grouped = groupPlannerBoqItems(boqItems);
 
-    expect(Object.keys(grouped)).toEqual(["prod-1", "prod-2"]);
-    expect(grouped["prod-1"]).toMatchObject({
-      name: "Alpha Desk",
-      qty: 2,
-      dimensions: "1600 x 800 x 750 mm",
-    });
-    expect(grouped["prod-2"]).toMatchObject({
-      name: "Task Chair",
-      qty: 1,
-      dimensions: "640 x 640 x 980 mm",
-    });
+    expect(Object.values(grouped)).toEqual([
+      expect.objectContaining({
+        name: "Alpha Desk",
+        qty: 2,
+        dimensions: "1600 x 800 x 750 mm",
+      }),
+      expect.objectContaining({
+        name: "Task Chair",
+        qty: 1,
+        dimensions: "640 x 640 x 980 mm",
+      }),
+    ]);
   });
 
-  it("builds quote-cart items with grouped quantities and planner dimensions", () => {
+  it("keeps the same product separate when category or dimensions diverge", () => {
+    const grouped = groupPlannerBoqItems([
+      boqItems[0],
+      {
+        ...boqItems[0],
+        id: "shape-4",
+        category: "Benching",
+      },
+      {
+        ...boqItems[0],
+        id: "shape-5",
+        dimensions: "1800 x 800 x 750 mm",
+      },
+    ]);
+
+    expect(Object.values(grouped)).toEqual([
+      expect.objectContaining({ qty: 1, category: "Desks", dimensions: "1600 x 800 x 750 mm" }),
+      expect.objectContaining({ qty: 1, category: "Benching", dimensions: "1600 x 800 x 750 mm" }),
+      expect.objectContaining({ qty: 1, category: "Desks", dimensions: "1800 x 800 x 750 mm" }),
+    ]);
+  });
+
+  it("builds quantity-only quote-cart items with grouped planner dimensions", () => {
     const quoteItems = buildPlannerQuoteCartItems(boqItems);
 
+    expect(new Set(quoteItems.map((item) => item.id)).size).toBe(2);
     expect(quoteItems).toEqual([
-      {
-        id: "planner-prod-1",
+      expect.objectContaining({
         name: "Alpha Desk",
         qty: 2,
         image: "/desk.png",
         source: "planner",
         plannerFamily: "Desks",
         plannerDimensions: "1600 x 800 x 750 mm",
-      },
-      {
-        id: "planner-prod-2",
+      }),
+      expect.objectContaining({
         name: "Task Chair",
         qty: 1,
         image: "/chair.png",
         source: "planner",
         plannerFamily: "Seating",
         plannerDimensions: "640 x 640 x 980 mm",
-      },
+      }),
     ]);
+
+    quoteItems.forEach((item) => {
+      expect(item).not.toHaveProperty("price");
+    });
   });
 });

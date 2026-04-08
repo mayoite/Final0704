@@ -1,5 +1,5 @@
 export type PlannerStep = "room" | "catalog" | "measure" | "review";
-export type PlannerDrawingTool = "select" | "hand" | "draw" | "line" | "geo" | "eraser";
+export type PlannerDrawingTool = "select" | "hand" | "draw" | "line" | "geo" | "eraser" | "text" | "arrow";
 
 export interface BoqItem {
   id: string;
@@ -37,7 +37,6 @@ export interface PlannerShapeMeta {
   productSlug?: string;
   plannerSourceSlug?: string;
   category?: string;
-  price?: number;
   imageUrl?: string;
   dimensions?: string;
   presetId?: string;
@@ -47,10 +46,16 @@ export interface PlannerShapeMeta {
   structureType?: "wall" | "wall-segment" | "door-opening" | "room-shell";
 }
 
+export interface RoomPresetZone {
+  label: string;   // e.g. "Space 1", "Meeting Room"
+  widthMm: number; // width of this zone (full height of preset)
+}
+
 export interface RoomPreset {
   id: string;
   name: string;
   summary: string;
   widthMm: number;
   heightMm: number;
+  zones?: RoomPresetZone[]; // if present, draws internal dividers + labels
 }

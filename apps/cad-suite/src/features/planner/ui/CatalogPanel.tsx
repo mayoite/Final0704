@@ -1,24 +1,65 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  Search,
-  Box,
+  Building2,
   DoorOpen,
-  Package,
+  GitMerge,
+  PackagePlus,
   PenTool,
-  ChevronDown,
-  ChevronRight,
-  X,
   Pin,
   PinOff,
-  Building2,
+  Plus,
+  Search,
   Square,
+  X,
 } from "lucide-react";
 import type { Editor } from "tldraw";
-import type { CatalogProduct, PlannerStep, RoomPreset } from "@/components/draw/types";
 
+import type { CatalogProduct, PlannerStep, RoomPreset } from "@/components/draw/types";
 import { formatDimensionPair, type MeasurementUnit } from "../lib/measurements";
+
+/** Parse dimension numbers from a raw dimension string, respecting mm/cm/m units.
+ *  Heuristic: if both numbers are small (<300) and no explicit 'mm' marker, treat as cm. */
+function parseDimensionToMm(raw: string | undefined | null): { widthMm: number; depthMm: number } | null {
+  if (!raw) return null;
+  const normalized = String(raw).trim().toLowerCase();
+  const numbers = normalized.match(/\d+(?:\.\d+)?/g);
+  if (!numbers || numbers.length < 2) return null;
+
+  const a = Number.parseFloat(numbers[0]);
+  const b = Number.parseFloat(numbers[1]);
+  if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b <= 0) return null;
+
+  let multiplier = 1; // default: mm
+  const hasExplicitMm = /\bmm\b/.test(normalized);
+  const hasExplicitCm = /\bcm\b/.test(normalized);
+  const hasExplicitM = /\bm\b/.test(normalized) && !hasExplicitMm && !hasExplicitCm;
+
+  if (hasExplicitCm) {
+    multiplier = 10;
+  } else if (hasExplicitM) {
+    multiplier = 1000;
+  } else if (/\bin(?:ch(?:es)?)?\b|"/.test(normalized)) {
+    multiplier = 25.4;
+  } else if (/\bft|'/.test(normalized)) {
+    multiplier = 304.8;
+  } else if (!hasExplicitMm && a < 300 && b < 300) {
+    multiplier = 10;
+  }
+
+  return {
+    widthMm: Math.max(300, Math.round(a * multiplier)),
+    depthMm: Math.max(300, Math.round(b * multiplier)),
+  };
+}
+
+function formatCatalogDimensions(dims: string | undefined, unitSystem: MeasurementUnit): string | null {
+  if (!dims) return null;
+  const parsed = parseDimensionToMm(dims);
+  if (!parsed) return dims; // fallback to raw string if unparseable
+  return formatDimensionPair(parsed.widthMm, parsed.depthMm, unitSystem);
+}
 
 interface CatalogPanelProps {
   products: CatalogProduct[];
@@ -40,6 +81,56 @@ interface CatalogPanelProps {
   showPinToggle?: boolean;
 }
 
+// ── Types ─────────────────────────────────────────────────────────────────────
+type ExtCatalogProduct = CatalogProduct & {
+  categoryId?: string;
+  categoryName?: string;
+  seriesId?: string;
+  seriesName?: string;
+  specs?: { dimensions?: string; [k: string]: unknown };
+};
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function colorForName(name: string) {
+  const palette = [
+    "bg-blue-100 text-blue-700",
+    "bg-indigo-100 text-indigo-700",
+    "bg-violet-100 text-violet-700",
+    "bg-teal-100 text-teal-700",
+    "bg-amber-100 text-amber-700",
+    "bg-rose-100 text-rose-700",
+  ];
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) & 0xffff;
+  return palette[h % palette.length];
+}
+
+function ProductAvatar({ name, src }: { name: string; src?: string }) {
+  const [failed, setFailed] = useState(false);
+  const initials = name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
+  if (src && !failed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={src} alt={name} onError={() => setFailed(true)} className="h-full w-full object-contain" />
+    );
+  }
+  return (
+    <span className={`flex h-full w-full items-center justify-center text-[10px] font-bold ${colorForName(name)}`}>
+      {initials || "–"}
+    </span>
+  );
+}
+
+// Priority category ordering
+const CAT_PRIORITY = ["Workstation", "Workstations", "Desking", "Seating", "Soft Seating", "Lounge"];
+
+function sortedCategories(raw: string[]): string[] {
+  const priority = CAT_PRIORITY.filter((p) => raw.includes(p));
+  const rest = raw.filter((c) => !CAT_PRIORITY.includes(c)).sort();
+  return [...priority, ...rest, "All"];
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 export function CatalogPanel({
   products,
   editor,
@@ -59,201 +150,248 @@ export function CatalogPanel({
   onTogglePin,
   showPinToggle = true,
 }: CatalogPanelProps) {
-  const [search, setSearch] = useState("");
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    presets: true,
-    catalog: true,
-    structural: true,
-    storage: true,
-  });
   const isRoomStep = currentStep === "room";
+  const extProducts = products as ExtCatalogProduct[];
 
-  const toggle = (k: string) => setExpanded((p) => ({ ...p, [k]: !p[k] }));
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("Workstation");
+  const [activeSeries, setActiveSeries] = useState("All");
 
-  const filtered = products.filter((p) => p.name?.toLowerCase().includes(search.toLowerCase()));
+  // ── L1: unique categories ──────────────────────────────────────────────────
+  const categories = useMemo(() => {
+    const cats = new Set<string>();
+    extProducts.forEach((p) => { if (p.category) cats.add(p.category); });
+    return sortedCategories(Array.from(cats));
+  }, [extProducts]);
+
+  // ── L2: series within active category ─────────────────────────────────────
+  const seriesInCategory = useMemo(() => {
+    const catProducts = activeCategory === "All"
+      ? extProducts
+      : extProducts.filter((p) => p.category === activeCategory);
+    const series = new Set<string>();
+    catProducts.forEach((p) => { if (p.seriesName) series.add(p.seriesName); });
+    const sorted = Array.from(series).sort();
+    return sorted.length > 1 ? ["All", ...sorted] : [];
+  }, [extProducts, activeCategory]);
+
+  // Reset series when category changes
+  const handleCategoryChange = (cat: string) => {
+    setActiveCategory(cat);
+    setActiveSeries("All");
+  };
+
+  // ── L3: filtered products ──────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    return extProducts.filter((p) => {
+      const matchCat = activeCategory === "All" || p.category === activeCategory;
+      const matchSeries = activeSeries === "All" || p.seriesName === activeSeries;
+      const matchSearch = !search || p.name?.toLowerCase().includes(search.toLowerCase());
+      return matchCat && matchSeries && matchSearch;
+    });
+  }, [extProducts, activeCategory, activeSeries, search]);
+
+  const structuralTools = [
+    { key: "wall-chain", label: "Wall Chain", icon: <PenTool className="h-3.5 w-3.5" />, onClick: onActivateWallTool },
+    { key: "wall-seg", label: "Wall Segment", icon: <Square className="h-3.5 w-3.5" />, onClick: onAddWallSegment },
+    { key: "room-shape", label: "Room Shape", icon: <Building2 className="h-3.5 w-3.5" />, onClick: onActivateBasicShapeTool },
+    { key: "door", label: "Door Opening", icon: <DoorOpen className="h-3.5 w-3.5" />, onClick: onAddDoorOpening },
+  ];
 
   return (
-    <div className="flex h-full flex-col bg-transparent">
-      {/* Header */}
-      <div data-panel-drag-handle="true" className="flex items-center justify-between border-b border-theme-soft px-4 py-3">
-        <span className="typ-caption-lg font-semibold text-muted uppercase tracking-[0.14em]">
+    <div className="flex h-full flex-col bg-[color:var(--planner-panel)] font-sans">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <div
+        data-panel-drag-handle="true"
+        className="flex h-9 shrink-0 items-center justify-between border-b border-[color:var(--planner-border-soft)] px-3"
+      >
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--planner-text-muted)]">
           {isRoomStep ? "Room Builder" : "Catalog"}
         </span>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-0.5">
           {showPinToggle && (
             <button
-              onClick={onTogglePin}
+              type="button" onClick={onTogglePin}
               aria-label={pinned ? "Float panel" : "Dock panel"}
-              className={`p-1.5 rounded-md border transition-all ${
-                pinned
-                  ? "border-[color:var(--planner-primary-soft)] bg-[color:var(--planner-primary-soft)] text-[color:var(--planner-primary)]"
-                  : "border-theme-soft text-inverse-muted hover:bg-[color:var(--planner-primary-soft)] hover:text-[color:var(--planner-primary)]"
-              }`}
               title={pinned ? "Float panel" : "Dock panel"}
+              className={`flex h-6 w-6 items-center justify-center transition-colors ${
+                pinned ? "text-[color:var(--planner-primary)]" : "text-[color:var(--planner-text-subtle)] hover:text-[color:var(--planner-text-body)]"
+              }`}
             >
-              {pinned ? <PinOff className="w-3.5 h-3.5" /> : <Pin className="w-3.5 h-3.5" />}
+              {pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
             </button>
           )}
-          <button onClick={onClose} className="rounded p-1 text-inverse-muted hover-text-muted">
-            <X className="w-3 h-3" />
+          <button type="button" onClick={onClose} aria-label="Close panel"
+            className="flex h-6 w-6 items-center justify-center text-[color:var(--planner-text-subtle)] hover:text-[color:var(--planner-text-body)] transition-colors">
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Search */}
-      {!isRoomStep ? (
-        <div className="p-3 border-b border-theme-soft">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-subtle" />
-            <input
-              type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search catalog..."
-              className="w-full scheme-section-soft border border-theme-soft rounded-lg py-2 pl-8 pr-3 typ-caption-lg font-medium text-body placeholder:text-subtle focus:bg-[color:var(--planner-panel-strong)] focus:border-[color:var(--planner-primary)] outline-none transition-all"
-            />
+      {/* ── ROOM BUILDER VIEW ─────────────────────────────────────────────── */}
+      {isRoomStep ? (
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <div className="shrink-0 border-b border-[color:var(--planner-border-soft)] p-2">
+            <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--planner-text-subtle)]">Presets</p>
+            <div className="space-y-px">
+              {roomPresets.map((preset) => (
+                <button key={preset.id} type="button" onClick={() => onApplyRoomPreset(preset)}
+                  className="group flex w-full items-center justify-between border border-[color:var(--planner-border-soft)] bg-[color:var(--planner-panel-strong)] px-3 py-2 text-left transition-colors hover:border-[color:var(--planner-primary)] hover:bg-[color:var(--planner-primary-soft)]">
+                  <span className="text-[12px] font-semibold text-[color:var(--planner-text-strong)]">{preset.name}</span>
+                  <span className="text-[10px] font-medium text-[color:var(--planner-text-subtle)]">
+                    {formatDimensionPair(preset.widthMm, preset.heightMm, unitSystem)}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-2">
+            <p className="mb-1.5 px-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[color:var(--planner-text-subtle)]">Draw Tools</p>
+            <div className="grid grid-cols-2 gap-px bg-[color:var(--planner-border-soft)]">
+              {structuralTools.map((tool) => (
+                <button key={tool.key} type="button" onClick={tool.onClick}
+                  className="flex items-center gap-2 bg-[color:var(--planner-panel-strong)] px-2.5 py-2.5 text-left transition-colors hover:bg-[color:var(--planner-primary-soft)]">
+                  <span className="text-[color:var(--planner-primary)]">{tool.icon}</span>
+                  <span className="text-[12px] font-medium text-[color:var(--planner-text-body)]">{tool.label}</span>
+                </button>
+              ))}
+            </div>
+            <div className="mt-px flex gap-px bg-[color:var(--planner-border-soft)]">
+              <button type="button" onClick={() => editor?.setCurrentTool("draw")}
+                className="flex flex-1 items-center gap-2 bg-[color:var(--planner-panel-strong)] px-2.5 py-2 transition-colors hover:bg-[color:var(--planner-primary-soft)]">
+                <PenTool className="h-3.5 w-3.5 text-[color:var(--planner-primary)]" />
+                <span className="text-[12px] font-medium text-[color:var(--planner-text-body)]">Freehand</span>
+              </button>
+              <button type="button" onClick={onResolveWallJoins}
+                className="flex flex-1 items-center gap-2 bg-[color:var(--planner-panel-strong)] px-2.5 py-2 transition-colors hover:bg-[color:var(--planner-primary-soft)]">
+                <GitMerge className="h-3.5 w-3.5 text-[color:var(--planner-primary)]" />
+                <span className="text-[12px] font-medium text-[color:var(--planner-text-body)]">Resolve Joins</span>
+              </button>
+            </div>
           </div>
         </div>
-      ) : null}
+      ) : (
+        /* ── CATALOG VIEW ─────────────────────────────────────────────────── */
+        <div className="flex flex-1 flex-col overflow-hidden">
 
-      {/* Sections */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-1">
-        {isRoomStep ? (
-          <div className="rounded-xl border border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)]/65 px-3 py-2 text-[0.82rem] font-medium leading-5 text-[color:var(--planner-accent-strong)]">
-            Step 1 is structural-only. Draw walls and basic room shapes first. Product placement unlocks in Step 2.
+          {/* Search */}
+          <div className="shrink-0 border-b border-[color:var(--planner-border-soft)] px-2 py-2">
+            <div className="flex items-center gap-1.5 border border-[color:var(--planner-border-soft)] bg-[color:var(--planner-panel-strong)] px-2 py-1.5">
+              <Search className="h-3.5 w-3.5 shrink-0 text-[color:var(--planner-text-subtle)]" />
+              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search products…"
+                className="min-w-0 flex-1 bg-transparent text-[12px] text-[color:var(--planner-text-body)] placeholder:text-[color:var(--planner-text-subtle)] outline-none" />
+              {search && (
+                <button type="button" onClick={() => setSearch("")} className="text-[color:var(--planner-text-subtle)] hover:text-[color:var(--planner-text-body)]">
+                  <X className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
-        ) : null}
 
-        {isRoomStep ? (
-          <Section title="Room Presets" icon={<Building2 className="w-3.5 h-3.5" />} expanded={expanded.presets} onToggle={() => toggle("presets")}>
-            <div className="grid grid-cols-1 gap-2 pt-2">
-              {roomPresets.map((preset) => (
-                <button
-                  key={preset.id}
-                  type="button"
-                  onClick={() => onApplyRoomPreset(preset)}
-                  className="rounded-xl border border-theme-soft bg-[color:var(--planner-panel-strong)] px-3 py-3 text-left transition-all hover:border-[color:var(--planner-primary)] hover:bg-[color:var(--planner-primary-soft)]/72 hover:shadow-theme-panel"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="typ-caption-lg font-semibold text-strong">{preset.name}</p>
-                      <p className="mt-1 typ-caption text-subtle">{preset.summary}</p>
-                    </div>
-                    <div className="rounded-lg border border-theme-soft bg-panel px-2 py-1 typ-caption font-semibold text-subtle">
-                      {formatDimensionPair(preset.widthMm, preset.heightMm, unitSystem)}
-                    </div>
-                  </div>
+          {/* L1: Category chips — 2-row grid, NO rounded corners */}
+          <div className="shrink-0 grid grid-cols-3 gap-px border-b border-[color:var(--planner-border-soft)] bg-[color:var(--planner-border-soft)] p-px">
+            {categories.map((cat) => (
+              <button key={cat} type="button" onClick={() => handleCategoryChange(cat)}
+                className={`rounded-none px-1.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.05em] transition-colors ${
+                  activeCategory === cat
+                    ? "bg-[color:var(--planner-primary)] text-white"
+                    : "bg-[color:var(--planner-panel-strong)] text-[color:var(--planner-text-muted)] hover:bg-[color:var(--planner-primary-soft)] hover:text-[color:var(--planner-primary)]"
+                }`}>
+                {cat}
+              </button>
+            ))}
+          </div>
+
+          {/* L2: Series/subcategory filter — only when multiple series exist */}
+          {seriesInCategory.length > 0 && (
+            <div className="shrink-0 grid grid-cols-2 gap-px border-b border-[color:var(--planner-border-soft)] bg-[color:var(--planner-border-soft)] p-px">
+              {seriesInCategory.map((s) => (
+                <button key={s} type="button" onClick={() => setActiveSeries(s)}
+                  className={`rounded-none px-2 py-1 text-[10px] font-medium tracking-[0.03em] transition-colors truncate ${
+                    activeSeries === s
+                      ? "bg-[color:var(--planner-primary)]/15 text-[color:var(--planner-primary)] font-semibold"
+                      : "bg-[color:var(--planner-panel-strong)] text-[color:var(--planner-text-muted)] hover:text-[color:var(--planner-primary)]"
+                  }`}>
+                  {s}
                 </button>
               ))}
             </div>
-          </Section>
-        ) : (
-          <Section title="Product Catalog" icon={<Box className="w-3.5 h-3.5" />} count={filtered.length} expanded={expanded.catalog} onToggle={() => toggle("catalog")}>
-            <div className="grid grid-cols-2 gap-2 pt-2">
-              {filtered.slice(0, 20).map((prod, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  disabled={!canPlaceFurniture}
-                  onClick={() => onDropFurniture(prod)}
-                  className={`group relative flex flex-col items-center rounded-xl border p-2 outline-none transition-all duration-200 ${
-                    canPlaceFurniture
-                      ? "scheme-section-soft border-theme-soft hover-border-primary hover:bg-[color:var(--planner-primary-soft)]/72 hover:shadow-theme-panel hover:-translate-y-0.5"
-                      : "cursor-not-allowed border-theme-soft scheme-section-muted opacity-45"
-                  }`}
-                  title={canPlaceFurniture ? prod.name : "Complete the room shell first"}
-                >
-                  <div className="mb-1 flex h-12 w-full items-center justify-center overflow-hidden rounded-lg bg-[color:var(--planner-panel-strong)]">
-                    {(prod.flagship_image || prod.images?.[0]) ? (
-                      // Catalog imagery can come from arbitrary asset origins, so the native element is intentional here.
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={prod.flagship_image || prod.images?.[0]} alt={prod.name} className="max-h-full max-w-full object-contain mix-blend-multiply group-hover:scale-110 transition-transform duration-300" />
-                    ) : (
-                      <Box className="w-5 h-5 text-inverse-muted" />
-                    )}
-                  </div>
-                  <span className="typ-caption-lg font-semibold text-strong leading-snug text-center truncate w-full">{prod.name?.slice(0, 16)}</span>
-                </button>
-              ))}
-            </div>
-          </Section>
-        )}
+          )}
 
-        {/* Structural */}
-        <Section title="Structural" icon={<DoorOpen className="w-3.5 h-3.5" />} expanded={expanded.structural} onToggle={() => toggle("structural")}>
-          <div className="grid grid-cols-1 gap-2 pt-2">
-            <button onClick={onActivateWallTool} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
-              <PenTool className="w-3.5 h-3.5 text-[color:var(--planner-accent-strong)]" /> Multipoint Wall Chain
-            </button>
-            <button onClick={onAddWallSegment} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
-              <Square className="w-3.5 h-3.5 text-[color:var(--planner-primary)]" /> Wall Segment
-            </button>
-            <button onClick={onActivateBasicShapeTool} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
-              <Square className="w-3.5 h-3.5 text-[color:var(--planner-primary)]" /> Basic Room Shape
-            </button>
-            <button onClick={onAddDoorOpening} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
-              <DoorOpen className="w-3.5 h-3.5 text-[color:var(--planner-accent-strong)]" /> Door Opening
-            </button>
-            <button onClick={() => editor?.setCurrentTool("draw")} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
-              <span className="text-sm font-bold text-[color:var(--planner-primary)]">~</span> Freehand Trace
-            </button>
-            <button onClick={onResolveWallJoins} className="flex items-center gap-2 p-2.5 scheme-section-soft border border-theme-soft rounded-lg hover-border-subtle hover:shadow-sm text-strong transition-all typ-caption-lg font-medium">
-              <Building2 className="w-3.5 h-3.5 text-[color:var(--planner-primary)]" /> Resolve Wall Joins
-            </button>
+          {/* Placement warning */}
+          {!canPlaceFurniture && (
+            <div className="shrink-0 border-b border-[color:var(--planner-border-soft)] bg-amber-50 px-3 py-2">
+              <p className="flex items-center gap-1.5 text-[10px] font-medium text-amber-700">
+                <PackagePlus className="h-3.5 w-3.5 shrink-0" />
+                Define the room shell first to place products.
+              </p>
+            </div>
+          )}
+
+          {/* L3: Product list */}
+          <div className="flex-1 overflow-y-auto">
+            {filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 py-10 text-center">
+                <PackagePlus className="h-6 w-6 text-[color:var(--planner-text-subtle)]" />
+                <p className="text-[12px] text-[color:var(--planner-text-subtle)]">No products match</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-[color:var(--planner-border-soft)]">
+                {filtered.map((product, idx) => {
+                  const ext = product as ExtCatalogProduct;
+                  const img = product.flagship_image || product.images?.[0];
+                  const dims = ext.specs?.dimensions;
+                  return (
+                    <button
+                      key={`${product.slug ?? product.name}-${idx}`}
+                      type="button"
+                      disabled={!canPlaceFurniture}
+                      onClick={() => onDropFurniture(product)}
+                      title={product.name}
+                      className={`group flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition-colors ${
+                        canPlaceFurniture
+                          ? "hover:bg-[color:var(--planner-primary-soft)]"
+                          : "cursor-not-allowed opacity-45"
+                      }`}
+                    >
+                      {/* Avatar */}
+                      <div className="h-10 w-10 shrink-0 overflow-hidden border border-[color:var(--planner-border-soft)] bg-[color:var(--planner-panel-strong)]">
+                        <ProductAvatar name={product.name ?? "?"} src={img} />
+                      </div>
+                      {/* Info */}
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13px] font-semibold leading-tight text-[color:var(--planner-text-strong)]">
+                          {product.name}
+                        </p>
+                        {ext.seriesName && (
+                          <p className="truncate text-[10px] font-medium text-[color:var(--planner-text-muted)]">
+                            {ext.seriesName}
+                          </p>
+                        )}
+                        {dims && (
+                          <p className="text-[10px] text-[color:var(--planner-text-subtle)]">{formatCatalogDimensions(dims, unitSystem)}</p>
+                        )}
+                      </div>
+                      {/* Add */}
+                      {canPlaceFurniture && (
+                        <Plus className="h-3.5 w-3.5 shrink-0 text-[color:var(--planner-text-subtle)] opacity-0 transition-opacity group-hover:opacity-100 group-hover:text-[color:var(--planner-primary)]" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
-        </Section>
 
-        {/* Storage */}
-        {!isRoomStep ? (
-          <Section title="Storage" icon={<Package className="w-3.5 h-3.5" />} expanded={expanded.storage} onToggle={() => toggle("storage")}>
-            <div className="grid grid-cols-2 gap-2 pt-2">
-              <button
-                type="button"
-                disabled={!canPlaceFurniture}
-                onClick={() => onDropFurniture({ name: "Mobile Pedestal", category: "Storage" })}
-                className={`flex flex-col items-center rounded-xl border p-2 transition-all ${
-                  canPlaceFurniture
-                    ? "scheme-section-soft border-theme-soft hover-border-primary hover:shadow-sm"
-                    : "cursor-not-allowed border-theme-soft scheme-section-muted opacity-45"
-                }`}
-                title={canPlaceFurniture ? "Mobile Pedestal" : "Complete the room shell first"}
-              >
-                <div className="w-7 h-9 scheme-section-soft border-2 border-muted rounded-sm mb-1" />
-                <span className="typ-caption font-semibold text-strong">Pedestal</span>
-              </button>
-              <button
-                type="button"
-                disabled={!canPlaceFurniture}
-                onClick={() => onDropFurniture({ name: "High Cabinet", category: "Storage" })}
-                className={`flex flex-col items-center rounded-xl border p-2 transition-all ${
-                  canPlaceFurniture
-                    ? "scheme-section-soft border-theme-soft hover-border-primary hover:shadow-sm"
-                    : "cursor-not-allowed border-theme-soft scheme-section-muted opacity-45"
-                }`}
-                title={canPlaceFurniture ? "High Cabinet" : "Complete the room shell first"}
-              >
-                <div className="w-9 h-11 scheme-section-soft border-2 border-muted rounded-sm mb-1" />
-                <span className="typ-caption font-semibold text-strong">Cabinet</span>
-              </button>
-            </div>
-          </Section>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-/* ── Collapsible Section ── */
-function Section({ title, icon, count, expanded, onToggle, children }: {
-  title: string; icon: React.ReactNode; count?: number; expanded: boolean; onToggle: () => void; children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <button onClick={onToggle} className="w-full flex items-center gap-2 rounded-lg px-2 py-2 transition-all hover:bg-[color:var(--planner-primary-soft)]/66">
-        <span className="text-subtle">{icon}</span>
-        <span className="typ-caption-lg font-bold text-muted uppercase tracking-wider flex-1 text-left">{title}</span>
-        {count !== undefined && <span className="typ-caption font-bold text-subtle scheme-section-soft px-1.5 py-0.5 rounded-full">{count}</span>}
-        {expanded ? <ChevronDown className="w-3.5 h-3.5 text-subtle" /> : <ChevronRight className="w-3.5 h-3.5 text-subtle" />}
-      </button>
-      {expanded && <div className="px-1 pb-2">{children}</div>}
+          {/* Footer */}
+          <div className="shrink-0 border-t border-[color:var(--planner-border-soft)] px-3 py-1">
+            <p className="text-[10px] text-[color:var(--planner-text-subtle)]">
+              {filtered.length} of {products.length} products
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

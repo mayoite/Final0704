@@ -51,6 +51,95 @@ export interface PlannerDocumentSummary {
 }
 
 const MM_TO_WORLD = 0.001;
+const DEFAULT_WALL_HEIGHT_MM = 2100;
+const DEFAULT_WALL_THICKNESS_MM = 120;
+const DEFAULT_FLOOR_THICKNESS_MM = 40;
+const DEFAULT_ITEM_WIDTH_MM = 1200;
+const DEFAULT_ITEM_DEPTH_MM = 1200;
+const DEFAULT_ITEM_HEIGHT_MM = 900;
+
+function toFiniteNumber(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function coercePositiveMm(value: unknown, fallback: number) {
+  const candidate = toFiniteNumber(value);
+  const resolved = candidate !== null && candidate > 0 ? candidate : fallback;
+  return Math.max(1, Math.round(resolved));
+}
+
+function coerceCoordinateMm(value: unknown, fallback: number) {
+  const candidate = toFiniteNumber(value);
+  return Math.round(candidate ?? fallback);
+}
+
+function coerceRotationDeg(value: unknown) {
+  const candidate = toFiniteNumber(value);
+  if (candidate === null) return 0;
+  return ((candidate % 360) + 360) % 360;
+}
+
+function coerceText(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : fallback;
+}
+
+function resolveDocumentRoomFallback(document: unknown, normalized: PlannerDocument) {
+  const candidate = document && typeof document === "object" ? (document as Partial<PlannerDocument>) : null;
+
+  return {
+    widthMm: coercePositiveMm(candidate?.roomWidthMm, normalized.roomWidthMm),
+    depthMm: coercePositiveMm(candidate?.roomDepthMm, normalized.roomDepthMm),
+  };
+}
+
+function buildSafeRoom(
+  fallbackRoom: { widthMm: number; depthMm: number },
+  room: Partial<Planner3DRoom> | null | undefined,
+): Planner3DRoom {
+  return {
+    widthMm: coercePositiveMm(room?.widthMm, fallbackRoom.widthMm),
+    depthMm: coercePositiveMm(room?.depthMm, fallbackRoom.depthMm),
+    wallHeightMm: coercePositiveMm(room?.wallHeightMm, DEFAULT_WALL_HEIGHT_MM),
+    wallThicknessMm: coercePositiveMm(room?.wallThicknessMm, DEFAULT_WALL_THICKNESS_MM),
+    floorThicknessMm: coercePositiveMm(room?.floorThicknessMm, DEFAULT_FLOOR_THICKNESS_MM),
+  };
+}
+
+function buildSafeItems(room: Planner3DRoom, items: unknown): Planner3DItem[] {
+  if (!Array.isArray(items)) return [];
+
+  const fallbackCenter = {
+    xMm: Math.round(room.widthMm / 2),
+    yMm: Math.round(room.depthMm / 2),
+  };
+
+  return items.flatMap((candidate, index) => {
+    if (!candidate || typeof candidate !== "object") return [];
+
+    const item = candidate as Partial<Planner3DItem>;
+    const category = coerceText(item.category, "Workstations");
+    const name = coerceText(item.name, `Planner item ${index + 1}`);
+
+    return [
+      {
+        id: coerceText(item.id, `planner-item-${index + 1}`),
+        name,
+        category,
+        centerMm: {
+          xMm: coerceCoordinateMm(item.centerMm?.xMm, fallbackCenter.xMm),
+          yMm: coerceCoordinateMm(item.centerMm?.yMm, fallbackCenter.yMm),
+        },
+        sizeMm: {
+          widthMm: coercePositiveMm(item.sizeMm?.widthMm, DEFAULT_ITEM_WIDTH_MM),
+          depthMm: coercePositiveMm(item.sizeMm?.depthMm, DEFAULT_ITEM_DEPTH_MM),
+          heightMm: coercePositiveMm(item.sizeMm?.heightMm, DEFAULT_ITEM_HEIGHT_MM),
+        },
+        rotationDeg: coerceRotationDeg(item.rotationDeg),
+        color: resolveFallbackColor(category),
+      } satisfies Planner3DItem,
+    ];
+  });
+}
 
 function resolveFallbackColor(category: string) {
   const normalized = category.toLowerCase();
@@ -64,33 +153,9 @@ function resolveFallbackColor(category: string) {
 export function buildPlanner3DSceneDocument(document: PlannerDocument): Planner3DSceneDocument {
   const normalized = normalizePlannerDocument(document);
   const scene = getPlannerSceneEnvelope(normalized.sceneJson);
-
-  const room: Planner3DRoom = scene?.room
-    ? {
-        widthMm: scene.room.widthMm,
-        depthMm: scene.room.depthMm,
-        wallHeightMm: scene.room.wallHeightMm,
-        wallThicknessMm: scene.room.wallThicknessMm,
-        floorThicknessMm: scene.room.floorThicknessMm,
-      }
-    : {
-        widthMm: normalized.roomWidthMm,
-        depthMm: normalized.roomDepthMm,
-        wallHeightMm: 3000,
-        wallThicknessMm: 120,
-        floorThicknessMm: 40,
-      };
-
-  const items: Planner3DItem[] =
-    scene?.items.map((item) => ({
-      id: item.id,
-      name: item.name,
-      category: item.category,
-      centerMm: item.centerMm,
-      sizeMm: item.sizeMm,
-      rotationDeg: item.rotationDeg,
-      color: resolveFallbackColor(item.category),
-    })) ?? [];
+  const fallbackRoom = resolveDocumentRoomFallback(document, normalized);
+  const room = buildSafeRoom(fallbackRoom, scene?.room);
+  const items = buildSafeItems(room, scene?.items);
 
   return {
     id: normalized.id ?? "planner-preview",
@@ -140,4 +205,3 @@ export function summarizePlannerDocument(document: PlannerDocument): PlannerDocu
     largestItemName: largestItem?.name ?? null,
   };
 }
-

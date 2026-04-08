@@ -1,260 +1,204 @@
-# Planner Checklist
+# PLANNER-CHECKLIST
 
 Generated: 2026-04-08
+Owner: Lead agent
+Cadence rule: update this file every 2 minutes while execution is active.
 
-## Purpose
+## Status Legend
 
-This is the execution checklist for the canonical planner plan.
+- [ ] not started
+- [~] in progress
+- [x] done
+- [!] blocked
 
-Use this with `PLANNER-DETAILED-PLAN.md`.
+## Baseline Verification
 
-Audit note:
+- [x] `npm -w cad-suite run build` passes (2026-04-08).
+- [x] Route probe `http://127.0.0.1:3001/` returns 200.
+- [x] Route probe `http://127.0.0.1:3001/planner` returns 200.
+- [x] Route probe `http://127.0.0.1:3001/configurator` returns 200.
 
-- this checklist was re-audited from the top on 2026-04-07
-- this pass was reset to all-unchecked and rebuilt in top-down order on 2026-04-07
-- `[x]` means verified in repo code, migrations, or command output, or it remains an explicitly supported locked decision
-- `[ ]` means not verified yet, contradicted by the repo, or still materially incomplete
+## Critical (P0)
 
-## Locked Decisions
+- [x] P0-A Clickability audit in toolbar, canvas overlays, and workspace panels.
+- [x] P0-A Fix pointer-events and z-index conflicts.
+- [!] P0-A Add Playwright click smoke at `1980x1080` (blocked: no active Playwright config/tests folder in current tree).
 
-- [x] Canonical planner base is the CAD Suite planner app (`apps/cad-suite`)
-- [x] Sole donor snapshot is the archived donor planner snapshot (`07docs/Backupcad`)
-- [x] Planner docs are split into `old` and `new`
-- [x] One canonical Supabase-backed plan store is required
-- [x] Existing site product data remains the legacy read-only planner read source
-- [x] Planner save/write data may live in a separate new write-side store for now
-- [x] Any newly added planner-managed products should go to the new write-side store only
-- [x] A normalized adapter contract is required across old read and new write sources
-- [x] Import must be easy from inside the planner
-- [x] One shared auth model must serve admin and general users
-- [x] Admin browser access must use Supabase client plus RLS, never service-role in browser
-- [x] Measurement must use one canonical internal unit model
-- [x] Planner theme should broadly match the site
-- [x] Tldraw stays the base engine, but planner UX must improve well beyond stock Tldraw behavior
+- [x] P0-B Trace selection -> inspector metrics pipeline.
+- [x] P0-B Fix dimension update handlers and validation.
+- [x] P0-B Add mm/ft-in conversion tests.
 
-## Current Status
+- [x] P0-C Replace panel width magic numbers with single shared token.
+- [x] P0-C Align canvas insets to tokenized panel widths.
+- [x] P0-C Validate desktop pinned panel overlap behavior.
 
-| Area | Status | Rough completion |
-|---|---|---|
-| Planner direction and docs | Established and closer to repo truth; final package cleanup and ownership publishing still remain | 85% |
-| Theme alignment | Planner actions, states, and responsive shells now read like the main site while keeping the drafting surface dense | 85% |
-| Phase 1 refactor | Session, measurements, quote bridge, workspace state, planner UI bodies, and planner-grade editing helpers are extracted; final polish remains | 90% |
-| Phase 2 document/save/load/import foundation | Core document/session flow is live, measurement persistence is normalized, write-side schema is reconciled in repo, and admin browser paths exist; end-to-end browser proof still remains | 90% |
-| Phase 3 2D/3D document bridge | Document-driven 3D viewer, donor walkthrough concepts, and honest preview route are live | 90% |
-| Session/cache behavior | 24-hour local draft cache and session status/error UI are implemented | 100% |
-| Build and deploy stability | `build`, `cf:build`, and planner Vitest are green on the current branch; admin workflow proof is still missing | 90% |
-| Final production hardening | Not done | 20% |
+- [~] P0-D Rebuild toolbar group layout to use full width without dead space.
+- [~] P0-D Remove duplicate instructional strip where repeated.
+- [~] P0-D Keep mobile toolbar behavior intact after desktop changes.
 
-## Interim Architecture Reminder
+- [x] P0-E Remove pricing totals from planner surfaces.
+- [x] P0-E Convert quote wording to BOQ enquiry wording.
+- [x] P0-E Verify quantity-only payload generation.
 
-- `legacy` catalog database is read-only for now
-- `new` planner/product database is the write target for new planner-managed data
-- new products should be created only in the new database
-- the application must normalize both sources into one catalog shape
-- this is an interim strategy, not the final end-state
+- [x] P0-F Confirm Supabase envelope for BOQ enquiry save/load.
+- [x] P0-F Add CRM sync status fields and mapping contract.
+- [x] P0-F Verify RLS for owner and admin access paths.
 
-## Recheck Notes
+## Moderate (P1)
 
-- `npm -w cad-suite run build` passes on 2026-04-08
-- `npm -w cad-suite run cf:build` passes on 2026-04-08
-- `npm run test:planner` passes on 2026-04-08, including planner save repository access-mode coverage and quote-bridge coverage
-- built CAD app route check on 2026-04-07 returned `200` for `/planner`, `/draw`, `/configurator`, and `/planner-saved/test-id`
-- built CAD app browser probe on 2026-04-07 verified planner surface hierarchy at desktop `1980x1080` and mobile `390x844`; mobile now hides toolbar import and keeps session transfer actions inside the dialog
-- `planner_saves` now has owner-managed RLS plus planner admin read/update oversight groundwork through `profiles.role = 'admin'`
-- planner catalog reads now normalize legacy catalog data and merge `planner_managed_products` entries when available
-- `planner_managed_products` now has a reconciliation migration in repo and a tolerant runtime read path for pre-reconciliation table shapes
-- import validation exists, semantic scene geometry is normalized toward canonical `mm`, and saved-row restore now routes back through canonical normalization
-- planner-derived measurement displays now route through `features/planner/lib/measurements.ts`; room preset dimensions also follow the active `mm` / `ft-in` formatter
-- planner save repository helpers now support owner and admin access modes; admin update preserves original owner `user_id`, and admin delete remains intentionally blocked from the browser repository path
-- planner session workflow now exposes admin browser surfaces for plan oversight and planner-managed product maintenance through the normal Supabase client
-- browser admin access is still not fully proven end-to-end in a live browser session, but the repo path uses the normal browser Supabase client and RLS-bound repository functions with no browser service-role path
-- the repo still contains the root `src/app/planner` placeholder route
-- the archive now has a single `07docs/Backupcad` donor snapshot
-- `SmartdrawPlanner.tsx` is now a thinner shell backed by `features/planner/hooks/usePlannerWorkspace.ts`
-- planner toolbar, canvas, step bar, and panel bodies now live under `features/planner/ui`
-- planner UI state now lives in `features/planner/hooks/usePlannerUiState.ts` and feeds `usePlannerWorkspace.ts`
-- planner runtime now exposes wall-segment, door-opening, wall-join, alignment, distribution, snap, and selection-dimension tooling on top of Tldraw
-- planner quote-cart payload mapping now carries grouped quantities and planner dimensions under Vitest coverage
-- `/draw` now redirects to `/planner` in the CAD Suite app
-- reserved geometry packages remain unimported in the live planner runtime and keep explicit non-overlapping intended uses in `PLANNER-DETAILED-PLAN.md`
+- [~] P1-A Redesign catalog list/cards for clean hierarchy.
+- [~] P1-A Reduce legacy-looking controls in structural tool list.
+- [~] P1-A Implement icon-first secondary actions with hover labels where needed.
 
-## Package Decisions
+- [~] P1-B Improve live measurement chips and snap feedback.
+- [~] P1-B Reduce repeated explanatory text noise.
 
-### Keep now
+- [x] P1-C Harden `/configurator` 3D loading states.
+- [x] P1-C Validate draft and saved-plan 3D source loading.
+- [x] P1-C Document 2D-to-3D mapping assumptions.
 
-| Package | Status | Why |
-|---|---|---|
-| `tldraw` | Keep | Canonical 2D planner engine |
-| `zustand` | Keep | Planner-side state, quote bridge, and future planner store |
-| `@supabase/ssr` | Keep | Browser and server auth/session model |
-| `@supabase/supabase-js` | Keep | Planner persistence and admin browser data access |
-| `vaul` | Keep | Mobile planner drawer UX |
-| `zod` | Keep | Import and planner document validation |
+## Easy (P2)
 
-### Keep for later phases
+- [~] Harmonize typography scale after P0/P1 freeze.
+- [~] Polish empty states and button microcopy.
+- [~] Final responsive sweep across planner panels.
 
-| Package | Status | Why |
-|---|---|---|
-| `@react-three/fiber` | Keep for Phase 3 | Optional unified 3D mode |
-| `@react-three/drei` | Keep for Phase 3 | Optional unified 3D mode |
-| `three` | Keep for Phase 3 | Optional unified 3D mode |
-| `openai` | Keep if AI planner assistance remains in scope | Planner assistant and planner-adjacent AI flows |
+## Security and Strategic
 
-### Shared site-shell support
+- [x] Confirm service-role keys are server-only.
+- [x] Add policy validation notes for planner save/load tables.
+- [x] Add structured error reporting for planner save/sync failures.
 
-| Package | Status | Why |
-|---|---|---|
-| `framer-motion` | Keep | Planner motion should feel like the site |
-| `clsx` | Keep | Existing styling composition helper |
-| `tailwind-merge` | Keep | Existing styling composition helper |
-| `@radix-ui/*` | Keep selectively | Existing primitives for dialogs, tabs, and menus |
+- [x] Finalize single-db vs dual-db Supabase decision record.
+- [x] Finalize CRM import method decision record (push vs pull).
+- [x] Finalize canonical route ownership record (`/planner`, `/configurator`, `/draw`).
 
-### Donor-only reference
+## Package and Dependency Audit Tasks
 
-| Package | Status | Why |
-|---|---|---|
-| `fabric` | Do not adopt into canonical planner | Donor 2D editor model is not the canonical Tldraw planner |
+- [x] Build strict discrepancy table: root vs `apps/cad-suite` dependencies.
+- [x] Identify TSX imports with missing package declarations.
+- [x] Mark each package as keep/remove/move-to-app/move-to-root.
+- [x] Propose lockstep versions for planner-critical packages.
 
-### Reserved for planned planner work
+## 25-Parameter Audit Tracking
 
-| Package | Status | Intended use |
-|---|---|---|
-| `react-konva` and `konva` | Keep reserved | Secondary 2D canvas tooling, overlays, or constrained editor surfaces if Tldraw does not fit a sub-problem |
-| `@thi.ng/geom-hull` | Keep reserved | Polygon hull generation and room-outline cleanup |
-| `alpha-shape` | Keep reserved | Polygon boundary reconstruction and enclosure calculations |
-| `bezier-js` | Keep reserved | Curves, rounded corners, and wall-path calculations where needed |
-| `line-intersect` | Keep reserved | Wall joins, segment intersection math, and measurement rules |
-| `@tanstack/react-query` | Keep reserved | Planner data synchronization and async cache if persistence surfaces grow |
-| `html2canvas` | Keep reserved | Planner image snapshots and raster export capture |
-| `jspdf` | Keep reserved | PDF export for plans, quote summaries, and printable layouts |
-| `jszip` | Keep reserved | Bundled export packages for plan files and related assets |
-| `axios` | Keep reserved | Optional client abstraction for external planner APIs if native `fetch` becomes awkward |
-| `point-in-polygon` | Keep reserved | Polygon containment checks, hit-testing, and layout validation rules |
+- [ ] Route ownership
+- [ ] Build reliability
+- [ ] Runtime clickability
+- [ ] Selection behavior
+- [ ] Dimension editing
+- [ ] Unit conversion
+- [ ] Toolbar density and spacing
+- [ ] Panel width and insets
+- [ ] Catalog usability
+- [ ] Layers usability
+- [ ] Inspector usability
+- [ ] Session save/load reliability
+- [ ] Draft persistence reliability
+- [ ] Supabase schema consistency
+- [ ] RLS correctness
+- [ ] Error handling and fallback UX
+- [ ] BOQ enquiry correctness
+- [ ] CRM export readiness
+- [ ] 3D preview correctness
+- [ ] Mobile behavior
+- [ ] Accessibility baseline
+- [ ] Performance baseline
+- [ ] Security key handling
+- [ ] Telemetry and diagnostics
+- [ ] Test coverage and release gates
 
-### Review later
+## Evidence Log
 
-| Package | Current signal | Action |
-|---|---|---|
-
-## Theme Alignment Checklist
-
-- [x] Reuse the site token family from `src/app/theme-tokens.css`
-- [x] Reuse the site font direction from `src/app/typography.css`
-- [x] Bring planner shell colors closer to the site's blue, white, bronze, and neutral surface family
-- [x] Bring planner panels onto the site's radius, border, and shadow language
-- [x] Replace placeholder planner CSS files with meaningful planner-specific styling where the shared site tokens are not enough
-- [x] Align primary actions, save/import buttons, and selection states with site hierarchy
-- [x] Keep canvas and dense tools operational rather than over-styled
-- [x] Validate desktop and mobile planner surfaces against the main site feel
-
-## Phase 0 Checklist
-
-- [x] Add a reconciliation migration for `planner_saves` schema drift before deployment
-- [x] Reconcile `planner_managed_products` migrations with the runtime TypeScript model before deployment
-- [x] Make `npm -w cad-suite run build` pass
-- [x] Make `npm -w cad-suite run cf:build` pass
-- [x] Make `npm run test:planner` pass
-- [x] Confirm planner routes still load after build fixes
-- [x] Remove obvious contract drift in planner props and route boundaries
-- [x] Audit planner package list against actual imports and planned geometry usage before feature expansion
-
-## Phase 1 Checklist
-
-- [x] Split `SmartdrawPlanner.tsx` into shell, core logic, state, and quote bridge
-- [x] Extract measurement and geometry utilities into planner feature modules
-- [x] Extract session/save/load/import workflow into `features/planner/hooks/usePlannerSession.ts`
-- [x] Extract planner quote-cart payload building into `features/planner/lib/quoteBridge.ts`
-- [x] Decide where reserved geometry packages actually fit and avoid overlapping abstractions
-- [x] Add planner panel wrappers under a `features/planner/ui` boundary
-- [x] Move toolbar, canvas, and remaining panel bodies out of `components/draw`
-- [x] Separate editor state from UI state
-- [x] Improve stock Tldraw behavior with planner-grade tools, joins, snapping, and constrained editing
-- [x] Define canonical internal unit model in millimeters
-- [x] Finish display conversion rules for `mm` and `ft-in` across all planner surfaces
-- [x] Align planner shell theme to site tokens and typography
-
-## Phase 2 Checklist
-
-- [x] Define canonical planner document schema
-- [x] Create Supabase-backed plan repository abstraction
-- [x] Keep product reads on the legacy read-only site product catalog source
-- [x] Define the new write-side planner store without duplicating the product catalog
-- [x] Mirror important catalog fields in the new write-side schema where compatibility matters
-- [x] Send newly added planner-managed products to the new write-side store only
-- [x] Build one normalized adapter over legacy-read and new-write sources
-- [x] Build normalized planner catalog helpers over the legacy read-side source
-- [x] Make planner documents reference products by stable ids/slugs from the read-side catalog
-- [x] Reconcile `planner_managed_products` DB schema with the runtime model and merge adapter
-- [x] Add save flow for authenticated users
-- [x] Add load flow for authenticated users
-- [x] Add local draft fallback without creating a second canonical store
-- [x] Make local draft cache expire after 24 hours and auto-clean
-- [x] Add import dialog inside planner shell
-- [x] Add import validator and mapper
-- [x] Normalize imported geometry into canonical units
-- [x] Persist measurement metadata where required
-- [x] Bind save/load/import to one shared auth model
-- [x] Keep planner session errors sticky until dismissed
-- [x] Add planner save admin read/update oversight groundwork under shared `profiles`/`app_role` RLS checks
-- [x] Add admin-capable planner repository paths that can use the admin RLS policies
-- [x] Build planner admin browser workflow for planner saves and planner-managed products
-- [ ] Confirm admin browser access works without service-role exposure
-
-### Phase 2 Recheck Detail
-
-- `Normalize imported geometry into canonical units`: done in repo
-  - semantic planner document normalization exists
-  - saved-row restore now routes back through canonical normalization
-- `Persist measurement metadata where required`: done in repo
-  - `sceneJson.measurement` is written and survives saved-row restoration
-- `Define admin RLS policies for browser-side admin work`: groundwork done
-  - `planner_saves` owner policies are explicit
-  - authenticated admins can now read and update planner saves through `profiles.role = 'admin'`
-  - insert/delete remain owner-scoped only
-- `Add admin-capable planner repository paths`: done in repo
-  - `plannerSaves.ts` now supports `owner` and `admin` access modes for save/list/load
-  - admin updates preserve the original save owner while keeping browser delete blocked
-- `Reconcile planner-managed-product schema`: done in repo
-  - `20260407200000_reconcile_planner_managed_products_schema.sql` reconciles drift toward the runtime contract
-  - planner-managed-product reads normalize older table shapes through shared tolerant mapping helpers
-- `Confirm admin browser access works without service-role exposure`: not done
-  - browser client exists and service-role remains server-only, but planner-specific admin access is not yet live-browser-proven
-
-## Phase 3 Checklist
-
-- [x] Port viewer concepts from the archived donor planner snapshot (`07docs/Backupcad/components/floor-planner/viewer-3d.tsx`)
-- [x] Map one planner document into both 2D and 3D
-- [x] Keep `/configurator` honest until capability is real
-- [x] Confirm 3D uses canonical planner geometry and units
-
-## Tldraw Improvement Checklist
-
-- [x] Add planner-grade wall editing instead of generic line behavior
-- [x] Add reliable wall joins and corner handling
-- [x] Add constrained room-shell creation flows
-- [x] Improve snap behavior for planner geometry and product placement
-- [x] Improve on-canvas measurement labels and inspector editing
-- [x] Add planner-specific selection, duplication, and alignment rules
-- [x] Add door, opening, and wall-segment editing behaviors where needed
-- [x] Keep Tldraw as the rendering/editing engine, not as the final UX contract
-
-## Phase 4 Checklist
-
-- [x] Keep the archived donor planner snapshot (`07docs/Backupcad`) as the only donor snapshot
-- [x] Convert `/draw` into an alias or redirect strategy
-- [x] Remove or clearly demote the root placeholder planner at `src/app/planner`
-- [ ] Remove only planner packages that remain unused and unassigned after implementation decisions
-- [x] Rewrite planner docs again if code reality changes
-- [x] Publish final module map for planner ownership
-
-## Deployment Gate
-
-- [x] CAD Suite planner app (`apps/cad-suite`) build passes
-- [x] CAD Suite planner app (`apps/cad-suite`) Cloudflare build passes
-- [x] planner Vitest suite passes
-- [x] `/planner` is the clear canonical public route
-- [x] planner can create quote-cart payloads reliably
-- [ ] save/load/import work with one Supabase-backed model
-- [ ] planner admin browser workflow is proven end-to-end
-- [ ] measurement remains correct across edit, save, load, import, and quote
-- [x] planner theme broadly matches the site
+- 2026-04-08: Created fresh plan/checklist in `IMPORTANTFILES/docs/planner/new`.
+- 2026-04-08: Verified CAD build and route probes before execution.
+- 2026-04-08: Spawned 4 execution agents with fixed scopes:
+  - HIGH: clickability/layering fixes
+  - HIGH: dimension/selection reliability fixes
+  - MEDIUM: UI audit report at 1980x1080
+  - MEDIUM: BOQ/Supabase/security report
+- 2026-04-08: MEDIUM UI audit report delivered at `IMPORTANTFILES/docs/reports/planner/AGENT-UI-1980x1080-AUDIT.md`.
+- 2026-04-08: MEDIUM BOQ/Supabase/security report delivered at `IMPORTANTFILES/docs/reports/planner/AGENT-BOQ-SUPABASE-SECURITY-REPORT.md`.
+- 2026-04-08: HIGH clickability patch delivered in:
+  - `apps/cad-suite/src/components/draw/SmartdrawPlanner.tsx`
+  - `apps/cad-suite/src/features/planner/ui/PlannerToolbar.tsx`
+  - `apps/cad-suite/src/features/planner/ui/WorkspacePanel.tsx`
+- 2026-04-08: HIGH dimensions patch delivered in:
+  - `apps/cad-suite/src/features/planner/hooks/usePlannerWorkspace.ts`
+  - `apps/cad-suite/src/features/planner/lib/editorTools.ts`
+  - `apps/cad-suite/src/features/planner/lib/measurements.ts`
+  - `apps/cad-suite/src/features/planner/ui/InspectorPanel.tsx`
+  - `apps/cad-suite/src/features/planner/lib/editorTools.test.ts`
+  - `apps/cad-suite/src/features/planner/lib/measurements.test.ts`
+- 2026-04-08: Verification run:
+  - `npm run test:planner -- apps/cad-suite/src/features/planner/lib/measurements.test.ts apps/cad-suite/src/features/planner/lib/editorTools.test.ts` (pass)
+  - `npm -w cad-suite run build` (pass)
+- 2026-04-08: Spawned 2 dedicated HIGH 3D workers:
+  - Route/load hardening (`/configurator`, draft/saved-plan flow)
+  - 3D viewer runtime/camera/scene stability
+- 2026-04-08: Retasked 3D workers per latest directive:
+  - Worker UI/CSS: use repo/CAD global style system for 3D surfaces.
+  - Worker logic: focus on non-UI load/validity hardening.
+- 2026-04-08: 3D logic worker completed:
+  - `apps/cad-suite/src/app/configurator/page.tsx`
+  - `apps/cad-suite/src/features/planner/data/plannerDraft.ts`
+  - `apps/cad-suite/src/features/planner/data/plannerSaves.ts`
+  - Report: `IMPORTANTFILES/docs/reports/planner/AGENT-3D-ROUTE-LOAD-REPORT.md`
+  - Validation (agent-reported): planner draft/saves/model vitest suite passed, CAD build passed.
+- 2026-04-08: 3D UI/CSS worker completed:
+  - `apps/cad-suite/src/app/globals.css`
+  - `apps/cad-suite/src/features/planner/3d/Planner3DViewer.tsx`
+  - `apps/cad-suite/src/app/configurator/page.tsx` (UI surfaces)
+  - Report: `IMPORTANTFILES/docs/reports/planner/AGENT-3D-VIEWER-REPORT.md`
+- 2026-04-08: Lead verification after merge:
+  - `npm exec vitest run apps/cad-suite/src/features/planner/data/plannerDraft.test.ts apps/cad-suite/src/features/planner/data/plannerSaves.test.ts apps/cad-suite/src/features/planner/model/plannerDocument.test.ts` (pass)
+  - `npm -w cad-suite run build` (pass)
+- 2026-04-08: Spawned 2 HIGH agents for P0-E (quantity-only enquiry):
+  - BOQ/payload pricing removal worker
+  - UI/copy pricing removal + enquiry wording worker
+- 2026-04-08: Spawned 1 additional HIGH agent for P0-F (Supabase enquiry envelope + CRM sync readiness).
+- 2026-04-08: Spawned 1 additional HIGH agent for P0-C (panel width/inset unification) to make total active agents = 4.
+- 2026-04-08: P0-E UI enquiry worker completed:
+  - `apps/cad-suite/src/features/planner/ui/InspectorPanel.tsx`
+  - `apps/cad-suite/src/app/quote-cart/page.tsx`
+  - `apps/cad-suite/src/features/planner/ui/InspectorPanel.test.tsx`
+  - `apps/cad-suite/src/app/quote-cart/page.test.tsx`
+  - Report: `IMPORTANTFILES/docs/reports/planner/AGENT-P0E-UI-ENQUIRY-REPORT.md`
+  - Agent validation: targeted vitest pass + CAD build pass.
+- 2026-04-08: P0-E payload worker completed:
+  - `apps/cad-suite/src/components/draw/types.ts`
+  - `apps/cad-suite/src/features/planner/hooks/usePlannerWorkspace.ts`
+  - `apps/cad-suite/src/features/planner/lib/documentBridge.ts`
+  - `apps/cad-suite/src/features/planner/lib/quoteBridge.ts`
+  - `apps/cad-suite/src/features/planner/lib/quoteBridge.test.ts`
+  - Report: `IMPORTANTFILES/docs/reports/planner/AGENT-P0E-PRICING-PAYLOAD-REPORT.md`
+- 2026-04-08: P0-F worker completed:
+  - `apps/cad-suite/src/features/planner/model/plannerDocument.ts`
+  - `apps/cad-suite/src/features/planner/data/plannerSaves.ts`
+  - `apps/cad-suite/src/features/planner/model/plannerDocument.test.ts`
+  - `apps/cad-suite/src/features/planner/data/plannerSaves.test.ts`
+  - `supabase/migrations/20260408143000_add_planner_saves_enquiry_payload_and_crm_sync.sql`
+  - Report: `IMPORTANTFILES/docs/reports/planner/AGENT-P0F-SUPABASE-CRM-REPORT.md`
+- 2026-04-08: P0-C worker completed:
+  - `apps/cad-suite/src/app/globals.css`
+  - `apps/cad-suite/src/components/draw/SmartdrawPlanner.tsx`
+  - `apps/cad-suite/src/features/planner/ui/PlannerDesktopPanels.tsx`
+  - `apps/cad-suite/src/features/planner/ui/WorkspacePanel.tsx`
+  - Report: `IMPORTANTFILES/docs/reports/planner/AGENT-P0C-PANEL-WIDTH-REPORT.md`
+- 2026-04-08: Lead integrated verification after P0-C/P0-E/P0-F:
+  - `npm run test:planner -- apps/cad-suite/src/features/planner/lib/quoteBridge.test.ts apps/cad-suite/src/features/planner/ui/InspectorPanel.test.tsx apps/cad-suite/src/app/quote-cart/page.test.tsx apps/cad-suite/src/features/planner/model/plannerDocument.test.ts apps/cad-suite/src/features/planner/data/plannerSaves.test.ts` (pass)
+  - `npm -w cad-suite run build` (pass)
+- 2026-04-08: Spawned 2 HIGH agents for P0-D dual-version delivery:
+  - Version 1 isolated files under `apps/cad-suite/src/features/planner/ui/variants/p0d-v1/`
+  - Version 2 isolated files under `apps/cad-suite/src/features/planner/ui/variants/p0d-v2/`
+- 2026-04-08: Retasked to new 4-agent split:
+  - P1 implementation agent
+  - P2 implementation agent
+  - Package/dependency audit agent
+  - Security/strategic audit agent
+- 2026-04-08: Package/dependency audit report delivered:
+  - `IMPORTANTFILES/docs/reports/planner/AGENT-PACKAGE-DEPENDENCY-AUDIT.md`
+  - Includes strict discrepancy table and critical missing package findings.
+- 2026-04-08: Security/strategic audit report delivered:
+  - `IMPORTANTFILES/docs/reports/planner/AGENT-SECURITY-STRATEGIC-AUDIT.md`
+  - Includes critical migration/RLS/CRM/release-gate risks and priority actions.

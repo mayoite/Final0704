@@ -31,6 +31,12 @@ export interface PlannerSelectionDimensions {
   heightMm: number | null;
 }
 
+function normalizePositiveMillimeters(value: number | null | undefined) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return null;
+  const rounded = Math.round(value);
+  return rounded > 0 ? rounded : null;
+}
+
 function readPlannerShapeMeta(meta: unknown): PlannerShapeMeta {
   return meta && typeof meta === "object" ? (meta as PlannerShapeMeta) : {};
 }
@@ -196,29 +202,37 @@ export function readPlannerSelectionDimensions(
   if (!shape) return null;
 
   const meta = readPlannerShapeMeta(shape.meta);
+  if (meta.isRoomDimension) return null;
+
   if (shape.type === "line") {
     const points = getSortedLinePoints(shape);
-    if (points.length < 2) return null;
+    if (points.length !== 2) return null;
     const totalLength = points.slice(1).reduce((total, point, index) => {
       const previous = points[index];
       return total + Math.hypot(point.x - previous.x, point.y - previous.y);
     }, 0);
+    const widthMm = normalizePositiveMillimeters(toMillimeters(totalLength));
+    if (widthMm === null) return null;
     return {
       shapeId: shape.id,
       shapeName: meta.text || "Wall segment",
       mode: "line",
-      widthMm: toMillimeters(totalLength),
+      widthMm,
       heightMm: null,
     };
   }
 
   if ("props" in shape && shape.props && typeof shape.props === "object" && "w" in shape.props && "h" in shape.props && typeof shape.props.w === "number" && typeof shape.props.h === "number") {
+    const widthMm = normalizePositiveMillimeters(toMillimeters(shape.props.w));
+    const heightMm = normalizePositiveMillimeters(toMillimeters(shape.props.h));
+    if (widthMm === null || heightMm === null) return null;
+
     return {
       shapeId: shape.id,
       shapeName: meta.text || (shape.type === "image" ? "Placed item" : "Planner shape"),
       mode: "box",
-      widthMm: toMillimeters(shape.props.w),
-      heightMm: toMillimeters(shape.props.h),
+      widthMm,
+      heightMm,
     };
   }
 
@@ -231,17 +245,21 @@ export function updatePlannerSelectionDimensions(
   next: { widthMm?: number; heightMm?: number | null },
 ) {
   const shape = editor.getShape(selection.shapeId);
-  if (!shape) return;
+  if (!shape) return false;
+
+  const meta = readPlannerShapeMeta(shape.meta);
+  if (meta.isRoomDimension) return false;
 
   if (selection.mode === "line" && shape.type === "line") {
     const points = getSortedLinePoints(shape);
-    if (points.length < 2 || !next.widthMm) return;
+    const widthMm = normalizePositiveMillimeters(next.widthMm);
+    if (points.length !== 2 || widthMm === null) return false;
     const first = points[0];
     const last = points[points.length - 1];
     const isHorizontal = Math.abs(last.x - first.x) >= Math.abs(last.y - first.y);
     const updatedLast = isHorizontal
-      ? { ...last, x: first.x + toPageUnits(next.widthMm), y: first.y }
-      : { ...last, x: first.x, y: first.y + toPageUnits(next.widthMm) };
+      ? { ...last, x: first.x + toPageUnits(widthMm), y: first.y }
+      : { ...last, x: first.x, y: first.y + toPageUnits(widthMm) };
     const updatedPoints = [...points.slice(0, -1), updatedLast];
 
     editor.updateShapes([
@@ -254,13 +272,29 @@ export function updatePlannerSelectionDimensions(
         },
       } as PlannerLineShape,
     ]);
-    return;
+    return true;
   }
 
-  if ("props" in shape && shape.props && typeof shape.props === "object" && "w" in shape.props && "h" in shape.props) {
-    const width = next.widthMm ? toPageUnits(next.widthMm) : shape.props.w;
-    const height =
-      typeof next.heightMm === "number" && Number.isFinite(next.heightMm) ? toPageUnits(next.heightMm) : shape.props.h;
+  if (
+    "props" in shape &&
+    shape.props &&
+    typeof shape.props === "object" &&
+    "w" in shape.props &&
+    "h" in shape.props &&
+    typeof shape.props.w === "number" &&
+    typeof shape.props.h === "number"
+  ) {
+    const currentWidthMm = normalizePositiveMillimeters(toMillimeters(shape.props.w));
+    const currentHeightMm = normalizePositiveMillimeters(toMillimeters(shape.props.h));
+    if (currentWidthMm === null || currentHeightMm === null) return false;
+
+    const widthMm =
+      typeof next.widthMm === "undefined" ? currentWidthMm : normalizePositiveMillimeters(next.widthMm);
+    const heightMm =
+      typeof next.heightMm === "undefined" || next.heightMm === null
+        ? currentHeightMm
+        : normalizePositiveMillimeters(next.heightMm);
+    if (widthMm === null || heightMm === null) return false;
 
     editor.updateShapes([
       {
@@ -268,12 +302,15 @@ export function updatePlannerSelectionDimensions(
         type: shape.type,
         props: {
           ...shape.props,
-          w: width,
-          h: height,
+          w: toPageUnits(widthMm),
+          h: toPageUnits(heightMm),
         },
       } as PlannerShape,
     ]);
+    return true;
   }
+
+  return false;
 }
 
 export function alignPlannerSelection(

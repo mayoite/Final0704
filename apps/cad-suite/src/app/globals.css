@@ -40,6 +40,8 @@
     --planner-shadow-float: var(--shadow-float);
     --planner-shadow-inverse: var(--shadow-inverse);
     --planner-focus-ring: var(--focus-ring);
+    --planner-panel-width: 320px;
+    --planner-panel-dock-gap: 16px;
   }
 
   html {
@@ -102,6 +104,26 @@
   line-height: 1.3;
 }
 
+@utility planner-viewer-surface {
+  background-color: var(--planner-overlay-95);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--planner-shadow-panel);
+}
+
+@utility planner-viewer-chip {
+  border: 1px solid var(--planner-border-soft);
+  background-color: var(--planner-overlay-95);
+  color: var(--planner-text-body);
+  backdrop-filter: blur(18px);
+  box-shadow: var(--planner-shadow-panel);
+}
+
+@utility planner-viewer-chip-active {
+  border-color: var(--planner-primary);
+  background-color: var(--planner-primary-soft);
+  color: var(--planner-primary);
+}
+
 @layer utilities {
   .bg-page {
     background:
@@ -119,7 +141,7 @@
   }
 
   .w-min-panel {
-    width: 320px;
+    width: var(--planner-panel-width);
   }
 
   .h-smartdraw-panel {

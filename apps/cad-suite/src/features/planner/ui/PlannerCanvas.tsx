@@ -39,10 +39,9 @@ export function PlannerCanvas({
   const majorGrid = minorGrid * 5;
 
   return (
-    <div className="absolute z-0" style={{ top: topInsetPx, left: leftInsetPx, right: rightInsetPx, bottom: 0 }}>
+    <div className="absolute z-0" data-planner-step={currentStep} style={{ top: topInsetPx, left: leftInsetPx, right: rightInsetPx, bottom: 0 }}>
       <Tldraw
         onMount={onMount}
-        hideUi={true}
         className="absolute inset-0"
         components={CANVAS_COMPONENTS}
       />
@@ -63,21 +62,6 @@ export function PlannerCanvas({
         />
       ) : null}
 
-      <div className="pointer-events-none absolute top-6 left-1/2 z-20 -translate-x-1/2">
-        <div className="surface-overlay-95 flex items-center gap-2 rounded-full border border-theme-soft px-5 py-2 text-strong shadow-theme-panel backdrop-blur-md">
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success-soft opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-success-soft" />
-          </span>
-          <span className="text-[0.72rem] font-semibold uppercase tracking-[0.18em] text-[color:var(--planner-text-muted)]">
-            {currentStep === "room" && "Room Shell - Walls and basic shapes"}
-            {currentStep === "catalog" && "Catalog - Place modules"}
-            {currentStep === "measure" && "Measure - Inspect shell and dimensions"}
-            {currentStep === "review" && "Review - Verify and generate"}
-          </span>
-        </div>
-      </div>
-
       {measurements.map((measurement) => (
         <div
           key={measurement.id}
@@ -89,19 +73,20 @@ export function PlannerCanvas({
           }}
         >
           <div
-            className={`min-w-[8.75rem] rounded-2xl border px-3 py-2 shadow-theme-panel backdrop-blur-md ${
+            className={`min-w-[8rem] border px-3 py-2 shadow-theme-panel backdrop-blur-md ${
               measurement.tone === "selection"
                 ? "border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)]/96 text-[color:var(--planner-accent-strong)]"
                 : "border-[color:var(--planner-primary-soft)] bg-[color:var(--planner-panel-strong)] text-[color:var(--planner-text-strong)]"
             }`}
           >
-            <div className="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--planner-text-muted)]">
+            <div className="text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[color:var(--planner-text-muted)]">
               {measurement.caption}
             </div>
-            <div className="mt-1 font-mono text-[0.86rem] font-semibold tracking-[0.03em]">
+            <div className="mt-0.5 font-mono text-[0.9rem] font-semibold tracking-[0.03em]">
               {measurement.value}
             </div>
           </div>
+
         </div>
       ))}
     </div>

@@ -12,7 +12,7 @@ import { getShapeMeta, getStructuralShapes, type MeasurementUnit } from "./measu
 
 const DEFAULT_ROOM_WIDTH_MM = 6000;
 const DEFAULT_ROOM_DEPTH_MM = 8000;
-const DEFAULT_ROOM_HEIGHT_MM = 3000;
+const DEFAULT_ROOM_HEIGHT_MM = 2100;
 const DEFAULT_WALL_THICKNESS_MM = 120;
 const DEFAULT_FLOOR_THICKNESS_MM = 40;
 
@@ -35,7 +35,6 @@ export interface PlannerSceneItem {
   plannerSourceSlug?: string;
   name: string;
   category: string;
-  price: number;
   imageUrl?: string;
   dimensions?: string;
   centerMm: {
@@ -99,6 +98,30 @@ function mergeBounds(boundsList: PlannerBounds[]) {
   };
 }
 
+function sanitizePlannerSnapshot<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((entry) => sanitizePlannerSnapshot(entry)) as T;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const clone: Record<string, unknown> = {};
+
+  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
+    if (key === "meta" && entry && typeof entry === "object" && !Array.isArray(entry)) {
+      const { price: _removedPrice, ...metaWithoutPrice } = entry as Record<string, unknown>;
+      clone[key] = sanitizePlannerSnapshot(metaWithoutPrice);
+      continue;
+    }
+
+    clone[key] = sanitizePlannerSnapshot(entry);
+  }
+
+  return clone as T;
+}
+
 function toMillimeters(value: number, rawDimensions?: string) {
   if (!Number.isFinite(value)) return 0;
   const hint = String(rawDimensions ?? "").toLowerCase();
@@ -109,6 +132,11 @@ function toMillimeters(value: number, rawDimensions?: string) {
 
   if (hint.includes("m") && !hint.includes("mm") && !hint.includes("cm")) {
     return Math.round(value * 1000);
+  }
+
+  // Heuristic: small numbers (<300) with no explicit mm are likely cm
+  if (!hint.includes("mm") && value < 300) {
+    return Math.round(value * 10);
   }
 
   return Math.round(value);
@@ -198,7 +226,6 @@ function getSceneItems(editor: Editor, room: PlannerSceneRoom): PlannerSceneItem
         plannerSourceSlug: meta.plannerSourceSlug,
         name: meta.text || "Planner item",
         category: meta.category || "Workstations",
-        price: Number(meta.price ?? 0),
         imageUrl: meta.imageUrl,
         dimensions: meta.dimensions,
         centerMm: {
@@ -241,7 +268,7 @@ export function buildPlannerDocumentFromEditor(
 ): PlannerDocument {
   const room = getSceneRoom(editor);
   const items = getSceneItems(editor, room);
-  const snapshot = editor.getSnapshot();
+  const snapshot = sanitizePlannerSnapshot(editor.getSnapshot());
 
   const sceneJson = {
     type: "cad-suite-planner-scene",

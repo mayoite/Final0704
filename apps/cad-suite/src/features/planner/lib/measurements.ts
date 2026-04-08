@@ -22,6 +22,9 @@ type PlannerBounds = NonNullable<ReturnType<Editor["getShapePageBounds"]>>;
 type PlannerLinePoint = TLLineShape["props"]["points"][string];
 type PlannerShapeId = ReturnType<Editor["getSelectedShapeIds"]>[number];
 
+const MM_PER_INCH = 25.4;
+const INCHES_PER_FOOT = 12;
+
 export interface PlannerGridState {
   originX: number;
   originY: number;
@@ -61,14 +64,67 @@ export function formatMillimeters(mm: number) {
 }
 
 export function formatFeetAndInches(mm: number) {
-  const totalInches = Math.max(0, Math.round(mm / 25.4));
-  const feet = Math.floor(totalInches / 12);
-  const inches = totalInches % 12;
+  const totalInches = Math.max(0, Math.round(mm / MM_PER_INCH));
+  const feet = Math.floor(totalInches / INCHES_PER_FOOT);
+  const inches = totalInches % INCHES_PER_FOOT;
   return `${feet}' ${inches}"`;
 }
 
 export function formatLength(mm: number, unitSystem: MeasurementUnit) {
   return unitSystem === "ft-in" ? formatFeetAndInches(mm) : formatMillimeters(mm);
+}
+
+export function formatMeasurementInputValue(mm: number, unitSystem: MeasurementUnit) {
+  return unitSystem === "ft-in" ? formatFeetAndInches(mm) : String(Math.round(mm));
+}
+
+function parseMetricMeasurementInput(value: string) {
+  const normalized = value.trim().replace(/,/g, "").replace(/\s*mm$/i, "");
+  if (normalized.length === 0) return null;
+
+  const parsed = Number.parseFloat(normalized);
+  if (!Number.isFinite(parsed) || parsed <= 0) return null;
+
+  return Math.round(parsed);
+}
+
+function parseFeetAndInchesInput(value: string) {
+  const normalized = value.trim().toLowerCase().replace(/′/g, "'").replace(/″/g, '"');
+  if (normalized.length === 0) return null;
+
+  const feetAndInchesMatch = normalized.match(
+    /^(?:([+-]?\d+(?:\.\d+)?)\s*(?:'|ft|feet))?\s*(?:([+-]?\d+(?:\.\d+)?)\s*(?:"|in|inch|inches))?$/,
+  );
+
+  if (feetAndInchesMatch) {
+    const feetRaw = feetAndInchesMatch[1];
+    const inchesRaw = feetAndInchesMatch[2];
+    const feetValue = feetRaw ? Number.parseFloat(feetRaw) : 0;
+    const inchesValue = inchesRaw ? Number.parseFloat(inchesRaw) : 0;
+
+    if (
+      (feetRaw || inchesRaw) &&
+      Number.isFinite(feetValue) &&
+      Number.isFinite(inchesValue)
+    ) {
+      const totalInches = feetValue * INCHES_PER_FOOT + inchesValue;
+      return totalInches > 0 ? Math.round(totalInches * MM_PER_INCH) : null;
+    }
+  }
+
+  const plainPairMatch = normalized.match(/^(\d+)\s+(\d+(?:\.\d+)?)$/);
+  if (!plainPairMatch) return null;
+
+  const feetValue = Number.parseFloat(plainPairMatch[1]);
+  const inchesValue = Number.parseFloat(plainPairMatch[2]);
+  if (!Number.isFinite(feetValue) || !Number.isFinite(inchesValue)) return null;
+
+  const totalInches = feetValue * INCHES_PER_FOOT + inchesValue;
+  return totalInches > 0 ? Math.round(totalInches * MM_PER_INCH) : null;
+}
+
+export function parseMeasurementInput(value: string, unitSystem: MeasurementUnit) {
+  return unitSystem === "ft-in" ? parseFeetAndInchesInput(value) : parseMetricMeasurementInput(value);
 }
 
 export function formatMetricFromBounds(bounds: { w: number; h: number }, unitSystem: MeasurementUnit) {

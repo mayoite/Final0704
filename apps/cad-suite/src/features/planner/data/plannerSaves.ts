@@ -9,6 +9,7 @@ import {
   plannerSaveSummarySchema,
   type PlannerDocument,
   type PlannerSaveSummary,
+  type PlannerSaveWrite,
 } from "../model";
 
 export class PlannerStorageError extends Error {
@@ -51,6 +52,18 @@ function normalizePlannerSaveListRow(row: unknown): PlannerSaveSummary {
 
 function normalizeRepositoryAccessMode(accessMode?: PlannerRepositoryAccessMode): PlannerRepositoryAccessMode {
   return accessMode === "admin" ? "admin" : "owner";
+}
+
+function normalizePlannerSaveId(saveId: string): string {
+  const normalized = saveId.trim();
+  if (!normalized) {
+    throw new PlannerStorageError(
+      "Planner document id is required.",
+      "planner:load-failed",
+    );
+  }
+
+  return normalized;
 }
 
 function applyPlannerSaveReadScope<Query extends { eq: (column: string, value: string) => Query }>(
@@ -102,6 +115,10 @@ export interface PlannerSaveDocumentOptions {
   saveId?: string;
   ownerUserId?: string;
   accessMode?: PlannerRepositoryAccessMode;
+  enquiryPayload?: PlannerSaveWrite["enquiry_payload"];
+  crmSyncStatus?: PlannerSaveWrite["crm_sync_status"];
+  crmSyncedAt?: PlannerSaveWrite["crm_synced_at"];
+  crmSyncError?: PlannerSaveWrite["crm_sync_error"];
 }
 
 export interface PlannerListDocumentsOptions {
@@ -121,6 +138,10 @@ export async function savePlannerDocumentToSupabase(
   const payload = plannerDocumentToSaveRow(normalized, {
     userId: ownerUserId,
     id: options.saveId ?? normalized.id ?? crypto.randomUUID(),
+    enquiryPayload: options.enquiryPayload,
+    crmSyncStatus: options.crmSyncStatus,
+    crmSyncedAt: options.crmSyncedAt,
+    crmSyncError: options.crmSyncError,
   });
 
   const { data, error } = await client
@@ -145,6 +166,7 @@ export async function loadPlannerDocumentFromSupabase(
   saveId: string,
   options: PlannerListDocumentsOptions = {},
 ): Promise<PlannerDocument | null> {
+  const normalizedSaveId = normalizePlannerSaveId(saveId);
   const authUserId = await resolveUserId(client, options.userId);
   const accessMode = normalizeRepositoryAccessMode(options.accessMode);
 
@@ -152,7 +174,7 @@ export async function loadPlannerDocumentFromSupabase(
     client
     .from("planner_saves")
     .select("*")
-    .eq("id", saveId),
+    .eq("id", normalizedSaveId),
     accessMode,
     authUserId,
     options.ownerUserId,

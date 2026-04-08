@@ -31,22 +31,22 @@ export const ciscoSans = localFont({
 export const helveticaNeue = localFont({
   src: [
     {
-      path: "../../public/fonts/helvetica-neue/HelveticaNeue-Light.otf",
+      path: "../../helvetica-neue/helveticaneue-light.woff2",
       weight: "300",
       style: "normal",
     },
     {
-      path: "../../public/fonts/helvetica-neue/HelveticaNeue-Roman.woff2",
+      path: "../../helvetica-neue/helveticaneue.woff2",
       weight: "400",
       style: "normal",
     },
     {
-      path: "../../public/fonts/helvetica-neue/HelveticaNeue-Medium.otf",
+      path: "../../helvetica-neue/helveticaneue-medium.woff2",
       weight: "500",
       style: "normal",
     },
     {
-      path: "../../public/fonts/helvetica-neue/HelveticaNeue-Bold.otf",
+      path: "../../helvetica-neue/helveticaneue-bold.woff2",
       weight: "700",
       style: "normal",
     },

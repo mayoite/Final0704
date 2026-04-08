@@ -4,6 +4,7 @@ import { useRef, useEffect, type ReactNode } from "react";
 import { Play } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
+import { gsap } from "gsap";
 
 import { Fancybox } from "@fancyapps/ui";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
@@ -11,6 +12,7 @@ import "@fancyapps/ui/dist/fancybox/fancybox.css";
 interface VideoSectionProps {
   videoSrc?: string;
   posterSrc?: string;
+  images?: string[];
   title: ReactNode;
   description: string;
   lightMode?: boolean; // If true, use dark text on light background, else white text on dark/video
@@ -21,6 +23,7 @@ interface VideoSectionProps {
 export function VideoSection({
   videoSrc,
   posterSrc,
+  images,
   title,
   description,
   lightMode = false,
@@ -28,6 +31,7 @@ export function VideoSection({
   buttonLink = "/products",
 }: VideoSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const montageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -36,22 +40,70 @@ export function VideoSection({
       Fancybox.bind(container, "[data-fancybox]", {});
     }
 
+    // GSAP Montage Slideshow
+    if (images && images.length > 0 && montageRef.current) {
+      const items = montageRef.current.querySelectorAll(".montage-item");
+      if (items.length > 0) {
+        // Initial state for all items
+        gsap.set(items, { opacity: 0, scale: 1.1 });
+        
+        const tl = gsap.timeline({ repeat: -1 });
+        
+        items.forEach((item) => {
+          // Crossroads fade
+          tl.to(item, {
+            opacity: 1,
+            scale: 1,
+            duration: 2.5,
+            ease: "power2.inOut"
+          })
+          .to(item, {
+            scale: 1.05,
+            duration: 4,
+            ease: "none"
+          }, "-=0.5")
+          .to(item, {
+            opacity: 0,
+            duration: 2,
+            ease: "power2.inOut"
+          }, "-=1.5");
+        });
+      }
+    }
+
     return () => {
       if (container) {
         Fancybox.unbind(container);
         Fancybox.close();
       }
     };
-  }, []);
+  }, [images]);
 
   return (
     <section
       ref={containerRef}
-      className={`relative w-full py-16 md:py-20 overflow-hidden ${lightMode ? "bg-hover" : "bg-inverse"}`}
+      className={`relative w-full py-16 md:py-28 overflow-hidden ${lightMode ? "bg-hover" : "bg-inverse"}`}
     >
-      {/* Background Video or Image */}
+      {/* Background Montage or Video */}
       <div className="absolute inset-0 z-0">
-        {videoSrc ? (
+        {images && images.length > 0 ? (
+          <div ref={montageRef} className="relative w-full h-full bg-black">
+            {images.map((src, i) => (
+              <div 
+                key={src} 
+                className="montage-item absolute inset-0 w-full h-full opacity-0"
+              >
+                <Image
+                  src={src}
+                  alt={`Project execution showcase ${i + 1}`}
+                  fill
+                  priority={i === 0}
+                  className="object-cover opacity-60"
+                />
+              </div>
+            ))}
+          </div>
+        ) : videoSrc ? (
           <>
             <video
               autoPlay
@@ -81,33 +133,29 @@ export function VideoSection({
         ) : posterSrc ? (
           <Image
             src={posterSrc}
-            alt="Workspace collaboration"
+            alt="Workspace background"
             fill
-            priority={false}
-            sizes="100vw"
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover opacity-60"
           />
         ) : (
-          /* Fallback generic background if no video is provided yet */
           <div
             className={`w-full h-full ${lightMode ? "bg-soft" : "bg-inverse"} animate-pulse`}
           />
         )}
-        {/* Overlay Gradient */}
         <div
-          className={`absolute inset-0 ${lightMode ? "bg-panel/45" : "bg-overlay"}`}
+          className={`absolute inset-0 ${lightMode ? "bg-panel/40" : "bg-gradient-to-b from-black/20 via-black/40 to-black/80"}`}
         />
       </div>
 
-      <div className="container relative z-10 px-6 2xl:px-0 h-full flex flex-col justify-center pt-10 md:pt-6 pointer-events-none">
-        <div className="max-w-4xl space-y-6 pointer-events-auto">
+      <div className="container relative z-10 px-6 2xl:px-0 h-full flex flex-col justify-center pointer-events-none">
+        <div className="max-w-4xl space-y-8 pointer-events-auto">
           <h2
-            className={`text-sm md:text-sm lg:text-sm font-light leading-[1.08] tracking-tight text-balance ${lightMode ? "text-strong" : "text-inverse"}`}
+            className={`text-[clamp(1.75rem,5vw,3rem)] font-light leading-[1.05] tracking-tight text-balance ${lightMode ? "text-strong" : "text-white"}`}
           >
             {title}
           </h2>
           <p
-            className={`text-sm font-light leading-relaxed max-w-2xl ${lightMode ? "text-body" : "text-inverse-body"}`}
+            className={`text-lg font-light leading-relaxed max-w-2xl ${lightMode ? "text-body" : "text-gray-300"}`}
           >
             {description}
           </p>
@@ -115,15 +163,15 @@ export function VideoSection({
           <div className="pt-8">
             <Link
               href={buttonLink}
-              className={`group inline-flex items-center gap-4 pb-2 border-b transition-colors ${lightMode
-                  ? "text-strong border-strong hover:text-primary hover:border-primary-hover"
-                  : "text-inverse border-inverse hover:text-primary hover:border-primary-hover"
+              className={`group inline-flex items-center gap-6 pb-2 border-b-2 transition-all ${lightMode
+                  ? "text-strong border-strong hover:text-primary hover:border-primary"
+                  : "text-white border-white/20 hover:border-white"
                 }`}
             >
-              <span className="text-sm font-semibold uppercase tracking-wide">
+              <span className="text-sm font-semibold uppercase tracking-[0.2em]">
                 {buttonText}
               </span>
-              <span className="text-lg transition-transform group-hover:translate-x-1">
+              <span className="text-xl transition-transform group-hover:translate-x-2">
                 →
               </span>
             </Link>
@@ -133,5 +181,3 @@ export function VideoSection({
     </section>
   );
 }
-
-

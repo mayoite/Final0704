@@ -84,7 +84,9 @@ export const SITE_FOOTER_NAV = [
   {
     heading: "Support & Tools",
     links: [
-      { href: "/planner", label: "OneAndOnly Planner" },
+      { href: "/planner", label: "Planner" },
+      { href: "/draw", label: "Draw" },
+      { href: "/configurator", label: "Configurator" },
       { href: "/login", label: "Partner Portal" },
       { href: "/contact", label: "Contact Us" },
       { href: "/faq", label: "FAQ" },

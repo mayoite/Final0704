@@ -41,13 +41,11 @@ export function WhyChooseUs() {
           ref={ref}
           className={`mb-12 max-w-3xl reveal-on-scroll ${isVisible ? "visible" : ""}`}
         >
-          <p className="typ-label scheme-text-body mb-4">Why One &amp; Only</p>
-          <h2 className="typ-section scheme-text-strong mb-5">
-            We engineer workspace systems,
-            <br />
-            <span className="scheme-text-brand italic">not just furniture.</span>
+          <h2 className="typ-section-title">
+            We engineer workspace systems,{" "}
+            <span className="text-primary italic">not just furniture.</span>
           </h2>
-          <p className="page-copy scheme-text-body max-w-2xl">
+          <p className="typ-section-subtitle max-w-2xl">
             We build planning-led furniture systems that improve usability, durability, and rollout
             confidence for corporate, government, and institutional teams across Bihar and beyond.
           </p>

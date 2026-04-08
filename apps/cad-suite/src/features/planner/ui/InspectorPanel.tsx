@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import React from "react";
-import { Tag, Settings2, Box, FileText, Magnet, X, MousePointer2, Pin, PinOff } from "lucide-react";
+import { Box, FileText, Magnet, MousePointer2, Pin, PinOff, Tag, Settings2, X } from "lucide-react";
 import type { BoqItem, PlannerStep } from "@/components/draw/types";
 import type { PlannerSelectionDimensions } from "../lib/editorTools";
+import { formatMeasurementInputValue, parseMeasurementInput } from "../lib/measurements";
 
 interface InspectorPanelProps {
   boqItems: BoqItem[];
@@ -25,6 +26,35 @@ interface InspectorPanelProps {
   showPinToggle?: boolean;
 }
 
+// ── Area helpers ──────────────────────────────────────────────────────────────
+function parseRoomDims(metrics: string): { wMm: number; hMm: number } | null {
+  const m = /W\s*([\d,]+)\s*mm.*?H\s*([\d,]+)\s*mm/i.exec(metrics);
+  if (!m) return null;
+  return { wMm: parseInt(m[1].replace(/,/g, ""), 10), hMm: parseInt(m[2].replace(/,/g, ""), 10) };
+}
+
+function fmtArea(wMm: number, hMm: number): { sqm: string; sqft: string } {
+  const sqm = (wMm * hMm) / 1_000_000;
+  const sqft = sqm * 10.7639;
+  return {
+    sqm: sqm >= 10 ? sqm.toFixed(1) : sqm.toFixed(2),
+    sqft: sqft.toFixed(1),
+  };
+}
+
+/** Row in the shortcuts table */
+function ShortcutRow({ name, kbd }: { name: string; kbd: string }) {
+  return (
+    <div className="flex items-center justify-between py-1 border-b border-[color:var(--planner-border-soft)] last:border-0">
+      <span className="text-[12px] text-[color:var(--planner-text-body)]">{name}</span>
+      <kbd className="border border-[color:var(--planner-border-soft)] bg-[color:var(--planner-panel-strong)] px-2 py-0.5 font-mono text-[10px] text-[color:var(--planner-text-muted)]">
+        {kbd}
+      </kbd>
+    </div>
+  );
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
 export function InspectorPanel({
   boqItems,
   totalBoq,
@@ -47,233 +77,229 @@ export function InspectorPanel({
   const [tab, setTab] = React.useState<"items" | "settings">("items");
   const [widthInput, setWidthInput] = React.useState("");
   const [heightInput, setHeightInput] = React.useState("");
+
   const isRoomStep = currentStep === "room";
   const isCatalogStep = currentStep === "catalog";
   const isMeasureStep = currentStep === "measure";
-  const quoteButtonLabel = isRoomStep
+  const hasBoqData = boqItems.length > 0 || totalBoq > 0;
+
+  const quoteLabel = isRoomStep
     ? "Continue to Catalog"
-    : isCatalogStep
-      ? "Continue to Measure"
-      : isMeasureStep
-        ? "Continue to Review"
-        : "Generate Final Quote";
-  const primaryButtonDisabled = isRoomStep
-    ? !canContinueFromRoom
-    : isCatalogStep
-      ? !canContinueFromRoom
-      : boqItems.length === 0;
-  const emptyStateBody = isRoomStep
-    ? "Draw walls and basic shapes, then continue to catalog."
-    : isCatalogStep
-      ? "Click products in the catalog to build the layout."
-      : isMeasureStep
-        ? "Select walls or items to inspect measurements before review."
-        : "Review the measured plan and generate the quote.";
+    : isCatalogStep ? "Continue to Measure"
+    : isMeasureStep ? "Continue to Review" : "Open BOQ Enquiry";
+
+  const primaryDisabled = isRoomStep || isCatalogStep || isMeasureStep ? !canContinueFromRoom : !hasBoqData;
+
+  const emptyBody = isRoomStep
+    ? "Draw the room shell to unlock catalog placement."
+    : isCatalogStep ? "Add products from the catalog to start the BOQ."
+    : isMeasureStep ? "Use the line tool to measure distances. Select shapes to see dimensions."
+    : "Review the measured plan and send the BOQ enquiry.";
+
+  const unitLabel = unitSystem === "ft-in" ? "ft/in" : "mm";
+  const widthValueMm = parseMeasurementInput(widthInput, unitSystem);
+  const heightValueMm = selectionDimensions?.mode === "box" ? parseMeasurementInput(heightInput, unitSystem) : null;
+  const canApply = selectionDimensions
+    ? selectionDimensions.mode === "line" ? widthValueMm !== null : widthValueMm !== null && heightValueMm !== null
+    : false;
+
+  const dimHint = unitSystem === "ft-in" ? `e.g. 6' 8"` : "e.g. 3600";
 
   React.useEffect(() => {
-    setWidthInput(selectionDimensions ? String(selectionDimensions.widthMm) : "");
+    setWidthInput(selectionDimensions ? formatMeasurementInputValue(selectionDimensions.widthMm, unitSystem) : "");
     setHeightInput(
       selectionDimensions && typeof selectionDimensions.heightMm === "number"
-        ? String(selectionDimensions.heightMm)
-        : "",
+        ? formatMeasurementInputValue(selectionDimensions.heightMm, unitSystem) : "",
     );
-  }, [selectionDimensions]);
+  }, [selectionDimensions, unitSystem]);
+
+  const roomDims = parseRoomDims(roomMetrics);
+  const area = roomDims ? fmtArea(roomDims.wMm, roomDims.hMm) : null;
 
   return (
-    <div className="flex h-full flex-col bg-transparent">
-      <div data-panel-drag-handle="true" className="flex items-center justify-between border-b border-theme-soft px-4 py-3">
-        <span className="text-[0.74rem] font-semibold uppercase tracking-[0.16em] text-muted">Inspector</span>
-        <div className="flex items-center gap-1">
-          {showPinToggle ? (
-            <button
-              onClick={onTogglePin}
-              aria-label={pinned ? "Float panel" : "Dock panel"}
-              className={`p-1.5 rounded-md border transition-all ${
-                pinned
-                  ? "border-[color:var(--planner-primary-soft)] bg-[color:var(--planner-primary-soft)] text-[color:var(--planner-primary)]"
-                  : "border-theme-soft text-inverse-muted hover:bg-[color:var(--planner-primary-soft)] hover:text-[color:var(--planner-primary)]"
-              }`}
-              title={pinned ? "Float panel" : "Dock panel"}
-            >
+    <div className="flex h-full flex-col bg-[color:var(--planner-panel)] font-sans">
+
+      {/* Header */}
+      <div data-panel-drag-handle="true"
+        className="flex h-9 shrink-0 items-center justify-between border-b border-[color:var(--planner-border-soft)] px-3">
+        <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--planner-text-muted)]">Inspector</span>
+        <div className="flex items-center gap-0.5">
+          {showPinToggle && (
+            <button type="button" onClick={onTogglePin}
+              aria-label={pinned ? "Float panel" : "Dock panel"} title={pinned ? "Float panel" : "Dock panel"}
+              className={`flex h-6 w-6 items-center justify-center transition-colors ${pinned ? "text-[color:var(--planner-primary)]" : "text-[color:var(--planner-text-subtle)] hover:text-[color:var(--planner-text-body)]"}`}>
               {pinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
             </button>
-          ) : null}
-          <button onClick={onClose} className="rounded p-1 text-inverse-muted hover-text-muted">
-            <X className="h-3 w-3" />
+          )}
+          <button type="button" onClick={onClose} aria-label="Close"
+            className="flex h-6 w-6 items-center justify-center text-[color:var(--planner-text-subtle)] hover:text-[color:var(--planner-text-body)] transition-colors">
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
-      <div className="flex border-b border-theme-soft">
-        <button
-          type="button"
-          onClick={() => setTab("items")}
-          className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[0.72rem] font-semibold uppercase tracking-[0.14em] transition-all ${
-            tab === "items" ? "border-b-2 border-[color:var(--planner-primary)] text-[color:var(--planner-primary)]" : "text-subtle hover:text-[color:var(--planner-primary)]"
-          }`}
-        >
-          <Tag className="h-3.5 w-3.5" /> Items ({boqItems.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setTab("settings")}
-          className={`flex flex-1 items-center justify-center gap-1.5 py-2.5 text-[0.72rem] font-semibold uppercase tracking-[0.14em] transition-all ${
-            tab === "settings" ? "border-b-2 border-[color:var(--planner-primary)] text-[color:var(--planner-primary)]" : "text-subtle hover:text-[color:var(--planner-primary)]"
-          }`}
-        >
-          <Settings2 className="h-3.5 w-3.5" /> Settings
-        </button>
+      {/* Tabs — flat, no rounded */}
+      <div className="flex shrink-0 border-b border-[color:var(--planner-border-soft)]">
+        {(["items", "settings"] as const).map((t) => (
+          <button key={t} type="button" onClick={() => setTab(t)}
+            className={`flex flex-1 items-center justify-center gap-1.5 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] transition-colors border-b-2 ${
+              tab === t
+                ? "border-[color:var(--planner-primary)] text-[color:var(--planner-primary)]"
+                : "border-transparent text-[color:var(--planner-text-subtle)] hover:text-[color:var(--planner-primary)]"
+            }`}>
+            {t === "items" ? <Tag className="h-3.5 w-3.5" /> : <Settings2 className="h-3.5 w-3.5" />}
+            {t === "items" ? `Items (${boqItems.length})` : "Settings"}
+          </button>
+        ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      {/* Body */}
+      <div className="flex-1 overflow-y-auto">
+
+        {/* ── ITEMS TAB ─────────────────────────────────────────────────────── */}
         {tab === "items" && (
           <div className="flex h-full flex-col">
-            <div className="flex-1 space-y-2 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto divide-y divide-[color:var(--planner-border-soft)]">
               {boqItems.length === 0 ? (
-                <div className="py-10 text-center">
-                  <MousePointer2 className="mx-auto mb-2 h-7 w-7 text-inverse-muted" />
-                  <p className="text-[0.86rem] font-semibold text-strong">No items placed yet</p>
-                  <p className="mt-1 text-[0.8rem] leading-5 text-muted">{emptyStateBody}</p>
+                <div className="flex flex-col items-center justify-center gap-2 py-10 px-4 text-center">
+                  <MousePointer2 className="h-6 w-6 text-[color:var(--planner-text-subtle)]" />
+                  <p className="text-[14px] font-semibold text-[color:var(--planner-text-strong)]">No items yet</p>
+                  <p className="text-[12px] leading-5 text-[color:var(--planner-text-muted)]">{emptyBody}</p>
                 </div>
               ) : (
                 boqItems.map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3 rounded-[1.5rem] border border-theme-soft bg-[color:var(--planner-panel-strong)] px-4 py-3.5 shadow-theme-panel transition-all hover:border-[color:var(--planner-border-hover)] hover:bg-[color:var(--planner-panel)]">
-                    <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--planner-primary-soft)] text-[color:var(--planner-primary)]">
+                  <div key={idx} className="flex items-start gap-2.5 px-3 py-2.5">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center bg-[color:var(--planner-primary-soft)] text-[color:var(--planner-primary)]">
                       <Box className="h-3.5 w-3.5" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-[1.02rem] font-semibold leading-[1.15] tracking-[-0.02em] text-strong">{item.name}</p>
-                      <p className="mt-1 text-[0.78rem] font-medium uppercase tracking-[0.08em] text-muted">{item.category}</p>
+                      <p className="text-[13px] font-semibold text-[color:var(--planner-text-strong)]">{item.name}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-[0.08em] text-[color:var(--planner-text-muted)]">{item.category}</p>
                       {item.dimensions && (
-                        <p className="mt-1.5 break-words font-mono text-[0.84rem] leading-[1.5] tracking-[0.02em] text-body">
-                          {item.dimensions}
-                        </p>
+                        <p className="mt-0.5 font-mono text-[10px] text-[color:var(--planner-text-subtle)]">{item.dimensions}</p>
                       )}
                     </div>
-                    {item.price > 0 && (
-                      <span className="whitespace-nowrap pt-0.5 text-[0.92rem] font-semibold tracking-[-0.01em] text-strong">
-                        INR {item.price.toLocaleString()}
-                      </span>
-                    )}
                   </div>
                 ))
               )}
             </div>
-
-            <div className="mt-3 pt-3 border-t border-theme-soft space-y-3">
-              {totalBoq > 0 && (
-                <div className="flex justify-between items-baseline">
-                  <span className="text-[0.72rem] font-semibold uppercase tracking-[0.16em] text-muted">Total</span>
-                  <span className="text-lg font-bold tracking-[-0.02em] text-[color:var(--planner-primary)]">INR {totalBoq.toLocaleString()}</span>
+            <div className="shrink-0 border-t border-[color:var(--planner-border-soft)] p-3">
+              {hasBoqData && (
+                <div className="mb-2 flex items-baseline justify-between">
+                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--planner-text-muted)]">BOQ Lines</span>
+                  <span className="text-[14px] font-bold text-[color:var(--planner-primary)]">{boqItems.length}</span>
                 </div>
               )}
-              <button onClick={onGenerateQuote} disabled={primaryButtonDisabled}
-                className="w-full flex items-center justify-center gap-2 rounded-xl bg-[color:var(--planner-primary)] py-2.5 text-[0.84rem] font-semibold text-white shadow-theme-panel transition-all hover:bg-[color:var(--planner-primary-hover)] disabled:bg-[color:var(--planner-surface-muted)] disabled:text-[color:var(--planner-text-subtle)] disabled:shadow-none">
-                <FileText className="h-4 w-4" /> {quoteButtonLabel}
+              <button onClick={onGenerateQuote} disabled={primaryDisabled}
+                className="flex w-full items-center justify-center gap-2 bg-[color:var(--planner-primary)] py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[color:var(--planner-primary-hover)] disabled:bg-[color:var(--planner-border-soft)] disabled:text-[color:var(--planner-text-subtle)]">
+                <FileText className="h-4 w-4" /> {quoteLabel}
               </button>
             </div>
           </div>
         )}
 
+        {/* ── SETTINGS TAB ──────────────────────────────────────────────────── */}
         {tab === "settings" && (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center p-3 scheme-section-soft rounded-xl border border-theme-soft">
-              <div className="flex items-center gap-2">
-                <Magnet className="h-3.5 w-3.5 text-[color:var(--planner-accent-strong)]" />
-                <span className="text-[0.86rem] font-semibold text-strong">Grid Snapping</span>
-              </div>
-              <button onClick={onToggleSnap}
-                className={`relative h-6 w-11 rounded-full transition-all duration-200 ${isSnapMode ? "bg-[color:var(--planner-accent-strong)]" : "bg-[color:var(--planner-border-strong)]"}`}>
-                <div className={`absolute top-1 h-4 w-4 rounded-full bg-[color:var(--planner-panel-strong)] shadow-sm transition-all duration-200 ${isSnapMode ? "left-6" : "left-1"}`} />
-              </button>
+          <div className="divide-y divide-[color:var(--planner-border-soft)]">
+
+            {/* Room Shell — centered, with area */}
+            <div className="px-3 py-3 text-center">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--planner-text-muted)]">Room Shell</p>
+              <p className="font-mono text-[13px] font-semibold text-[color:var(--planner-text-strong)]">{roomMetrics}</p>
+              {area && (
+                <div className="mt-1.5 flex items-center justify-center gap-3">
+                  <span className="text-[12px] font-semibold text-[color:var(--planner-primary)]">{area.sqm} m²</span>
+                  <span className="text-[10px] text-[color:var(--planner-text-subtle)]">·</span>
+                  <span className="text-[12px] text-[color:var(--planner-text-muted)]">{area.sqft} sq ft</span>
+                </div>
+              )}
             </div>
-            <div className="flex justify-between items-center p-3 scheme-section-soft rounded-xl border border-theme-soft">
-              <span className="text-[0.86rem] font-semibold text-strong">Unit System</span>
-              <div className="flex items-center gap-1 rounded-full border border-theme-soft bg-[color:var(--planner-panel-strong)] p-1">
-                <button
-                  type="button"
-                  onClick={() => onUnitSystemChange("mm")}
-                  className={`rounded-full px-2.5 py-1 text-[0.72rem] font-semibold transition-all ${
-                    unitSystem === "mm" ? "bg-[color:var(--planner-primary)] text-white" : "text-muted hover:bg-[color:var(--planner-primary-soft)] hover:text-[color:var(--planner-primary)]"
-                  }`}
-                >
-                  mm
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onUnitSystemChange("ft-in")}
-                  className={`rounded-full px-2.5 py-1 text-[0.72rem] font-semibold transition-all ${
-                    unitSystem === "ft-in" ? "bg-[color:var(--planner-primary)] text-white" : "text-muted hover:bg-[color:var(--planner-primary-soft)] hover:text-[color:var(--planner-primary)]"
-                  }`}
-                >
-                  ft/in
-                </button>
-              </div>
-            </div>
-            <div className="p-3 scheme-section-soft rounded-xl border border-theme-soft">
-              <h4 className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">Room Shell</h4>
-              <p className="font-mono text-[0.92rem] font-semibold tracking-[0.03em] text-strong">{roomMetrics}</p>
-            </div>
-            <div className="p-3 scheme-section-soft rounded-xl border border-theme-soft">
-              <h4 className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">Selection Metrics</h4>
-              <p className="font-mono text-[0.92rem] font-semibold tracking-[0.03em] text-strong">
-                {selectedMetrics ?? "Select a wall or item to inspect exact size."}
+
+            {/* Selection Metrics */}
+            <div className="px-3 py-3">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--planner-text-muted)]">Selection</p>
+              <p className="font-mono text-[12px] font-semibold text-[color:var(--planner-text-strong)]">
+                {selectedMetrics ?? "Select a wall or item"}
               </p>
             </div>
-            <div className="p-3 scheme-section-soft rounded-xl border border-theme-soft">
-              <h4 className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">Inspector Edit</h4>
+
+            {/* Inspector Edit — W × H inputs */}
+            <div className="px-3 py-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--planner-text-muted)]">Edit Size</p>
               {selectionDimensions ? (
-                <div className="space-y-3">
-                  <p className="typ-caption-lg text-body">{selectionDimensions.shapeName}</p>
+                <div className="space-y-2">
+                  <p className="text-[12px] font-medium text-[color:var(--planner-text-body)]">{selectionDimensions.shapeName}</p>
                   <div className="grid grid-cols-2 gap-2">
-                    <label className="typ-caption text-subtle">
-                      {selectionDimensions.mode === "line" ? "Length mm" : "Width mm"}
-                      <input
-                        value={widthInput}
-                        onChange={(event) => setWidthInput(event.target.value)}
-                        className="mt-1 w-full rounded-lg border border-theme-soft bg-[color:var(--planner-panel-strong)] px-2.5 py-2 typ-caption-lg text-body outline-none transition focus:border-[color:var(--planner-primary)]"
-                      />
-                    </label>
-                    <label className="typ-caption text-subtle">
-                      {selectionDimensions.mode === "line" ? "Locked" : "Depth mm"}
+                    <div>
+                      <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[color:var(--planner-text-subtle)] mb-1">
+                        {selectionDimensions.mode === "line" ? "Length" : "Width"} ({unitLabel})
+                      </label>
+                      <input value={widthInput} onChange={(e) => setWidthInput(e.target.value)}
+                        placeholder={dimHint}
+                        className="w-full border border-[color:var(--planner-border-soft)] bg-[color:var(--planner-panel-strong)] px-2 py-1.5 text-[12px] text-[color:var(--planner-text-body)] outline-none transition focus:border-[color:var(--planner-primary)]" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[color:var(--planner-text-subtle)] mb-1">
+                        {selectionDimensions.mode === "line" ? "Locked" : `Depth (${unitLabel})`}
+                      </label>
                       <input
                         value={selectionDimensions.mode === "line" ? "n/a" : heightInput}
                         disabled={selectionDimensions.mode === "line"}
-                        onChange={(event) => setHeightInput(event.target.value)}
-                        className="mt-1 w-full rounded-lg border border-theme-soft bg-[color:var(--planner-panel-strong)] px-2.5 py-2 typ-caption-lg text-body outline-none transition focus:border-[color:var(--planner-primary)] disabled:opacity-50"
-                      />
-                    </label>
+                        onChange={(e) => setHeightInput(e.target.value)}
+                        placeholder={dimHint}
+                        className="w-full border border-[color:var(--planner-border-soft)] bg-[color:var(--planner-panel-strong)] px-2 py-1.5 text-[12px] text-[color:var(--planner-text-body)] outline-none transition focus:border-[color:var(--planner-primary)] disabled:opacity-40" />
+                    </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onUpdateSelectionDimensions({
-                        widthMm: Number.parseInt(widthInput || "0", 10) || undefined,
-                        heightMm:
-                          selectionDimensions.mode === "line"
-                            ? null
-                            : Number.parseInt(heightInput || "0", 10) || undefined,
-                      })
-                    }
-                    className="w-full rounded-xl bg-[color:var(--planner-primary)] py-2.5 text-[0.84rem] font-semibold text-white shadow-theme-panel transition-all hover:bg-[color:var(--planner-primary-hover)]"
-                  >
+                  <button type="button" disabled={!canApply}
+                    onClick={() => {
+                      if (widthValueMm === null) return;
+                      if (selectionDimensions.mode === "box" && heightValueMm === null) return;
+                      onUpdateSelectionDimensions({ widthMm: widthValueMm, heightMm: selectionDimensions.mode === "line" ? null : heightValueMm });
+                    }}
+                    className="w-full bg-[color:var(--planner-primary)] py-2 text-[12px] font-semibold text-white transition-colors hover:bg-[color:var(--planner-primary-hover)] disabled:bg-[color:var(--planner-border-soft)] disabled:text-[color:var(--planner-text-subtle)]">
                     Apply Size
                   </button>
                 </div>
               ) : (
-                <p className="typ-caption-lg text-subtle">Select one wall or one item to edit dimensions.</p>
+                <p className="text-[12px] text-[color:var(--planner-text-subtle)]">Select a wall or room shape to edit.</p>
               )}
             </div>
-            <div className="mt-4 p-3 scheme-section-soft rounded-xl border border-theme-soft">
-              <h4 className="mb-2 text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-muted">Shortcuts</h4>
-              <div className="space-y-1.5 text-[0.78rem] text-body">
-                {[["Select", "V"], ["Draw", "D"], ["Eraser", "E"], ["Rectangle", "R"], ["Undo", "Ctrl+Z"]].map(([name, key]) => (
-                  <div key={name} className="flex justify-between">
-                    <span>{name}</span>
-                    <kbd className="rounded border border-theme-soft bg-[color:var(--planner-panel-strong)] px-1.5 py-0.5 font-mono text-[0.72rem]">{key}</kbd>
-                  </div>
+
+            {/* Unit System — flat, rectangular */}
+            <div className="flex items-center justify-between px-3 py-3">
+              <span className="text-[12px] font-semibold text-[color:var(--planner-text-body)]">Units</span>
+              <div className="flex border border-[color:var(--planner-border-soft)]">
+                {(["mm", "ft-in"] as const).map((u) => (
+                  <button key={u} type="button" onClick={() => onUnitSystemChange(u)}
+                    className={`px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.06em] transition-colors ${
+                      unitSystem === u
+                        ? "bg-[color:var(--planner-primary)] text-white"
+                        : "bg-[color:var(--planner-panel-strong)] text-[color:var(--planner-text-muted)] hover:text-[color:var(--planner-primary)]"
+                    }`}>
+                    {u === "mm" ? "mm" : "ft/in"}
+                  </button>
                 ))}
               </div>
+            </div>
+
+            {/* Grid Snap — flat toggle */}
+            <div className="flex items-center justify-between px-3 py-3">
+              <div className="flex items-center gap-2">
+                <Magnet className="h-3.5 w-3.5 text-[color:var(--planner-primary)]" />
+                <span className="text-[12px] font-semibold text-[color:var(--planner-text-body)]">Grid Snap</span>
+              </div>
+              <button onClick={onToggleSnap}
+                className={`relative h-5 w-9 transition-colors ${isSnapMode ? "bg-[color:var(--planner-primary)]" : "bg-[color:var(--planner-border-soft)]"}`}>
+                <div className={`absolute top-0.5 h-4 w-4 bg-white transition-all ${isSnapMode ? "left-4" : "left-0.5"}`} />
+              </button>
+            </div>
+
+            {/* Shortcuts */}
+            <div className="px-3 py-3">
+              <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--planner-text-muted)]">Shortcuts</p>
+              {[["Select", "V"], ["Draw", "D"], ["Eraser", "E"], ["Rectangle", "R"], ["Undo", "Ctrl+Z"]].map(([n, k]) => (
+                <ShortcutRow key={n} name={n} kbd={k} />
+              ))}
             </div>
           </div>
         )}

@@ -14,23 +14,20 @@ export function RouteChrome({
   position: "top" | "bottom";
 }) {
   const pathname = usePathname();
-  const isImmersiveWorkspaceRoute =
-    pathname === "/planner" ||
-    pathname?.startsWith("/planner/") ||
-    pathname === "/draw" ||
-    pathname?.startsWith("/draw/") ||
-    pathname === "/configurator" ||
-    pathname?.startsWith("/configurator/");
+  const isCADRoute =
+    pathname === "/planner" || pathname?.startsWith("/planner/") ||
+    pathname === "/draw" || pathname?.startsWith("/draw/") ||
+    pathname === "/configurator" || pathname?.startsWith("/configurator/");
 
   if (position === "top") {
-    if (isImmersiveWorkspaceRoute) {
+    if (isCADRoute) {
       return null;
     }
 
     return <SiteHeader />;
   }
 
-  if (isImmersiveWorkspaceRoute) {
+  if (isCADRoute) {
     return null;
   }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { getIndices } from "@tldraw/utils";
-import { AssetRecordType, createShapeId, Editor, type TLGeoShape, type TLLineShape } from "tldraw";
+import { AssetRecordType, createShapeId, Editor, toRichText, type TLGeoShape, type TLLineShape } from "tldraw";
 
 import type { BoqItem, CatalogProduct, PlannerDrawingTool, PlannerStep, RoomPreset } from "@/components/draw/types";
 
@@ -36,27 +36,123 @@ import {
 
 const ROOM_BOUNDARY_ID = createShapeId("room-boundary");
 
+const PAGE_UNIT_MM = 10;
+
+/** Parse dimension numbers from a raw dimension string, respecting mm/cm/m units.
+ *  Heuristic: if both numbers are small (<300) and no explicit 'mm' marker, treat as cm. */
+function parseDimensionToMm(raw: string | undefined | null): { widthMm: number; depthMm: number } | null {
+  if (!raw) return null;
+  const normalized = String(raw).trim().toLowerCase();
+  const numbers = normalized.match(/\d+(?:\.\d+)?/g);
+  if (!numbers || numbers.length < 2) return null;
+
+  const a = Number.parseFloat(numbers[0]);
+  const b = Number.parseFloat(numbers[1]);
+  if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b <= 0) return null;
+
+  // Detect unit from the string
+  let multiplier = 1; // default: mm
+  const hasExplicitMm = /\bmm\b/.test(normalized);
+  const hasExplicitCm = /\bcm\b/.test(normalized);
+  const hasExplicitM = /\bm\b/.test(normalized) && !hasExplicitMm && !hasExplicitCm;
+
+  if (hasExplicitCm) {
+    multiplier = 10;
+  } else if (hasExplicitM) {
+    multiplier = 1000;
+  } else if (/\bin(?:ch(?:es)?)?\b|"/.test(normalized)) {
+    multiplier = 25.4;
+  } else if (/\bft|'/.test(normalized)) {
+    multiplier = 304.8;
+  } else if (!hasExplicitMm && a < 300 && b < 300) {
+    // Heuristic: numbers like "120 x 60" with no unit are likely cm, not mm
+    // (A 120mm desk is only 12cm — impossibly small)
+    multiplier = 10;
+  }
+
+  const widthMm = Math.round(a * multiplier);
+  const depthMm = Math.round(b * multiplier);
+
+  // Clamp minimum to 300mm (30cm) — anything smaller is likely a parsing error
+  return {
+    widthMm: Math.max(300, widthMm),
+    depthMm: Math.max(300, depthMm),
+  };
+}
+
 const ROOM_PRESETS: RoomPreset[] = [
+  // ── Single spaces ──────────────────────────────────────────────────────────
   {
-    id: "focus-room",
-    name: "Focus Room",
-    summary: "Compact enclosed shell for focused seating and solo work.",
-    widthMm: 3600,
-    heightMm: 3000,
+    id: "cabin",
+    name: "Cabin",
+    summary: "Private enclosed office for 1–2 people.",
+    widthMm: 3000, heightMm: 3000,
+    zones: [{ label: "Cabin", widthMm: 3000 }],
   },
   {
     id: "meeting-room",
     name: "Meeting Room",
-    summary: "Balanced rectangular shell with central-table clearance.",
-    widthMm: 4800,
-    heightMm: 3600,
+    summary: "Balanced conference room shell.",
+    widthMm: 4800, heightMm: 3600,
+    zones: [{ label: "Meeting Room", widthMm: 4800 }],
   },
   {
-    id: "open-studio",
-    name: "Open Studio",
-    summary: "Larger open shell for workstation clusters and circulation.",
-    widthMm: 7200,
-    heightMm: 5400,
+    id: "workspace",
+    name: "Workspace",
+    summary: "Open-plan workspace for 6–8 workstations.",
+    widthMm: 6000, heightMm: 4800,
+    zones: [{ label: "Workspace", widthMm: 6000 }],
+  },
+  // ── 2 spaces ───────────────────────────────────────────────────────────────
+  {
+    id: "cabin-workspace",
+    name: "Cabin + Workspace",
+    summary: "Private cabin and open workstation bay side by side.",
+    widthMm: 9000, heightMm: 4800,
+    zones: [
+      { label: "Cabin", widthMm: 3000 },
+      { label: "Workspace", widthMm: 6000 },
+    ],
+  },
+  // ── 3 spaces ───────────────────────────────────────────────────────────────
+  {
+    id: "cabin-workspace-meeting",
+    name: "Cabin + Workspace + Meeting",
+    summary: "Three-zone office: private, open-plan, and conference.",
+    widthMm: 13800, heightMm: 5400,
+    zones: [
+      { label: "Cabin", widthMm: 3000 },
+      { label: "Workspace", widthMm: 6000 },
+      { label: "Meeting Room", widthMm: 4800 },
+    ],
+  },
+  // ── 5 spaces ───────────────────────────────────────────────────────────────
+  {
+    id: "full-office-suite",
+    name: "Full Office Suite",
+    summary: "Cabin · Workspace · Meeting · Pantry · Reception — 5 zones.",
+    widthMm: 18000, heightMm: 7200,
+    zones: [
+      { label: "Cabin", widthMm: 3000 },
+      { label: "Workspace", widthMm: 6000 },
+      { label: "Meeting Room", widthMm: 4800 },
+      { label: "Pantry", widthMm: 2100 },
+      { label: "Reception", widthMm: 2100 },
+    ],
+  },
+  // ── Executive floor (7th preset) ───────────────────────────────────────────
+  {
+    id: "executive-floor",
+    name: "Executive Floor",
+    summary: "Two cabins, boardroom, lounge, and support — 5 zones.",
+    widthMm: 21600, heightMm: 9000,
+    zones: [
+      { label: "Cabin A", widthMm: 3600 },
+      { label: "Cabin B", widthMm: 3600 },
+      { label: "Boardroom", widthMm: 7200 },
+      { label: "Lounge", widthMm: 4200 },
+      { label: "Support", widthMm: 3000 },
+    ],
   },
 ];
 
@@ -68,6 +164,8 @@ interface UsePlannerWorkspaceOptions {
   setActiveDocumentId: (value: string | null) => void;
   navigate: (href: string) => void;
   addQuoteItem: (item: ReturnType<typeof buildPlannerQuoteCartItems>[number]) => void;
+  clearQuoteCart: () => void;
+  catalogProducts?: CatalogProduct[];
 }
 
 function getCatalogMetadataValue(product: CatalogProduct, key: string) {
@@ -79,6 +177,21 @@ function getCatalogMetadataValue(product: CatalogProduct, key: string) {
   return typeof raw === "string" && raw.trim().length > 0 ? raw.trim() : undefined;
 }
 
+function areSelectionDimensionsEqual(
+  left: PlannerSelectionDimensions | null,
+  right: PlannerSelectionDimensions | null,
+) {
+  if (left === right) return true;
+  if (!left || !right) return false;
+  return (
+    left.shapeId === right.shapeId &&
+    left.shapeName === right.shapeName &&
+    left.mode === right.mode &&
+    left.widthMm === right.widthMm &&
+    left.heightMm === right.heightMm
+  );
+}
+
 export function usePlannerWorkspace({
   mode,
   planName,
@@ -87,6 +200,8 @@ export function usePlannerWorkspace({
   setActiveDocumentId,
   navigate,
   addQuoteItem,
+  clearQuoteCart,
+  catalogProducts = [],
 }: UsePlannerWorkspaceOptions) {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [boqItems, setBoqItems] = useState<BoqItem[]>([]);
@@ -142,7 +257,7 @@ export function usePlannerWorkspace({
 
   const canEnterCatalog = hasRoomShellDraft;
   const canEnterMeasure = hasRoomShellDraft;
-  const canEnterReview = boqItems.length > 0;
+  const canEnterReview = hasRoomShellDraft;
 
   const getActionableSelectionIds = useCallback(
     () =>
@@ -170,22 +285,23 @@ export function usePlannerWorkspace({
         return;
       }
 
+      // text and arrow map directly to tldraw native tools
       editor.setCurrentTool(tool);
     },
     [editor, setActiveDrawingTool],
   );
 
   const applyStepMode = useCallback(
-    (nextStep: PlannerStep) => {
-      if (nextStep === "catalog" && !canEnterCatalog) return;
-      if (nextStep === "measure" && !canEnterMeasure) return;
-      if (nextStep === "review" && !canEnterReview) return;
+    (nextStep: PlannerStep, options?: { force?: boolean }) => {
+      const force = options?.force === true;
+      if (!force && nextStep === "catalog" && !canEnterCatalog) return;
+      if (!force && nextStep === "measure" && !canEnterMeasure) return;
+      if (!force && nextStep === "review" && !canEnterReview) return;
 
       setCurrentStep(nextStep);
 
       if (nextStep === "room") {
         setShowCatalog(true);
-        setShowLayers(true);
         setShowInspector(true);
         setActivePanel("catalog");
         setMobileLayersOpen(false);
@@ -196,7 +312,6 @@ export function usePlannerWorkspace({
 
       if (nextStep === "catalog") {
         setShowCatalog(true);
-        setShowLayers(true);
         setShowInspector(true);
         setActivePanel("catalog");
         setMobileLayersOpen(false);
@@ -209,15 +324,19 @@ export function usePlannerWorkspace({
         setShowCatalog(false);
         setShowLayers(true);
         setShowInspector(true);
-        setActivePanel("layers");
+        setInspectorPinned(true);
+        setActivePanel("inspector");
         setMobileCatalogOpen(false);
+        setMobileLayersOpen(false);
         if (isMobileMode) {
           setMobileInspectorOpen(true);
         }
-        selectDrawingTool("select");
+        // Activate the line tool for measurement drawing
+        selectDrawingTool("line");
         return;
       }
 
+      // review step
       setShowCatalog(false);
       setShowLayers(true);
       setShowInspector(true);
@@ -258,23 +377,17 @@ export function usePlannerWorkspace({
 
       if (editor) {
         loadPlannerDocumentIntoEditor(editor, normalized);
+        const structuralShapes = getStructuralShapes(editor);
+        setHasRoomShellDraft(structuralShapes.length > 0);
       }
 
-      setCurrentStep(normalized.itemCount > 0 ? "measure" : "room");
-      setShowCatalog(true);
-      setShowLayers(true);
-      setShowInspector(true);
-      setActivePanel(normalized.itemCount > 0 ? "inspector" : "catalog");
+      applyStepMode(normalized.itemCount > 0 ? "catalog" : "room", { force: true });
     },
     [
+      applyStepMode,
       editor,
       setActiveDocumentId,
-      setActivePanel,
-      setCurrentStep,
       setPlanName,
-      setShowCatalog,
-      setShowInspector,
-      setShowLayers,
       setUnitSystem,
     ],
   );
@@ -294,7 +407,7 @@ export function usePlannerWorkspace({
         suggestions.push({ type: "tip", text: "Healthy density. Clearances look compliant." });
       }
 
-      if (currentStep === "room" && totalShapes <= 1) {
+      if (currentStep === "room") {
         suggestions.push({
           type: "tip",
           text: "Step 1 is room shell only. Use presets, wall chains, or basic shapes to define the room first.",
@@ -305,13 +418,6 @@ export function usePlannerWorkspace({
         suggestions.push({
           type: "tip",
           text: "Step 2 is catalog. Place modules only after the room shell is defined.",
-        });
-      }
-
-      if (currentStep === "measure") {
-        suggestions.push({
-          type: "tip",
-          text: "Step 3 is measurement. Read the room dimensions on canvas and inspect selected object sizes before review.",
         });
       }
 
@@ -347,28 +453,51 @@ export function usePlannerWorkspace({
     }
   }, [editor, isGridVisible]);
 
+  const syncViewportState = useCallback(() => {
+    if (!editor) return;
+
+    const selectedShapeIds = editor.getSelectedShapeIds();
+    const viewportState = deriveViewportState(editor, selectedShapeIds, unitSystem);
+
+    setZoomPercent(viewportState.zoomPercent);
+    setGridState(viewportState.gridState);
+    setHasSelection(viewportState.hasSelection);
+    setCanUndo(viewportState.canUndo);
+    setCanRedo(viewportState.canRedo);
+    setRoomMetrics(viewportState.roomMetrics);
+    setSelectedMetrics(viewportState.selectedMetrics);
+    const nextSelectionDimensions = readPlannerSelectionDimensions(editor, selectedShapeIds);
+    setSelectionDimensions((currentSelectionDimensions) =>
+      areSelectionDimensionsEqual(currentSelectionDimensions, nextSelectionDimensions)
+        ? currentSelectionDimensions
+        : nextSelectionDimensions,
+    );
+    setCanvasMeasurements(viewportState.canvasMeasurements);
+  }, [editor, unitSystem]);
+
   useEffect(() => {
     if (!editor) return;
 
-    const syncViewportState = () => {
-      const viewportState = deriveViewportState(editor, getActionableSelectionIds(), unitSystem);
+    let frameId = 0;
+    const scheduleViewportSync = () => {
+      if (frameId !== 0) return;
 
-      setZoomPercent(viewportState.zoomPercent);
-      setGridState(viewportState.gridState);
-      setHasSelection(viewportState.hasSelection);
-      setCanUndo(viewportState.canUndo);
-      setCanRedo(viewportState.canRedo);
-      setRoomMetrics(viewportState.roomMetrics);
-      setSelectedMetrics(viewportState.selectedMetrics);
-      setSelectionDimensions(readPlannerSelectionDimensions(editor, getActionableSelectionIds()));
-      setCanvasMeasurements(viewportState.canvasMeasurements);
+      frameId = window.requestAnimationFrame(() => {
+        frameId = 0;
+        syncViewportState();
+      });
     };
 
     syncViewportState();
-    const intervalId = window.setInterval(syncViewportState, 200);
+    const stopListening = editor.store.listen(scheduleViewportSync);
 
-    return () => window.clearInterval(intervalId);
-  }, [editor, getActionableSelectionIds, unitSystem]);
+    return () => {
+      if (frameId !== 0) {
+        window.cancelAnimationFrame(frameId);
+      }
+      stopListening();
+    };
+  }, [editor, syncViewportState]);
 
   useEffect(() => {
     if (!editor) return;
@@ -381,15 +510,15 @@ export function usePlannerWorkspace({
           const meta = getShapeMeta(shape.meta);
           const measuredWidthMm =
             "props" in shape && shape.props && typeof shape.props === "object" && "w" in shape.props && typeof shape.props.w === "number"
-              ? Math.round(shape.props.w * 10)
+              ? Math.round(shape.props.w * PAGE_UNIT_MM)
               : null;
           const measuredDepthMm =
-            "props" in shape && shape.props && typeof shape.props === "object" && "h" in shape.props && typeof shape.props === "object" && "h" in shape.props && typeof shape.props.h === "number"
-              ? Math.round(shape.props.h * 10)
+            "props" in shape && shape.props && typeof shape.props === "object" && "h" in shape.props && typeof shape.props.h === "number"
+              ? Math.round(shape.props.h * PAGE_UNIT_MM)
               : null;
           const measuredDimensions =
             measuredWidthMm && measuredDepthMm
-              ? formatDimensionPair(measuredWidthMm, measuredDepthMm, "mm")
+              ? formatDimensionPair(measuredWidthMm, measuredDepthMm, unitSystem)
               : meta.dimensions || "";
           return {
             id: String(shape.id),
@@ -398,7 +527,7 @@ export function usePlannerWorkspace({
             plannerSourceSlug: meta.plannerSourceSlug,
             name: meta.text || "Custom Module",
             category: meta.category || "Workstations",
-            price: Number(meta.price ?? 0),
+            price: 0,
             imageUrl: meta.imageUrl,
             dimensions: measuredDimensions,
           } satisfies BoqItem;
@@ -424,11 +553,11 @@ export function usePlannerWorkspace({
           syncBoq();
         }
       },
-      { source: "user", scope: "document" },
+      { scope: "document" },
     );
 
     return () => stopListening();
-  }, [buildAiSuggestions, editor]);
+  }, [buildAiSuggestions, editor, unitSystem]);
 
   const buildCurrentPlannerDocument = useCallback(() => {
     if (!editor) {
@@ -466,12 +595,10 @@ export function usePlannerWorkspace({
       let height = 120;
 
       const dimensions = "specs" in product ? product.specs?.dimensions : undefined;
-      if (dimensions) {
-        const numbers = String(dimensions).match(/\d+/g);
-        if (numbers && numbers.length >= 2) {
-          width = Number.parseInt(numbers[0], 10) / 10 || 120;
-          height = Number.parseInt(numbers[1], 10) / 10 || 120;
-        }
+      const parsedDims = parseDimensionToMm(dimensions);
+      if (parsedDims) {
+        width = parsedDims.widthMm / PAGE_UNIT_MM || 120;
+        height = parsedDims.depthMm / PAGE_UNIT_MM || 120;
       }
 
       const productId = "id" in product && typeof product.id === "string" ? product.id : undefined;
@@ -491,7 +618,6 @@ export function usePlannerWorkspace({
         plannerSourceSlug,
         imageUrl,
         isPlannerItem: true,
-        price: "price" in product ? Number(product.price ?? 0) : 0,
         category: product.category || getCatalogMetadataValue(product as CatalogProduct, "category") || "Workstations",
         dimensions: dimensions || "",
       };
@@ -557,45 +683,210 @@ export function usePlannerWorkspace({
     (preset: RoomPreset) => {
       if (!editor) return;
 
-      const existingShapeIds = editor.getCurrentPageShapes().map((shape) => shape.id);
-      if (existingShapeIds.length > 0) {
-        editor.deleteShapes(existingShapeIds);
-      }
+      // Clear canvas
+      const existingIds = editor.getCurrentPageShapes().map((s) => s.id);
+      if (existingIds.length > 0) editor.deleteShapes(existingIds);
 
-      const width = preset.widthMm / 10;
-      const height = preset.heightMm / 10;
-      const viewportCenter = editor.getViewportPageBounds().center;
-      const originX = viewportCenter.x - width / 2;
-      const originY = viewportCenter.y - height / 2;
-      const indices = getIndices(5);
-      const points = [
-        { x: 0, y: 0 },
-        { x: width, y: 0 },
-        { x: width, y: height },
-        { x: 0, y: height },
-        { x: 0, y: 0 },
+      const SCALE = 0.1; // mm → canvas units (1 unit = 10mm)
+      const W = preset.widthMm * SCALE;
+      const H = preset.heightMm * SCALE;
+      const vc = editor.getViewportPageBounds().center;
+      const ox = vc.x - W / 2;
+      const oy = vc.y - H / 2;
+
+      const zones = preset.zones ?? [{ label: preset.name, widthMm: preset.widthMm }];
+      const isMultiZone = zones.length > 1;
+
+      // Wall thickness in canvas units (120mm walls)
+      const WALL_T = 120 * SCALE; // 12 canvas units
+      // Door opening width in canvas units (900mm)
+      const DOOR_W = 900 * SCALE; // 90 canvas units
+
+      // ── 1. Outer boundary shell (always) ─────────────────────────────────
+      const outerIdx = getIndices(5);
+      const outerPts = [
+        { x: 0, y: 0 }, { x: W, y: 0 },
+        { x: W, y: H }, { x: 0, y: H }, { x: 0, y: 0 },
       ];
-
       editor.createShape({
         id: ROOM_BOUNDARY_ID,
         type: "line",
-        x: originX,
-        y: originY,
+        x: ox, y: oy,
         props: {
-          color: "grey",
+          color: "black",
           dash: "solid",
           size: "m",
           spline: "line",
           scale: 1,
           points: Object.fromEntries(
-            points.map((point, index) => [
-              indices[index],
-              { id: indices[index], index: indices[index], x: point.x, y: point.y },
+            outerPts.map((pt, i) => [
+              outerIdx[i],
+              { id: outerIdx[i], index: outerIdx[i], x: pt.x, y: pt.y },
             ]),
           ),
         } as TLLineShape["props"],
         meta: { isRoomShell: true, structureType: "room-shell", presetId: preset.id, text: preset.name },
       });
+
+      if (isMultiZone) {
+        // ── 2. Thick partition walls between zones ────────────────────────
+        let xCursor = 0;
+        zones.forEach((zone, zIdx) => {
+          const zoneW = zone.widthMm * SCALE;
+
+          if (zIdx < zones.length - 1) {
+            xCursor += zoneW;
+
+            // Thick partition wall as a geo rectangle
+            editor.createShape({
+              id: createShapeId(`wall-${preset.id}-${zIdx}`),
+              type: "geo",
+              x: ox + xCursor - WALL_T / 2,
+              y: oy,
+              props: {
+                geo: "rectangle",
+                w: WALL_T,
+                h: H,
+                color: "black",
+                fill: "solid",
+                size: "s",
+                dash: "solid",
+              } as TLGeoShape["props"],
+              meta: { structureType: "wall-segment" },
+            });
+
+            // Door opening cut — centred vertically in the wall
+            const doorY = oy + H / 2 - DOOR_W / 2;
+            editor.createShape({
+              id: createShapeId(`door-${preset.id}-${zIdx}`),
+              type: "geo",
+              x: ox + xCursor - WALL_T / 2 - 1,
+              y: doorY,
+              props: {
+                geo: "rectangle",
+                w: WALL_T + 2,
+                h: DOOR_W,
+                color: "grey",
+                fill: "solid",
+                size: "s",
+                dash: "draw",
+              } as TLGeoShape["props"],
+              meta: { structureType: "door-opening" },
+            });
+          }
+
+          // ── 3. Zone label text at centre of each space ───────────────────
+          const zoneStartX = xCursor - (zIdx < zones.length - 1 ? 0 : 0);
+          // Compute correct zone start
+          let zoneOx = 0;
+          for (let k = 0; k < zIdx; k++) {
+            zoneOx += (zones[k]?.widthMm ?? 0) * SCALE;
+          }
+          const zoneCx = ox + zoneOx + zoneW / 2;
+          const zoneCy = oy + H / 2;
+
+          editor.createShape({
+            id: createShapeId(`label-${preset.id}-${zIdx}`),
+            type: "note",
+            x: zoneCx - Math.min(zoneW * 0.38, 120),
+            y: zoneCy - 20,
+            props: {
+              richText: toRichText(zone.label),
+              size: "m",
+              font: "sans",
+              color: "grey",
+              labelColor: "black",
+              align: "middle",
+              verticalAlign: "middle",
+              growY: 0,
+              url: "",
+              scale: 1,
+              fontSizeAdjustment: 0,
+            },
+          });
+        });
+
+        // Outer boundary walls (thick geo on all 4 sides)
+        // Top wall
+        editor.createShape({
+          id: createShapeId(`wall-top-${preset.id}`),
+          type: "geo",
+          x: ox, y: oy,
+          props: { geo: "rectangle", w: W, h: WALL_T, color: "black", fill: "solid", size: "s", dash: "solid" } as TLGeoShape["props"],
+          meta: { structureType: "wall-segment" },
+        });
+        // Bottom wall
+        editor.createShape({
+          id: createShapeId(`wall-bottom-${preset.id}`),
+          type: "geo",
+          x: ox, y: oy + H - WALL_T,
+          props: { geo: "rectangle", w: W, h: WALL_T, color: "black", fill: "solid", size: "s", dash: "solid" } as TLGeoShape["props"],
+          meta: { structureType: "wall-segment" },
+        });
+        // Left wall
+        editor.createShape({
+          id: createShapeId(`wall-left-${preset.id}`),
+          type: "geo",
+          x: ox, y: oy,
+          props: { geo: "rectangle", w: WALL_T, h: H, color: "black", fill: "solid", size: "s", dash: "solid" } as TLGeoShape["props"],
+          meta: { structureType: "wall-segment" },
+        });
+        // Right wall
+        editor.createShape({
+          id: createShapeId(`wall-right-${preset.id}`),
+          type: "geo",
+          x: ox + W - WALL_T, y: oy,
+          props: { geo: "rectangle", w: WALL_T, h: H, color: "black", fill: "solid", size: "s", dash: "solid" } as TLGeoShape["props"],
+          meta: { structureType: "wall-segment" },
+        });
+        // Main entry door on bottom wall
+        editor.createShape({
+          id: createShapeId(`door-entry-${preset.id}`),
+          type: "geo",
+          x: ox + W / 2 - DOOR_W / 2,
+          y: oy + H - WALL_T - 1,
+          props: {
+            geo: "rectangle",
+            w: DOOR_W,
+            h: WALL_T + 2,
+            color: "grey",
+            fill: "solid",
+            size: "s",
+            dash: "draw",
+          } as TLGeoShape["props"],
+          meta: { structureType: "door-opening" },
+        });
+
+      } else {
+        // Single-zone: simple vertical dividers (legacy behaviour)
+        let xCursor = 0;
+        zones.forEach((zone, zIdx) => {
+          const zoneW = zone.widthMm * SCALE;
+          if (zIdx < zones.length - 1) {
+            xCursor += zoneW;
+            const divIdx = getIndices(2);
+            editor.createShape({
+              id: createShapeId(`divider-${preset.id}-${zIdx}`),
+              type: "line",
+              x: ox + xCursor, y: oy,
+              props: {
+                color: "grey",
+                dash: "solid",
+                size: "s",
+                spline: "line",
+                scale: 1,
+                points: Object.fromEntries(
+                  [{ x: 0, y: 0 }, { x: 0, y: H }].map((pt, i) => [
+                    divIdx[i],
+                    { id: divIdx[i], index: divIdx[i], x: pt.x, y: pt.y },
+                  ]),
+                ),
+              } as TLLineShape["props"],
+              meta: { structureType: "wall" },
+            });
+          }
+        });
+      }
 
       applyStepMode("room");
       editor.select(ROOM_BOUNDARY_ID);
@@ -605,27 +896,27 @@ export function usePlannerWorkspace({
   );
 
   const handleActivateWallTool = useCallback(() => {
-    applyStepMode("room");
+    if (currentStep === "room") applyStepMode("room");
     selectDrawingTool("line");
-  }, [applyStepMode, selectDrawingTool]);
+  }, [applyStepMode, currentStep, selectDrawingTool]);
 
   const handleActivateBasicShapeTool = useCallback(() => {
-    applyStepMode("room");
+    if (currentStep === "room") applyStepMode("room");
     selectDrawingTool("geo");
-  }, [applyStepMode, selectDrawingTool]);
+  }, [applyStepMode, currentStep, selectDrawingTool]);
 
   const handleAddWallSegment = useCallback(() => {
     if (!editor) return;
-    applyStepMode("room");
+    if (currentStep === "room") applyStepMode("room");
     createPlannerWallSegment(editor);
     resolvePlannerWallJoins(editor);
-  }, [applyStepMode, editor]);
+  }, [applyStepMode, currentStep, editor]);
 
   const handleAddDoorOpening = useCallback(() => {
     if (!editor) return;
-    applyStepMode("room");
+    if (currentStep === "room") applyStepMode("room");
     createPlannerDoorOpening(editor);
-  }, [applyStepMode, editor]);
+  }, [applyStepMode, currentStep, editor]);
 
   const handleResolveWallJoins = useCallback(() => {
     if (!editor) return;
@@ -645,18 +936,19 @@ export function usePlannerWorkspace({
       return;
     }
     if (currentStep === "measure") {
-      if (boqItems.length === 0) return;
+      if (!canEnterReview) return;
       applyStepMode("review");
       return;
     }
     if (boqItems.length === 0) return;
 
+    clearQuoteCart();
     buildPlannerQuoteCartItems(boqItems).forEach((item) => {
       addQuoteItem(item);
     });
 
     navigate("/quote-cart");
-  }, [addQuoteItem, applyStepMode, boqItems, canEnterCatalog, canEnterMeasure, currentStep, navigate]);
+  }, [addQuoteItem, applyStepMode, boqItems, canEnterCatalog, canEnterMeasure, canEnterReview, clearQuoteCart, currentStep, navigate]);
 
   const totalBoq = calculatePlannerBoqTotal(boqItems);
 
@@ -692,6 +984,11 @@ export function usePlannerWorkspace({
     editor.zoomToSelection({ animation: { duration: 200 } });
   }, [editor, getActionableSelectionIds]);
 
+  const handleDeselectSelection = useCallback(() => {
+    if (!editor) return;
+    editor.selectNone();
+  }, [editor]);
+
   const handleDuplicateSelection = useCallback(() => {
     if (!editor) return;
     const selectedIds = getActionableSelectionIds();
@@ -725,8 +1022,8 @@ export function usePlannerWorkspace({
   const handleUpdateSelectionDimensions = useCallback(
     (next: { widthMm?: number; heightMm?: number | null }) => {
       if (!editor || !selectionDimensions) return;
-      updatePlannerSelectionDimensions(editor, selectionDimensions, next);
-      if (selectionDimensions.mode === "line") {
+      const didUpdateSelection = updatePlannerSelectionDimensions(editor, selectionDimensions, next);
+      if (didUpdateSelection && selectionDimensions.mode === "line") {
         resolvePlannerWallJoins(editor, [selectionDimensions.shapeId]);
       }
     },
@@ -801,6 +1098,7 @@ export function usePlannerWorkspace({
       handleRedo,
       handleFitToDrawing,
       handleFitToSelection,
+      handleDeselectSelection,
       handleDuplicateSelection,
       handleDeleteSelection,
       handleAlignSelection,

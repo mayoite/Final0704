@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { Minus, Plus, Trash2 } from "lucide-react";
@@ -17,14 +17,13 @@ export default function QuoteCartPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="typ-eyebrow text-[color:var(--planner-accent-strong)]">Quote Cart</p>
+            <p className="typ-eyebrow text-[color:var(--planner-accent-strong)]">BOQ Enquiry</p>
             <h1 className="mt-4 max-w-4xl text-4xl font-[300] tracking-[-0.05em] text-[color:var(--planner-text-strong)]">
-              Review planner items before the sales handoff.
+              Review planner items before sending the enquiry.
             </h1>
             <p className="mt-4 max-w-3xl typ-lead text-muted">
-              The planner was already routing users here, but the page did not exist in the CAD
-              suite. This screen now preserves that flow and lets users adjust quantities before
-              moving on.
+              This screen keeps the planner handoff intact and lets users adjust quantities before
+              sharing the BOQ with the sales team.
             </p>
           </div>
 
@@ -41,7 +40,7 @@ export default function QuoteCartPage() {
                 onClick={clearCart}
                 className="rounded-full border border-[color:var(--planner-accent-soft)] bg-[color:var(--planner-accent-soft)]/55 px-5 py-3 typ-cta text-[color:var(--planner-accent-strong)] transition hover:bg-[color:var(--planner-accent-soft)]"
               >
-                Clear Cart
+                Clear List
               </button>
             ) : null}
           </div>
@@ -49,9 +48,9 @@ export default function QuoteCartPage() {
 
         {items.length === 0 ? (
           <section className="rounded-[1.9rem] border border-theme-soft bg-[color:var(--planner-panel-strong)] p-8 text-center shadow-theme-panel">
-            <h2 className="typ-h3 text-[color:var(--planner-text-strong)]">No items in the cart yet.</h2>
+            <h2 className="typ-h3 text-[color:var(--planner-text-strong)]">No BOQ items yet.</h2>
             <p className="mx-auto mt-4 max-w-2xl typ-caption-lg leading-6 text-muted">
-              Add products from the planner or draw workspace, then generate the quote again.
+              Add products from the planner or draw workspace, then reopen the enquiry list.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
               <Link
@@ -74,7 +73,7 @@ export default function QuoteCartPage() {
                     <div>
                       <p className="text-lg font-semibold text-strong">{item.name}</p>
                       <p className="mt-1 text-sm text-muted">
-                        {item.source === "planner" ? "Added from planner" : "Added from catalog"}
+                        {item.source === "planner" ? "Captured from planner" : "Captured from catalog"}
                         {item.plannerFamily ? ` - ${item.plannerFamily}` : ""}
                       </p>
                       {item.plannerDimensions ? (
@@ -118,7 +117,7 @@ export default function QuoteCartPage() {
             </section>
 
             <aside className="h-fit rounded-[1.75rem] border border-theme-soft bg-[color:var(--planner-panel-strong)] p-5 shadow-theme-panel">
-              <p className="typ-eyebrow text-[color:var(--planner-accent-strong)]">Summary</p>
+              <p className="typ-eyebrow text-[color:var(--planner-accent-strong)]">BOQ Summary</p>
               <div className="mt-5 space-y-3 text-sm text-muted">
                 <p>
                   Line items: <span className="font-semibold text-strong">{items.length}</span>
@@ -128,8 +127,8 @@ export default function QuoteCartPage() {
                 </p>
               </div>
               <p className="mt-5 text-sm leading-6 text-muted">
-                This app does not yet include the wider catalog checkout flow. Use this page as the
-                planning handoff checkpoint after the workspace layout is ready.
+                Use this page as the quantity-only handoff checkpoint before the team follows up on
+                the enquiry.
               </p>
             </aside>
           </div>
@@ -138,3 +137,4 @@ export default function QuoteCartPage() {
     </main>
   );
 }
+

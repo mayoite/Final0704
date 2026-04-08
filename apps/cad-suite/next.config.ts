@@ -4,7 +4,9 @@ import type { NextConfig } from "next";
 
 const projectRoot = dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = dirname(dirname(projectRoot));
+const isLocalDevLifecycle = (process.env.npm_lifecycle_event ?? "").startsWith("dev");
 const shouldInitOpenNextCloudflareForDev =
+  isLocalDevLifecycle &&
   process.env.NODE_ENV !== "production" &&
   !process.env.VERCEL &&
   !process.env.VERCEL_ENV &&
@@ -14,9 +16,20 @@ const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
   outputFileTracingRoot: workspaceRoot,
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   turbopack: {
     // Point to workspace root to find hoisted node_modules.
     root: workspaceRoot,
+  },
+  images: {
+    // When NEXT_IMAGE_UNOPTIMIZED=1 (local dev), skip the optimizer entirely
+    // so cross-origin images from localhost:3000 load without domain restrictions.
+    unoptimized: process.env.NEXT_IMAGE_UNOPTIMIZED === "1",
+    remotePatterns: [
+      { protocol: "http", hostname: "localhost", port: "3000", pathname: "/**" },
+      { protocol: "https", hostname: "**.supabase.co", pathname: "/**" },
+      { protocol: "https", hostname: "**.nhost.run", pathname: "/**" },
+    ],
   },
 };
 
