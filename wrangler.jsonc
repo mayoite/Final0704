@@ -4,6 +4,12 @@
   "name": "oneandonly-site",
   "compatibility_date": "2026-04-06",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "routes": [
+    {
+      "pattern": "oando.co.in",
+      "custom_domain": true
+    }
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
