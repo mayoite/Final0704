@@ -45,7 +45,8 @@ export async function listPlannerManagedProductsForPlannerCatalog(): Promise<Pla
       // Deploy-safe fallback until planner-managed product migrations are applied.
       return [];
     }
-    throw new Error(`Unable to load planner-managed products: ${error.message}`);
+    console.error("[planner] Unable to load planner-managed products:", error.message);
+    return [];
   }
 
   return (data ?? [])

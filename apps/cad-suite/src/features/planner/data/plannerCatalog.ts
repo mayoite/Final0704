@@ -33,6 +33,13 @@ export {
   resolvePlannerCatalogProductBySlug,
 };
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return "Unknown error";
+}
+
 async function resolvePlannerManagedProductsInput(
   plannerManagedProducts: GetPlannerCatalogProductsOptions["plannerManagedProducts"],
 ): Promise<readonly PlannerCatalogProduct[]> {
@@ -48,9 +55,20 @@ async function resolvePlannerManagedProductsInput(
 export async function getPlannerCatalogProducts(
   options?: GetPlannerCatalogProductsOptions,
 ): Promise<PlannerCatalogProduct[]> {
-  const catalog = await getCatalog();
-  const legacyProducts = normalizePlannerCatalogProducts(catalog);
-  const plannerManagedProducts = await resolvePlannerManagedProductsInput(options?.plannerManagedProducts);
+  let legacyProducts: PlannerCatalogProduct[] = [];
+  try {
+    const catalog = await getCatalog();
+    legacyProducts = normalizePlannerCatalogProducts(catalog);
+  } catch (error) {
+    console.error("[planner] Failed to load legacy catalog for planner:", getErrorMessage(error));
+  }
+
+  let plannerManagedProducts: readonly PlannerCatalogProduct[] = [];
+  try {
+    plannerManagedProducts = await resolvePlannerManagedProductsInput(options?.plannerManagedProducts);
+  } catch (error) {
+    console.error("[planner] Failed to load planner-managed products:", getErrorMessage(error));
+  }
 
   return mergePlannerCatalogProducts(legacyProducts, plannerManagedProducts);
 }
