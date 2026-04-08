@@ -12,6 +12,7 @@ It keeps the current repo audit, deployment runbooks, one walkthrough file, and 
 - `repo_audit_20_parameters.md`
 - `cloudflare-workers.md`
 - `vercel-cloudflare-r2.md`
+- `../deployment/DOMAIN-STATE-2026-04-08.md`
 - `as_is_dfd.svg`
 - `to_be_bpmn.svg`
 - `to_be_bpmn_choices_on.svg`
@@ -30,8 +31,9 @@ The alternate `to_be_bpmn_choices_off.svg` source remains in the main `diagrams/
 
 1. `MAIN-SITE-MASTER-WALKTHROUGH-AND-REVIEW.md`
 2. `repo_audit_20_parameters.md`
-3. `cloudflare-workers.md`
-4. `vercel-cloudflare-r2.md`
+3. `../deployment/DOMAIN-STATE-2026-04-08.md`
+4. `cloudflare-workers.md`
+5. `vercel-cloudflare-r2.md`
 
 ## Security Priority Order
 
