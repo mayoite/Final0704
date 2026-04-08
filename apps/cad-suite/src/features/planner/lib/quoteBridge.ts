@@ -10,14 +10,27 @@ export function calculatePlannerBoqTotal(items: BoqItem[]) {
   return items.reduce((total, item) => total + item.price, 0);
 }
 
+function normalizePlannerBoqGroupValue(value: string | undefined | null) {
+  return value?.trim().toLowerCase().replace(/\s+/g, " ") ?? "";
+}
+
+function buildPlannerBoqGroupKey(item: BoqItem) {
+  const identityKey =
+    item.productId ?? item.productSlug ?? item.plannerSourceSlug ?? item.name.trim().toLowerCase().replace(/\s+/g, "-");
+  const dimensionsKey = normalizePlannerBoqGroupValue(item.dimensions);
+  const categoryKey = normalizePlannerBoqGroupValue(item.category);
+
+  return [
+    `identity:${encodeURIComponent(identityKey)}`,
+    `dimensions:${encodeURIComponent(dimensionsKey)}`,
+    `category:${encodeURIComponent(categoryKey)}`,
+  ].join("|");
+}
+
 export function groupPlannerBoqItems(items: BoqItem[]) {
   return items.reduce(
     (accumulator, item) => {
-      const key =
-        item.productId ??
-        item.productSlug ??
-        item.plannerSourceSlug ??
-        item.name.trim().toLowerCase().replace(/\s+/g, "-");
+      const key = buildPlannerBoqGroupKey(item);
 
       if (!accumulator[key]) {
         accumulator[key] = { ...item, qty: 1 };

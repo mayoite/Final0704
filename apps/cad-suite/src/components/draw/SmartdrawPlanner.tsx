@@ -18,6 +18,12 @@ import { PlannerDesktopPanels } from "../../features/planner/ui/PlannerDesktopPa
 import { PlannerMobilePanels } from "../../features/planner/ui/PlannerMobilePanels";
 import { PlannerSessionDialog } from "../../features/planner/ui/PlannerSessionDialog";
 import { PlannerToolbar } from "../../features/planner/ui/PlannerToolbar";
+import {
+  DEFAULT_PLANNER_PANEL_DOCK_GAP_PX,
+  DEFAULT_PLANNER_PANEL_WIDTH_PX,
+  PLANNER_PANEL_DOCK_GAP_CSS_VAR,
+  PLANNER_PANEL_WIDTH_CSS_VAR,
+} from "../../features/planner/ui/WorkspacePanel";
 import { createClient as createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { useQuoteCart } from "@/lib/store/quoteCart";
 
@@ -44,9 +50,13 @@ export function SmartdrawPlanner({
     return hasSupabaseEnv ? createSupabaseBrowserClient() : null;
   }, []);
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const toolbarRef = useRef<HTMLDivElement | null>(null);
   const [planName, setPlanName] = useState(() => sanitizePlannerPlanName(initialDocument?.name ?? "Untitled plan"));
   const [activeDocumentId, setActiveDocumentId] = useState<string | null>(initialDocument?.id ?? initialSaveId ?? null);
   const [hydratedInitialDocument, setHydratedInitialDocument] = useState(false);
+  const [toolbarInsetPx, setToolbarInsetPx] = useState(() => (mode === "mobile" ? 128 : 192));
+  const [desktopPanelWidthPx, setDesktopPanelWidthPx] = useState(DEFAULT_PLANNER_PANEL_WIDTH_PX);
+  const [desktopPanelDockGapPx, setDesktopPanelDockGapPx] = useState(DEFAULT_PLANNER_PANEL_DOCK_GAP_PX);
 
   const workspace = usePlannerWorkspace({
     mode,
@@ -56,6 +66,8 @@ export function SmartdrawPlanner({
     setActiveDocumentId,
     navigate: (href) => router.push(href),
     addQuoteItem: (item) => quoteCart.addItem(item),
+    clearQuoteCart: () => quoteCart.clearCart(),
+    catalogProducts,
   });
 
   const buildCurrentPlannerDocumentRef = useRef(workspace.buildCurrentPlannerDocument);
@@ -78,13 +90,61 @@ export function SmartdrawPlanner({
   const applyPlannerDocument = workspace.applyPlannerDocument;
   const getDraftScope = session.getDraftScope;
   const reportSessionError = session.reportSessionError;
-  const desktopTopInsetPx = workspace.isMobileMode ? 128 : 192;
-  const canvasLeftInsetPx = !workspace.isMobileMode && workspace.showCatalog && workspace.catalogPinned ? 336 : 0;
+  const desktopTopInsetPx = toolbarInsetPx;
+  const desktopPanelDockedSpanPx = desktopPanelWidthPx + desktopPanelDockGapPx;
+  const canvasLeftInsetPx =
+    !workspace.isMobileMode && workspace.showCatalog && workspace.catalogPinned ? desktopPanelDockedSpanPx : 0;
   const canvasRightInsetPx =
     !workspace.isMobileMode
-      ? (workspace.showInspector && workspace.inspectorPinned ? 336 : 0) +
-        (workspace.showLayers && workspace.layersPinned ? 336 : 0)
+      ? (workspace.showInspector && workspace.inspectorPinned ? desktopPanelDockedSpanPx : 0) +
+        (workspace.showLayers && workspace.layersPinned ? desktopPanelDockedSpanPx : 0)
       : 0;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const syncDesktopPanelWidth = () => {
+      const rawWidth = window.getComputedStyle(document.documentElement).getPropertyValue(PLANNER_PANEL_WIDTH_CSS_VAR);
+      const rawDockGap = window
+        .getComputedStyle(document.documentElement)
+        .getPropertyValue(PLANNER_PANEL_DOCK_GAP_CSS_VAR);
+      const parsedWidth = Number.parseFloat(rawWidth);
+      const parsedDockGap = Number.parseFloat(rawDockGap);
+      setDesktopPanelWidthPx(Number.isFinite(parsedWidth) ? parsedWidth : DEFAULT_PLANNER_PANEL_WIDTH_PX);
+      setDesktopPanelDockGapPx(Number.isFinite(parsedDockGap) ? parsedDockGap : DEFAULT_PLANNER_PANEL_DOCK_GAP_PX);
+    };
+
+    syncDesktopPanelWidth();
+    window.addEventListener("resize", syncDesktopPanelWidth);
+
+    return () => {
+      window.removeEventListener("resize", syncDesktopPanelWidth);
+    };
+  }, []);
+
+  useEffect(() => {
+    const toolbarElement = toolbarRef.current;
+    if (!toolbarElement) return;
+
+    const syncToolbarInset = () => {
+      const nextInset = Math.max(128, Math.ceil(toolbarElement.getBoundingClientRect().height) + 24);
+      setToolbarInsetPx(nextInset);
+    };
+
+    syncToolbarInset();
+
+    const resizeObserver = new ResizeObserver(() => {
+      syncToolbarInset();
+    });
+
+    resizeObserver.observe(toolbarElement);
+    window.addEventListener("resize", syncToolbarInset);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", syncToolbarInset);
+    };
+  }, [workspace.isMobileMode]);
 
   useEffect(() => {
     if (!plannerEditor || hydratedInitialDocument) return;
@@ -147,7 +207,7 @@ export function SmartdrawPlanner({
   };
 
   return (
-    <section className="fixed inset-0 z-[100] h-full w-full overflow-hidden bg-page">
+    <section className="fixed inset-0 z-[100] isolate h-full w-full overflow-hidden bg-page">
       <input
         ref={importInputRef}
         type="file"
@@ -158,6 +218,7 @@ export function SmartdrawPlanner({
 
       <div className="relative h-full w-full overflow-hidden">
         <PlannerToolbar
+          containerRef={toolbarRef}
           currentStep={workspace.currentStep}
           onStepChange={workspace.applyStepMode}
           disabledSteps={{
@@ -178,6 +239,7 @@ export function SmartdrawPlanner({
           onRedo={workspace.handleRedo}
           onFitToDrawing={workspace.handleFitToDrawing}
           onFitToSelection={workspace.handleFitToSelection}
+          onDeselectSelection={workspace.handleDeselectSelection}
           onDuplicateSelection={workspace.handleDuplicateSelection}
           onDeleteSelection={workspace.handleDeleteSelection}
           isSnapMode={workspace.isSnapMode}
@@ -262,6 +324,8 @@ export function SmartdrawPlanner({
             onUpdateSelectionDimensions={workspace.handleUpdateSelectionDimensions}
             onUnitSystemChange={workspace.setUnitSystem}
             onGenerateQuote={workspace.handleGenerateQuote}
+            topInsetPx={desktopTopInsetPx}
+            panelDockedSpanPx={desktopPanelDockedSpanPx}
           />
         ) : null}
       </div>

@@ -140,9 +140,23 @@ export function Footer() {
             <Link
               href="/planner"
               prefetch={false}
-              className="hover:text-subtle transition-colors opacity-60"
+              className="hover:text-subtle transition-colors"
             >
-              Office Planner
+              Planner
+            </Link>
+            <Link
+              href="/draw"
+              prefetch={false}
+              className="hover:text-subtle transition-colors"
+            >
+              Draw
+            </Link>
+            <Link
+              href="/configurator"
+              prefetch={false}
+              className="hover:text-subtle transition-colors"
+            >
+              Configurator
             </Link>
           </div>
           <div suppressHydrationWarning>
@@ -154,4 +168,5 @@ export function Footer() {
     </footer>
   );
 }
+
 

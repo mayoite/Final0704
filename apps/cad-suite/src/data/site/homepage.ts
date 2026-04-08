@@ -1,4 +1,15 @@
-export const HOMEPAGE_HERO_CONTENT = {
+import { 
+  HomepageHeroContent, 
+  HomepageTrustContent, 
+  HomepageCollectionsContent, 
+  HomepageProjectsContent,
+  HomepageShowcaseContent,
+  HomepageProcessContent,
+  HomepageFaqContent,
+  HomepageContactContent
+} from "@/types/homepage";
+
+export const HOMEPAGE_HERO_CONTENT: HomepageHeroContent = {
   title: ["Spaces that work", "as hard as", "your team."],
   description:
     "Furniture systems for offices, campuses, and operational teams with planning, delivery, and after-sales support aligned from brief to handover.",
@@ -16,7 +27,7 @@ export const HOMEPAGE_HERO_CONTENT = {
   },
 } as const;
 
-export const HOMEPAGE_TRUST_CONTENT = {
+export const HOMEPAGE_TRUST_CONTENT: HomepageTrustContent = {
   logoLabel: "Selected organisations",
   logos: [
     { name: "L&T", src: "/ClientLogos/LandT.png" },
@@ -47,7 +58,7 @@ export const HOMEPAGE_BRAND_STATEMENT_CONTENT = {
     "Not just interiors, but working environments that help teams focus, collaborate, and stay productive. Built for organizations that cannot afford unclear planning or weak execution.",
 } as const;
 
-export const HOMEPAGE_COLLECTIONS_CONTENT = {
+export const HOMEPAGE_COLLECTIONS_CONTENT: HomepageCollectionsContent = {
   titleLead: "Browse",
   titleAccent: "workspace categories",
   items: [
@@ -84,7 +95,7 @@ export const HOMEPAGE_COLLECTIONS_CONTENT = {
   ],
 } as const;
 
-export const HOMEPAGE_PROJECTS_CONTENT = {
+export const HOMEPAGE_PROJECTS_CONTENT: HomepageProjectsContent = {
   titleLead: "Recent",
   titleAccent: "projects",
   cta: { label: "View gallery", href: "/portfolio" },
@@ -116,7 +127,78 @@ export const HOMEPAGE_PROJECTS_CONTENT = {
   ],
 } as const;
 
-export const HOMEPAGE_CONTACT_CONTENT = {
+export const HOMEPAGE_SHOWCASE_CONTENT: HomepageShowcaseContent = {
+  sectionLabel: "Selected Projects",
+  sectionTitle: "Delivered at scale for India's leading organizations.",
+  items: [
+    {
+      id: "dmrc-patna",
+      name: "DMRC Patna HQ",
+      label: "Government",
+      image: "/images/montage/dmrc-1.png",
+      description: "Complete workstation rollout for the Patna Metro project headquarters.",
+      link: "/portfolio"
+    },
+    {
+      id: "titan-hq",
+      name: "Titan Bihar HQ",
+      label: "Corporate",
+      image: "/images/montage/titan-blue-1.png",
+      description: "Full-floor operations zone including executive cabins and staff zones.",
+      link: "/portfolio"
+    },
+    {
+      id: "green-desk-1",
+      name: "Tata Steel Operations",
+      label: "Industrial",
+      image: "/images/montage/green-desk-1.png",
+      description: "Custom layout optimized for durability and heavy-duty documentation flow.",
+      link: "/portfolio"
+    },
+    {
+      id: "tvs-bihar",
+      name: "TVS Motors",
+      label: "Automobile",
+      image: "/images/montage/dmrc-2.png",
+      description: "Modular seating and desk systems for regional service hubs.",
+      link: "/portfolio"
+    },
+    {
+      id: "boardroom-client",
+      name: "Executive Boardroom",
+      label: "Corporate",
+      image: "/images/client-projects/meeting-room.png",
+      description: "Custom conference table with ergonomic high-back executive seating.",
+      link: "/portfolio"
+    },
+    {
+      id: "open-office-client",
+      name: "Operations Hub",
+      label: "Enterprise",
+      image: "/images/client-projects/open-office-1.png",
+      description: "Scalable 100+ seater open plan layout with acoustic screening.",
+      link: "/portfolio"
+    },
+    {
+      id: "green-workstations-client",
+      name: "Collaborative Zone",
+      label: "Public Sector",
+      image: "/images/client-projects/green-workstations.png",
+      description: "Modular workstations featuring integrated storage hubs and privacy dividers.",
+      link: "/portfolio"
+    },
+    {
+      id: "blue-workstations-client",
+      name: "Technical Staff Wing",
+      label: "Institutional",
+      image: "/images/client-projects/blue-workstations.png",
+      description: "Ergonomic linear workstations with task-focused layout optimization.",
+      link: "/portfolio"
+    }
+  ]
+} as const;
+
+export const HOMEPAGE_CONTACT_CONTENT: HomepageContactContent = {
   titleLead: "Start with one",
   titleAccent: "clear brief.",
   description: "Share your city, scope, and timeline. We'll route the right next step.",
@@ -141,7 +223,7 @@ export const HOMEPAGE_STATS_CONTENT = [
   { value: "24/7", label: "After-sales support routing" },
 ] as const;
 
-export const HOMEPAGE_PROCESS_CONTENT = {
+export const HOMEPAGE_PROCESS_CONTENT: HomepageProcessContent = {
   kicker: "",
   titleLead: "A clear",
   titleAccent: "delivery system.",
@@ -239,7 +321,7 @@ export const HOMEPAGE_TESTIMONIALS_CONTENT = {
   ],
 } as const;
 
-export const HOMEPAGE_FAQ_CONTENT = {
+export const HOMEPAGE_FAQ_CONTENT: HomepageFaqContent = {
   titleLead: "FAQ",
   items: [
     {

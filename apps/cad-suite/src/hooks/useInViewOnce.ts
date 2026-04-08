@@ -11,15 +11,14 @@ export function useInViewOnce(options?: IntersectionObserverInit) {
         if (ref.current) observer.unobserve(ref.current);
       }
     }, options);
-    const currentElement = ref.current;
 
-    if (currentElement) {
-      observer.observe(currentElement);
+    if (ref.current) {
+      observer.observe(ref.current);
     }
 
     return () => {
-      if (currentElement) {
-        observer.unobserve(currentElement);
+      if (ref.current) {
+        observer.unobserve(ref.current);
       }
     };
   }, [options]);

@@ -15,7 +15,7 @@ export function usePlannerUiState({ mode }: UsePlannerUiStateOptions) {
   const [currentStep, setCurrentStep] = useState<PlannerStep>("room");
   const [activeDrawingTool, setActiveDrawingTool] = useState<PlannerDrawingTool>("line");
   const [showCatalog, setShowCatalog] = useState(true);
-  const [showLayers, setShowLayers] = useState(true);
+  const [showLayers, setShowLayers] = useState(false);
   const [showInspector, setShowInspector] = useState(true);
   const [catalogPinned, setCatalogPinned] = useState(true);
   const [layersPinned, setLayersPinned] = useState(false);

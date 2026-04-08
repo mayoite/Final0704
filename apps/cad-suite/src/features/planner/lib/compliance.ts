@@ -6,6 +6,10 @@ import { getShapeMeta } from "./measurements";
 
 type PlannerShape = ReturnType<Editor["getCurrentPageShapes"]>[number];
 
+const PAGE_UNIT_MM = 10;
+const ADA_CLEARANCE_MM = 900;
+const ADA_CLEARANCE_CANVAS_UNITS = ADA_CLEARANCE_MM / PAGE_UNIT_MM; // 90
+
 export function runPlannerComplianceCheck(editor: Editor, shapes: PlannerShape[]) {
   const warnings: string[] = [];
   const plannerShapes = shapes.filter((shape) => getShapeMeta(shape.meta).isPlannerItem);
@@ -35,7 +39,7 @@ export function runPlannerComplianceCheck(editor: Editor, shapes: PlannerShape[]
       const clearanceY = Math.max(0, Math.max(boundsA.minY - boundsB.maxY, boundsB.minY - boundsA.maxY));
       const distance = Math.sqrt(clearanceX * clearanceX + clearanceY * clearanceY);
 
-      if (distance > 0 && distance < 90) {
+      if (distance > 0 && distance < ADA_CLEARANCE_CANVAS_UNITS) {
         tightClearanceCount += 1;
       }
     }
@@ -46,7 +50,7 @@ export function runPlannerComplianceCheck(editor: Editor, shapes: PlannerShape[]
   }
   if (tightClearanceCount > 0) {
     warnings.push(
-      `COMPLIANCE WARNING: ${tightClearanceCount} module boundary clearances are under the strict 900mm ADA minimum.`
+      `COMPLIANCE WARNING: ${tightClearanceCount} module boundary clearances are under the strict ${ADA_CLEARANCE_MM}mm ADA minimum.`
     );
   }
 

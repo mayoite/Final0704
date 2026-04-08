@@ -168,6 +168,26 @@ describe("planner save repository", () => {
     });
   });
 
+  it("defaults CRM summary fields when listing legacy rows", async () => {
+    const row = buildPlannerSaveRow();
+    delete row.crm_sync_status;
+    delete row.crm_synced_at;
+    delete row.crm_sync_error;
+
+    const { client } = createSupabaseClientMock({
+      queryResult: { data: [row], error: null },
+    });
+
+    const plans = await listPlannerDocumentsFromSupabase(client as never, {});
+
+    expect(plans[0]).toMatchObject({
+      id: row.id,
+      crm_sync_status: "pending",
+      crm_synced_at: null,
+      crm_sync_error: null,
+    });
+  });
+
   it("preserves the original owner id when admin updates an existing plan", async () => {
     const existingRow = buildPlannerSaveRow({
       id: "550e8400-e29b-41d4-a716-446655440020",
@@ -215,6 +235,54 @@ describe("planner save repository", () => {
     expect(recorders[1]?.state.upsertOptions).toMatchObject({ onConflict: "id" });
   });
 
+  it("forwards enquiry envelope and CRM sync metadata into save upserts", async () => {
+    const savedRow = buildPlannerSaveRow({
+      id: "550e8400-e29b-41d4-a716-446655440030",
+      enquiry_payload: {
+        type: "planner-enquiry",
+        schemaVersion: 1,
+        generatedAt: "2026-04-08T10:00:00.000Z",
+        payload: {
+          enquiryId: "ENQ-003",
+        },
+      },
+      crm_sync_status: "failed",
+      crm_synced_at: "2026-04-08T10:05:00.000Z",
+      crm_sync_error: "CRM unavailable",
+    });
+    const { client, queryState } = createSupabaseClientMock({
+      queryResult: { data: savedRow, error: null },
+    });
+
+    const document = createPlannerDocument({
+      id: savedRow.id as string,
+      name: "CRM Sync Plan",
+      sceneJson: { shapes: [] },
+    });
+
+    const saved = await savePlannerDocumentToSupabase(client as never, document, {
+      enquiryPayload: savedRow.enquiry_payload as PlannerSaveRow["enquiry_payload"],
+      crmSyncStatus: "failed",
+      crmSyncedAt: "2026-04-08T10:05:00.000Z",
+      crmSyncError: "CRM unavailable",
+    });
+
+    expect(saved.id).toBe(savedRow.id);
+    expect(queryState.upsertPayload).toMatchObject({
+      enquiry_payload: {
+        type: "planner-enquiry",
+        schemaVersion: 1,
+        generatedAt: "2026-04-08T10:00:00.000Z",
+        payload: {
+          enquiryId: "ENQ-003",
+        },
+      },
+      crm_sync_status: "failed",
+      crm_synced_at: "2026-04-08T10:05:00.000Z",
+      crm_sync_error: "CRM unavailable",
+    });
+  });
+
   it("rejects admin delete through the browser repository path", async () => {
     const { client } = createSupabaseClientMock();
 
@@ -224,7 +292,7 @@ describe("planner save repository", () => {
         "550e8400-e29b-41d4-a716-446655440010",
         { accessMode: "admin" },
       ),
-    ).rejects.toMatchObject<Partial<PlannerStorageError>>({
+    ).rejects.toMatchObject({
       code: "planner:delete-failed",
     });
   });

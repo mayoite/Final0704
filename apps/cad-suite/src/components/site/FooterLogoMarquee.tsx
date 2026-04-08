@@ -30,7 +30,7 @@ export function FooterLogoMarquee() {
               : "footer-logo-marquee__track grid grid-cols-2 gap-6 md:grid-cols-4 lg:grid-cols-6"
           }
         >
-          {logos.map((logo, index) => (
+          {logos.map((logo: { name: string; src: string }, index: number) => (
             <div
               key={`${logo.name}-${index}`}
               className="footer-logo-marquee__item flex h-12 w-34 shrink-0 items-center justify-center md:h-16 md:w-44"

@@ -4,6 +4,11 @@ import { motion, useDragControls } from "framer-motion";
 import type { PointerEvent as ReactPointerEvent, ReactNode } from "react";
 import { useState } from "react";
 
+export const DEFAULT_PLANNER_PANEL_WIDTH_PX = 320;
+export const DEFAULT_PLANNER_PANEL_DOCK_GAP_PX = 16;
+export const PLANNER_PANEL_WIDTH_CSS_VAR = "--planner-panel-width";
+export const PLANNER_PANEL_DOCK_GAP_CSS_VAR = "--planner-panel-dock-gap";
+
 interface WorkspacePanelProps {
   id: string;
   side: "left" | "right";
@@ -42,6 +47,13 @@ export function WorkspacePanel({
     if (docked || event.button !== 0) return;
 
     const target = event.target as HTMLElement | null;
+    if (
+      target?.closest(
+        'button, input, textarea, select, option, label, a, summary, [role="button"], [data-panel-interactive="true"]',
+      )
+    ) {
+      return;
+    }
     if (!target?.closest('[data-panel-drag-handle="true"]')) return;
 
     dragControls.start(event);
@@ -55,6 +67,7 @@ export function WorkspacePanel({
       dragListener={false}
       dragMomentum={false}
       dragElastic={0}
+      initial={false}
       onPointerDown={handlePointerDown}
       onPointerUp={() => {
         if (!docked) setLocalZ(50);
@@ -62,8 +75,8 @@ export function WorkspacePanel({
       style={{
         zIndex: isActive ? 60 : localZ,
         ...(docked
-          ? { [side]: offsetPx, top: topPx, bottom: 16 }
-          : { [side]: 16 + offsetPx, top: topPx }),
+          ? { [side]: offsetPx, top: topPx, bottom: "var(--planner-panel-dock-gap)" }
+          : { [side]: `calc(var(--planner-panel-dock-gap) + ${offsetPx}px)`, top: topPx }),
       }}
       className={
         docked
@@ -72,9 +85,6 @@ export function WorkspacePanel({
             } w-min-panel shadow-theme-float bg-panel border-theme-soft overflow-hidden backdrop-blur-xl`
           : `absolute w-min-panel shadow-theme-float rounded-[1.4rem] cursor-grab active:cursor-grabbing bg-panel border border-theme-soft overflow-hidden backdrop-blur-xl`
       }
-      initial={{ opacity: 0, x: docked ? 0 : side === "left" ? -20 : 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: docked ? 0 : side === "left" ? -20 : 20 }}
     >
       <div className={`${docked ? "h-full" : "h-smartdraw-panel"} pointer-events-auto flex flex-col`}>
         {children}

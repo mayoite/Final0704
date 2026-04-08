@@ -427,9 +427,14 @@ export function usePlannerSession({
 
   const handleOpen3d = useCallback(() => {
     const plannerDocument = buildCurrentPlannerDocument();
-    savePlannerDraftDocument(plannerDocument, getDraftScope(VIEWER_PREVIEW_DRAFT_ID));
+    const savedDraft = savePlannerDraftDocument(plannerDocument, getDraftScope(VIEWER_PREVIEW_DRAFT_ID));
+    if (!savedDraft) {
+      reportSessionError("Unable to prepare 3D preview draft in this environment.");
+      return;
+    }
+    reportSessionStatus("Opening 3D preview from current planner draft.");
     router.push(`/configurator?draft=${VIEWER_PREVIEW_DRAFT_ID}`);
-  }, [buildCurrentPlannerDocument, getDraftScope, router]);
+  }, [buildCurrentPlannerDocument, getDraftScope, reportSessionError, reportSessionStatus, router]);
 
   const handleUpsertManagedProduct = useCallback(
     async (product: PlannerManagedProductWrite) => {

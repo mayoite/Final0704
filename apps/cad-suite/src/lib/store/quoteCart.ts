@@ -10,6 +10,7 @@ export interface QuoteCartItem {
   qty: number;
   image?: string;
   href?: string;
+  price?: number;
   source?: "planner" | "catalog";
   plannerFamily?: string;
   plannerDimensions?: string;
@@ -28,6 +29,16 @@ function totalQty(items: QuoteCartItem[]) {
   return items.reduce((sum, item) => sum + item.qty, 0);
 }
 
+const noopStorage = {
+  getItem: (_name: string) => null,
+  setItem: (_name: string, _value: string) => {},
+  removeItem: (_name: string) => {},
+};
+
+const quoteCartStorage = createJSONStorage(() =>
+  typeof window !== "undefined" ? window.localStorage : noopStorage,
+);
+
 export const useQuoteCart = create<QuoteCartState>()(
   persist(
     (set) => ({
@@ -40,7 +51,9 @@ export const useQuoteCart = create<QuoteCartState>()(
 
           const nextItems = existing
             ? state.items.map((item) =>
-                item.id === incoming.id ? { ...item, qty: item.qty + qtyToAdd } : item,
+                item.id === incoming.id
+                  ? { ...item, qty: item.qty + qtyToAdd, price: incoming.price ?? item.price }
+                  : item,
               )
             : [
                 ...state.items,
@@ -50,6 +63,7 @@ export const useQuoteCart = create<QuoteCartState>()(
                   qty: qtyToAdd,
                   image: incoming.image,
                   href: incoming.href,
+                  price: incoming.price,
                   source: incoming.source,
                   plannerFamily: incoming.plannerFamily,
                   plannerDimensions: incoming.plannerDimensions,
@@ -75,7 +89,7 @@ export const useQuoteCart = create<QuoteCartState>()(
     }),
     {
       name: "quote-cart-v1",
-      storage: createJSONStorage(() => localStorage),
+      storage: quoteCartStorage,
       partialize: (state) => ({ items: state.items }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;

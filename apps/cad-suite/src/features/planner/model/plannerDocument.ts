@@ -1,10 +1,12 @@
 import { z } from "zod";
 
 export const PLANNER_DOCUMENT_SCHEMA_VERSION = 1 as const;
+export const PLANNER_ENQUIRY_PAYLOAD_SCHEMA_VERSION = 1 as const;
 
 export type PlannerUnitSystem = "metric" | "imperial";
 export type PlannerMeasurementDisplayUnit = "mm" | "ft-in";
 export type PlannerMeasurementSourceUnit = "mm" | "cm" | "m" | "in" | "ft";
+export type PlannerCrmSyncStatus = "pending" | "exported" | "failed";
 
 export type PlannerJsonPrimitive = string | number | boolean | null;
 export type PlannerJsonValue =
@@ -74,6 +76,11 @@ const plannerOptionalUrlSchema = z.preprocess(
   z.union([z.string().max(2048), z.null()]).default(null),
 );
 
+const plannerOptionalLongTextSchema = z.preprocess(
+  trimOrNull,
+  z.union([z.string().max(4000), z.null()]).default(null),
+);
+
 const plannerPositiveIntegerSchema = z.preprocess(
   coerceInteger,
   z.number().int().positive(),
@@ -93,6 +100,16 @@ const plannerIsoTimestampSchema = z.preprocess(
 
 const plannerMeasurementDisplayUnitSchema = z.enum(["mm", "ft-in"]);
 const plannerMeasurementSourceUnitSchema = z.enum(["mm", "cm", "m", "in", "ft"]);
+export const plannerCrmSyncStatusSchema = z.enum(["pending", "exported", "failed"]);
+
+const plannerJsonObjectSchema: z.ZodType<Record<string, PlannerJsonValue>> = z.record(z.string(), plannerJsonValueSchema);
+
+export const plannerEnquiryPayloadEnvelopeSchema = z.object({
+  type: z.literal("planner-enquiry"),
+  schemaVersion: z.literal(PLANNER_ENQUIRY_PAYLOAD_SCHEMA_VERSION).default(PLANNER_ENQUIRY_PAYLOAD_SCHEMA_VERSION),
+  generatedAt: plannerIsoTimestampSchema,
+  payload: plannerJsonObjectSchema.default({}),
+}).passthrough();
 
 export const plannerDocumentSchema = z.object({
   schemaVersion: z.literal(PLANNER_DOCUMENT_SCHEMA_VERSION).default(PLANNER_DOCUMENT_SCHEMA_VERSION),
@@ -144,6 +161,10 @@ export const plannerSaveRowSchema = z.object({
   scene_json: plannerJsonValueSchema.default({}),
   item_count: plannerNonNegativeIntegerSchema.default(0),
   thumbnail_url: plannerOptionalUrlSchema,
+  enquiry_payload: z.union([plannerEnquiryPayloadEnvelopeSchema, z.null()]).default(null),
+  crm_sync_status: plannerCrmSyncStatusSchema.default("pending"),
+  crm_synced_at: z.union([z.string().datetime({ offset: true }), z.null()]).default(null),
+  crm_sync_error: plannerOptionalLongTextSchema,
   created_at: z.string().datetime({ offset: true }),
   updated_at: z.string().datetime({ offset: true }),
 });
@@ -153,6 +174,10 @@ export const plannerSaveWriteSchema = plannerSaveRowSchema.omit({
   updated_at: true,
 }).extend({
   user_id: z.string().uuid(),
+  enquiry_payload: z.union([plannerEnquiryPayloadEnvelopeSchema, z.null()]).optional(),
+  crm_sync_status: plannerCrmSyncStatusSchema.optional(),
+  crm_synced_at: z.union([z.string().datetime({ offset: true }), z.null()]).optional(),
+  crm_sync_error: plannerOptionalLongTextSchema.optional(),
 });
 
 export const plannerSaveSummarySchema = plannerSaveRowSchema.pick({
@@ -170,6 +195,10 @@ export const plannerSaveSummarySchema = plannerSaveRowSchema.pick({
   thumbnail_url: true,
   created_at: true,
   updated_at: true,
+}).extend({
+  crm_sync_status: plannerCrmSyncStatusSchema.default("pending"),
+  crm_synced_at: z.union([z.string().datetime({ offset: true }), z.null()]).default(null),
+  crm_sync_error: plannerOptionalLongTextSchema,
 });
 
 export const plannerDocumentImportEnvelopeSchema = z.object({
@@ -183,6 +212,7 @@ export type PlannerSaveRow = z.infer<typeof plannerSaveRowSchema>;
 export type PlannerSaveWrite = z.infer<typeof plannerSaveWriteSchema>;
 export type PlannerSaveSummary = z.infer<typeof plannerSaveSummarySchema>;
 export type PlannerDocumentImportEnvelope = z.infer<typeof plannerDocumentImportEnvelopeSchema>;
+export type PlannerEnquiryPayloadEnvelope = z.infer<typeof plannerEnquiryPayloadEnvelopeSchema>;
 
 export interface PlannerDocumentDefaults {
   name?: string;
@@ -523,12 +553,19 @@ export function normalizePlannerDocument(input: unknown): PlannerDocument {
 
 export function plannerDocumentToSaveRow(
   document: PlannerDocument,
-  params: { userId: string; id?: string },
+  params: {
+    userId: string;
+    id?: string;
+    enquiryPayload?: PlannerEnquiryPayloadEnvelope | null;
+    crmSyncStatus?: PlannerCrmSyncStatus;
+    crmSyncedAt?: string | null;
+    crmSyncError?: string | null;
+  },
 ): PlannerSaveWrite {
   const normalized = plannerDocumentSchema.parse(document);
   const id = params.id ?? normalized.id ?? crypto.randomUUID();
 
-  return plannerSaveWriteSchema.parse({
+  const saveRow: Record<string, unknown> = {
     id,
     user_id: params.userId,
     name: normalized.name,
@@ -542,7 +579,14 @@ export function plannerDocumentToSaveRow(
     scene_json: normalized.sceneJson,
     item_count: normalized.itemCount,
     thumbnail_url: normalized.thumbnailUrl,
-  });
+  };
+
+  if (params.enquiryPayload !== undefined) saveRow.enquiry_payload = params.enquiryPayload;
+  if (params.crmSyncStatus !== undefined) saveRow.crm_sync_status = params.crmSyncStatus;
+  if (params.crmSyncedAt !== undefined) saveRow.crm_synced_at = params.crmSyncedAt;
+  if (params.crmSyncError !== undefined) saveRow.crm_sync_error = params.crmSyncError;
+
+  return plannerSaveWriteSchema.parse(saveRow);
 }
 
 export function plannerSaveRowToDocument(row: PlannerSaveRow): PlannerDocument {
@@ -564,6 +608,9 @@ export function summarizePlannerDocument(document: PlannerDocument) {
     unit_system: normalized.unitSystem,
     item_count: normalized.itemCount,
     thumbnail_url: normalized.thumbnailUrl,
+    crm_sync_status: "pending",
+    crm_synced_at: null,
+    crm_sync_error: null,
     created_at: normalized.createdAt ?? timestamp,
     updated_at: normalized.updatedAt ?? timestamp,
   } satisfies PlannerSaveSummary;

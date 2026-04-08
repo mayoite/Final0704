@@ -18,6 +18,7 @@ const isHostedVercelRuntime =
   Boolean(process.env.VERCEL) ||
   Boolean(process.env.VERCEL_URL) ||
   Boolean(process.env.VERCEL_ENV);
+const isLocalDevLifecycle = (process.env.npm_lifecycle_event || "").startsWith("dev");
 const useUnoptimizedImages =
   process.env.NEXT_IMAGE_UNOPTIMIZED === "1" ||
   process.env.NEXT_IMAGE_UNOPTIMIZED === "true" ||
@@ -251,6 +252,7 @@ const nextConfig = {
 module.exports = nextConfig;
 
 const shouldInitOpenNextCloudflareForDev =
+  isLocalDevLifecycle &&
   process.env.NODE_ENV !== "production" &&
   !isHostedVercelRuntime &&
   process.env.CI !== "true";

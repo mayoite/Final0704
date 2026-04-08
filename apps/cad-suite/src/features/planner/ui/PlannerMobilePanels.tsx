@@ -83,7 +83,7 @@ export function PlannerMobilePanels({
       <MobileDrawerSheet
         open={mobileCatalogOpen}
         onOpenChange={onOpenCatalogChange}
-        title={currentStep === "room" ? "Room Builder" : "Product Catalog"}
+        title={currentStep === "room" ? "Room Builder" : "Catalog"}
         trigger={<span />}
       >
         {mobileCatalogOpen ? (
@@ -136,7 +136,7 @@ export function PlannerMobilePanels({
       <MobileDrawerSheet
         open={mobileInspectorOpen}
         onOpenChange={onOpenInspectorChange}
-        title="Layout Inspector"
+        title="Inspector"
         trigger={<span />}
       >
         {mobileInspectorOpen ? (

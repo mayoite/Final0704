@@ -28,6 +28,16 @@ function totalQty(items: QuoteCartItem[]): number {
   return items.reduce((sum, item) => sum + item.qty, 0);
 }
 
+const noopStorage = {
+  getItem: (_name: string) => null,
+  setItem: (_name: string, _value: string) => {},
+  removeItem: (_name: string) => {},
+};
+
+const quoteCartStorage = createJSONStorage(() =>
+  typeof window !== "undefined" ? window.localStorage : noopStorage,
+);
+
 export const useQuoteCart = create<QuoteCartState>()(
   persist(
     (set) => ({
@@ -78,7 +88,7 @@ export const useQuoteCart = create<QuoteCartState>()(
     }),
     {
       name: "quote-cart-v1",
-      storage: createJSONStorage(() => localStorage),
+      storage: quoteCartStorage,
       partialize: (state) => ({ items: state.items }),
       onRehydrateStorage: () => (state) => {
         if (!state) return;
@@ -87,4 +97,3 @@ export const useQuoteCart = create<QuoteCartState>()(
     },
   ),
 );
-

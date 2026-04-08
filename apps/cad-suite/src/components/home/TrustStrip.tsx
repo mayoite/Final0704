@@ -37,7 +37,7 @@ export function TrustStrip({ stats, embedded = false, showLogos = true, dark = f
         {kpis.map(({ value, label, testId }) => (
           <div key={label} className={dark
             ? "rounded-2xl border border-inverse bg-[color:var(--overlay-panel-08)] p-6 text-center backdrop-blur-sm"
-            : "scheme-panel scheme-border rounded-2xl border p-6 text-center"}>
+            : "rounded-2xl border border-[#ddd6c8] bg-white/60 p-6 text-center"}>
             <p data-testid={testId} className={dark
               ? "font-display text-[clamp(2rem,4vw,3rem)] font-[350] leading-[0.96] tracking-[-0.045em] text-[var(--color-accent)]"
               : "typ-stat text-primary"}>
@@ -80,11 +80,13 @@ export function TrustStrip({ stats, embedded = false, showLogos = true, dark = f
   }
 
   return (
-    <section className="scheme-section-soft scheme-border w-full border-y py-16 md:py-18" aria-label="Trust indicators">
+    <section
+      className="w-full bg-[#f6f1e9] py-8 md:py-10"
+      aria-label="Trust indicators"
+    >
       <div className="home-shell">
         <div>{content}</div>
       </div>
     </section>
   );
 }
-

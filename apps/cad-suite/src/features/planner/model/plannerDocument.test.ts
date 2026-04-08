@@ -73,6 +73,45 @@ describe("planner document model", () => {
     });
   });
 
+  it("maps enquiry envelope and CRM sync metadata into planner save rows when provided", () => {
+    const document = createPlannerDocument({
+      id: "550e8400-e29b-41d4-a716-446655440099",
+      name: "CRM Ready Plan",
+      sceneJson: { shapes: [] },
+    });
+
+    const row = plannerDocumentToSaveRow(document, {
+      userId: "550e8400-e29b-41d4-a716-446655440000",
+      enquiryPayload: {
+        type: "planner-enquiry",
+        schemaVersion: 1,
+        generatedAt: "2026-04-08T10:00:00.000Z",
+        payload: {
+          enquiryId: "ENQ-001",
+          items: [{ sku: "desk-1", qty: 2 }],
+        },
+      },
+      crmSyncStatus: "failed",
+      crmSyncedAt: "2026-04-08T10:05:00.000Z",
+      crmSyncError: "CRM rate limit",
+    });
+
+    expect(row).toMatchObject({
+      enquiry_payload: {
+        type: "planner-enquiry",
+        schemaVersion: 1,
+        generatedAt: "2026-04-08T10:00:00.000Z",
+        payload: {
+          enquiryId: "ENQ-001",
+          items: [{ sku: "desk-1", qty: 2 }],
+        },
+      },
+      crm_sync_status: "failed",
+      crm_synced_at: "2026-04-08T10:05:00.000Z",
+      crm_sync_error: "CRM rate limit",
+    });
+  });
+
   it("parses canonical import envelopes and validates bad JSON", () => {
     const parsed = parsePlannerDocumentImport({
       type: "planner-document",
@@ -138,6 +177,32 @@ describe("planner document model", () => {
       unitSystem: "imperial",
       roomWidthMm: 6096,
       roomDepthMm: 4572,
+    });
+  });
+
+  it("keeps old save rows backward-compatible by defaulting CRM metadata", () => {
+    const restored = plannerSaveRowToDocument({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      user_id: "550e8400-e29b-41d4-a716-446655440001",
+      name: "Legacy Saved Plan",
+      project_name: null,
+      client_name: null,
+      prepared_by: null,
+      room_width_mm: 6000,
+      room_depth_mm: 8000,
+      seat_target: 10,
+      unit_system: "metric",
+      scene_json: {},
+      item_count: 0,
+      thumbnail_url: null,
+      created_at: "2026-04-07T00:00:00.000Z",
+      updated_at: "2026-04-07T00:00:00.000Z",
+    });
+
+    expect(restored).toMatchObject({
+      name: "Legacy Saved Plan",
+      roomWidthMm: 6000,
+      roomDepthMm: 8000,
     });
   });
 
