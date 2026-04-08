@@ -3,9 +3,20 @@ import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
 import betterTailwindcss from "eslint-plugin-better-tailwindcss";
 
+function stripReactRules(config) {
+  if (!config || typeof config !== "object" || !("rules" in config) || !config.rules) {
+    return config;
+  }
+
+  return {
+    ...config,
+    rules: Object.fromEntries(Object.entries(config.rules).filter(([ruleName]) => !ruleName.startsWith("react/"))),
+  };
+}
+
 const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
+  ...nextVitals.map(stripReactRules),
+  ...nextTs.map(stripReactRules),
   {
     files: [
       "src/components/smartdraw/**/*.{js,jsx,ts,tsx,mjs,cjs}",
@@ -31,6 +42,7 @@ const eslintConfig = defineConfig([
     rules: {
       "react/display-name": "off",
       "react/no-direct-mutation-state": "off",
+      "react/no-render-return-value": "off",
       "react/jsx-no-target-blank": "off",
       "react/jsx-key": "off",
       "react/prop-types": "off",

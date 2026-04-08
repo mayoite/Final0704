@@ -239,7 +239,7 @@ export default function QuoteCartPage() {
                   {QUOTE_CART_ROUTE_COPY.summaryDeskHint}
                 </p>
                 <div className="mt-3 grid gap-2">
-                  <Link href="/planning" className="btn-outline justify-center">
+                  <Link href="/planner" className="btn-outline justify-center">
                     {QUOTE_CART_ROUTE_COPY.planningCta}
                   </Link>
                 </div>
@@ -257,6 +257,5 @@ export default function QuoteCartPage() {
     </section>
   );
 }
-
 
 

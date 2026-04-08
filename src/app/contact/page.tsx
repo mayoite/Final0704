@@ -134,7 +134,7 @@ export default async function ContactPage({
             <h2 className="typ-section mt-3 text-inverse">{CONTACT_PAGE_COPY.quickDeskTitle}</h2>
             <p className="page-copy scheme-text-inverse-body mt-3">{CONTACT_PAGE_COPY.quickDeskDescription}</p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/planning" className="btn-primary">
+              <Link href="/planner" className="btn-primary">
                 {CONTACT_PAGE_COPY.quickDeskSecondaryCta}
               </Link>
             </div>

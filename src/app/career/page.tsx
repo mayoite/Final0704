@@ -118,7 +118,7 @@ export default function CareerPage() {
               <Link href="/contact" className="btn-primary">
                 {CAREER_PAGE_COPY.supportPrimaryCta}
               </Link>
-              <Link href="/planning" className="btn-outline-light">
+              <Link href="/planner" className="btn-outline-light">
                 {CAREER_PAGE_COPY.supportSecondaryCta}
               </Link>
             </div>

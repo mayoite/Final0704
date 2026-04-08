@@ -174,7 +174,7 @@ export default function AboutPage() {
             </div>
             <div className="flex flex-wrap gap-4">
               <Link 
-                href="/planning" 
+                href="/planner" 
                 className="btn-primary"
               >
                 {ABOUT_PAGE_COPY.supportPrimaryCta}

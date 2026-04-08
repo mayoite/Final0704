@@ -215,6 +215,11 @@ const nextConfig = {
         destination: "/planner",
         permanent: true,
       },
+      {
+        source: "/planning",
+        destination: "/planner",
+        permanent: true,
+      },
     ];
   },
   async rewrites() {

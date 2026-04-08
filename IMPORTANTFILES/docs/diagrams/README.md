@@ -19,3 +19,7 @@ These are usually SVGs that explain process, flow, or architecture visually.
 
 - Keep visual process artifacts here.
 - Planner-specific diagrams that are tightly coupled to planner docs can stay under `planner/`.
+- The main-site review bundle currently uses these 3 core diagrams:
+- `as_is_dfd.svg`
+- `to_be_bpmn.svg`
+- `to_be_bpmn_choices_on.svg`

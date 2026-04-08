@@ -61,7 +61,9 @@ export function WorkspacePanel({
       }}
       style={{
         zIndex: isActive ? 60 : localZ,
-        ...(docked ? { [side]: offsetPx, top: 0, bottom: 0 } : { [side]: 16 + offsetPx, top: topPx }),
+        ...(docked
+          ? { [side]: offsetPx, top: topPx, bottom: 16 }
+          : { [side]: 16 + offsetPx, top: topPx }),
       }}
       className={
         docked

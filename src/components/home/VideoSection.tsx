@@ -49,7 +49,7 @@ export function VideoSection({
         
         const tl = gsap.timeline({ repeat: -1 });
         
-        items.forEach((item, index) => {
+        items.forEach((item) => {
           // Crossroads fade
           tl.to(item, {
             opacity: 1,

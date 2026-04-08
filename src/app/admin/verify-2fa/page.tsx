@@ -1,6 +1,6 @@
 "use client"
 
-import { Suspense, useState, useEffect, useRef, useTransition } from "react"
+import { Suspense, useState, useEffect, useTransition } from "react"
 import { useSearchParams } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { setAdmin2FAVerified } from "../actions"
@@ -18,7 +18,7 @@ function Verify2FAContent() {
   const urlError = searchParams.get("error")
 
   // Stable client reference — createBrowserClient is a singleton internally
-  const supabase = useRef(createClient()).current
+  const [supabase] = useState(() => createClient())
 
   const [phase, setPhase] = useState<PhaseState>({ kind: "loading" })
   const [otp, setOtp] = useState("")

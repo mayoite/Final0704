@@ -10,7 +10,6 @@ import {
   AlertCircle,
   ExternalLink,
   LayoutGrid,
-  GitBranch,
   Layers,
   Keyboard,
   Download,
@@ -209,7 +208,7 @@ const SITE_ROUTES: SiteRoute[] = [
   { route: "/compare",                   desc: "Product comparison tool",                                      type: "tool" },
   { route: "/portfolio",                 desc: "Portfolio of installs",                                        type: "public" },
   { route: "/projects",                  desc: "Projects listing",                                             type: "public" },
-  { route: "/planning",                  desc: "Planning service info page",                                   type: "public" },
+  { route: "/planner",                   desc: "Canonical planner route",                                      type: "public" },
   { route: "/showrooms",                 desc: "Showroom locations",                                           type: "public" },
   { route: "/solutions",                 desc: "Solutions hub",                                                type: "public" },
   { route: "/solutions/[category]",      desc: "Solution category detail",                                     type: "public" },
@@ -340,21 +339,6 @@ function routeTypeBadge(t: RouteType) {
   );
 }
 
-function routeStatusBadge(s: RouteStatus) {
-  const map: Record<RouteStatus, { label: string; cls: string }> = {
-    planned:  { label: "planned",  cls: "bg-slate-800 text-subtle ring-slate-700" },
-    progress: { label: "progress", cls: "bg-amber-900/60 text-warning ring-amber-700/60" },
-    live:     { label: "live",     cls: "bg-emerald-900/60 text-success ring-emerald-700/60" },
-    archive:  { label: "archive",  cls: "bg-slate-900 text-muted ring-slate-700" },
-  };
-  const m = map[s];
-  return (
-    <span className={`inline-flex items-center rounded px-1.5 py-0.5 typ-caption font-semibold ring-1 ${m.cls}`}>
-      {m.label}
-    </span>
-  );
-}
-
 function LinkCard({
   label,
   href,
@@ -393,7 +377,11 @@ export default function PlannerOverhaulPage() {
   const toggleSection = (id: string) => {
     setOpenSections((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   };
@@ -844,7 +832,7 @@ export default function PlannerOverhaulPage() {
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                   <LinkCard label="Homepage"       href="/"                    icon={<Globe        className="h-5 w-5" />} color="from-slate-600 to-slate-700"    desc="Entry" />
                   <LinkCard label="Products"       href="/products"            icon={<Package      className="h-5 w-5" />} color="from-teal-700 to-teal-800"      desc="229 items" />
-                  <LinkCard label="Planning"       href="/planning"            icon={<PanelLeft    className="h-5 w-5" />} color="from-indigo-700 to-indigo-800"   desc="Planning info" />
+                  <LinkCard label="Planner"        href="/planner"             icon={<PanelLeft    className="h-5 w-5" />} color="from-indigo-700 to-indigo-800"   desc="Canonical planner route" />
                   <LinkCard label="Catalog"        href="/catalog"             icon={<FileText     className="h-5 w-5" />} color="from-slate-600 to-slate-700"    desc="Catalogue" />
                   <LinkCard label="Contact (Quote)"href="/contact?intent=quote"icon={<ShoppingCart className="h-5 w-5" />} color="from-rose-700 to-rose-800"      desc="Submit quote" />
                   <LinkCard label="Showrooms"      href="/showrooms"           icon={<Map          className="h-5 w-5" />} color="from-slate-600 to-slate-700"    desc="Locations" />

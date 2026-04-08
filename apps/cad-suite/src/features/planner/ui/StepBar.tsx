@@ -16,14 +16,16 @@ interface StepBarProps {
   onChange: (step: PlannerStep) => void;
   disabledSteps?: Partial<Record<PlannerStep, boolean>>;
   compact?: boolean;
+  dense?: boolean;
 }
 
-export function StepBar({ current, onChange, disabledSteps = {}, compact = false }: StepBarProps) {
+export function StepBar({ current, onChange, disabledSteps = {}, compact = false, dense = false }: StepBarProps) {
   const idx = STEPS.findIndex((s) => s.key === current);
+  const compactLayout = compact || dense;
 
   return (
     <div
-      className={`flex items-center gap-1.5 ${compact ? "overflow-x-auto pb-1" : "flex-wrap"}`}
+      className={`flex items-center gap-1.5 ${compactLayout ? "overflow-x-auto pb-1" : "flex-wrap"}`}
     >
       {STEPS.map((step, i) => {
         const isActive = step.key === current;
@@ -38,7 +40,7 @@ export function StepBar({ current, onChange, disabledSteps = {}, compact = false
               if (!isDisabled) onChange(step.key);
             }}
             className={`group flex shrink-0 items-center gap-2.5 rounded-[1.1rem] border text-left transition-all duration-200 ${
-              compact ? "min-w-[6.6rem] px-2.5 py-2" : "min-w-[8.1rem] px-3 py-2.5"
+              compactLayout ? "min-w-[6.4rem] px-2.5 py-2" : "min-w-[8.1rem] px-3 py-2.5"
             } ${
               isActive
                 ? "border-[color:var(--planner-primary)] bg-[linear-gradient(135deg,var(--planner-primary)_0%,var(--planner-primary-hover)_100%)] text-white shadow-theme-panel"
@@ -67,7 +69,7 @@ export function StepBar({ current, onChange, disabledSteps = {}, compact = false
             <span className="min-w-0">
               <span
                 className={`block typ-caption font-semibold uppercase tracking-[0.16em] ${
-                  compact
+                  compactLayout
                     ? "hidden"
                     : isActive
                       ? "text-white/72"
@@ -78,7 +80,7 @@ export function StepBar({ current, onChange, disabledSteps = {}, compact = false
               >
                 Stage {i + 1}
               </span>
-              <span className={`block font-semibold tracking-[0.01em] ${compact ? "text-[0.78rem]" : "mt-0.5 text-[0.82rem]"}`}>
+              <span className={`block font-semibold tracking-[0.01em] ${compactLayout ? "text-[0.78rem]" : "mt-0.5 text-[0.82rem]"}`}>
                 {step.label}
               </span>
             </span>

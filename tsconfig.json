@@ -24,7 +24,8 @@
     ],
     "paths": {
       "@/*": [
-        "./src/*"
+        "./src/*",
+        "./apps/cad-suite/src/*"
       ]
     }
   },
@@ -37,6 +38,7 @@
   ],
   "exclude": [
     "node_modules",
+    "apps",
     "scripts",
     "b_yeh73xcndxr",
     "07docs"

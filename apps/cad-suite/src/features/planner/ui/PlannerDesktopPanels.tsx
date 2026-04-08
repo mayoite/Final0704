@@ -99,6 +99,7 @@ export function PlannerDesktopPanels({
   onGenerateQuote,
 }: PlannerDesktopPanelsProps) {
   const rightPanelOffset = showInspector ? 336 : 0;
+  const toolbarOffsetPx = 188;
 
   return (
     <>
@@ -109,7 +110,7 @@ export function PlannerDesktopPanels({
           docked={catalogPinned}
           isActive={activePanel === "catalog"}
           onFocus={onFocusCatalog}
-          topPx={88}
+          topPx={toolbarOffsetPx}
         >
           <CatalogPanel
             products={catalogProducts}
@@ -139,7 +140,7 @@ export function PlannerDesktopPanels({
           docked={inspectorPinned}
           isActive={activePanel === "inspector"}
           onFocus={onFocusInspector}
-          topPx={88}
+          topPx={toolbarOffsetPx}
         >
           <InspectorPanel
             boqItems={boqItems}
@@ -170,7 +171,7 @@ export function PlannerDesktopPanels({
           isActive={activePanel === "layers"}
           onFocus={onFocusLayers}
           offsetPx={rightPanelOffset}
-          topPx={88}
+          topPx={toolbarOffsetPx}
         >
           <LayersPanel
             editor={editor}

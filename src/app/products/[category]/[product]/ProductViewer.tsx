@@ -685,7 +685,7 @@ export function ProductViewer({
                 </Link>
                 <div className="mt-2 grid gap-2">
                   <Link
-                    href="/planning"
+                    href="/planner"
                     className="pdp-cta-secondary group"
                   >
                     <span className="pdp-action-label">

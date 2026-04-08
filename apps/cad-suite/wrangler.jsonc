@@ -4,6 +4,12 @@
   "name": "oneandonly-cad-suite",
   "compatibility_date": "2026-04-06",
   "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "routes": [
+    {
+      "pattern": "cad.oando.co.in",
+      "custom_domain": true
+    }
+  ],
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
@@ -29,5 +35,15 @@
   ],
   "images": {
     "binding": "IMAGES"
+  },
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://cad.oando.co.in",
+    "SITE_URL": "https://cad.oando.co.in",
+    "NEXT_PUBLIC_SUPABASE_URL": "https://erpweaiypimorcunaimz.supabase.co",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_s-rFltnlTHSTmNtYQrdOyQ_Z2P13F0t",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_s-rFltnlTHSTmNtYQrdOyQ_Z2P13F0t",
+    "SUPABASE_URL": "https://erpweaiypimorcunaimz.supabase.co",
+    "OPENAI_MODEL": "gpt-5.4",
+    "OPENROUTER_MODEL": "openrouter/free"
   }
 }

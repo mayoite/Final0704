@@ -10,6 +10,9 @@ interface PlannerCanvasProps {
   currentStep: PlannerStep;
   onMount: Parameters<typeof Tldraw>[0]["onMount"];
   isGridVisible: boolean;
+  topInsetPx?: number;
+  leftInsetPx?: number;
+  rightInsetPx?: number;
   gridState: {
     originX: number;
     originY: number;
@@ -26,6 +29,9 @@ export function PlannerCanvas({
   currentStep,
   onMount,
   isGridVisible,
+  topInsetPx = 0,
+  leftInsetPx = 0,
+  rightInsetPx = 0,
   gridState,
   measurements,
 }: PlannerCanvasProps) {
@@ -33,7 +39,7 @@ export function PlannerCanvas({
   const majorGrid = minorGrid * 5;
 
   return (
-    <div className="absolute inset-0 z-0">
+    <div className="absolute z-0" style={{ top: topInsetPx, left: leftInsetPx, right: rightInsetPx, bottom: 0 }}>
       <Tldraw
         onMount={onMount}
         hideUi={true}
@@ -57,7 +63,7 @@ export function PlannerCanvas({
         />
       ) : null}
 
-      <div className="pointer-events-none absolute top-28 left-1/2 z-20 -translate-x-1/2">
+      <div className="pointer-events-none absolute top-6 left-1/2 z-20 -translate-x-1/2">
         <div className="surface-overlay-95 flex items-center gap-2 rounded-full border border-theme-soft px-5 py-2 text-strong shadow-theme-panel backdrop-blur-md">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success-soft opacity-75" />

@@ -4,7 +4,6 @@ import { PartnershipBanner } from "@/components/home/PartnershipBanner";
 import { Collections } from "@/components/home/Collections";
 import { TrustStrip } from "@/components/home/TrustStrip";
 import { ShowcaseCarousel } from "@/components/home/ShowcaseCarousel";
-import { VideoSection } from "@/components/home/VideoSection";
 import { InteractiveTools } from "@/components/home/InteractiveTools";
 import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 import { ProcessSection } from "@/components/home/ProcessSection";

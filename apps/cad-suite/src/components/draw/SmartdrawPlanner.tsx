@@ -78,6 +78,13 @@ export function SmartdrawPlanner({
   const applyPlannerDocument = workspace.applyPlannerDocument;
   const getDraftScope = session.getDraftScope;
   const reportSessionError = session.reportSessionError;
+  const desktopTopInsetPx = workspace.isMobileMode ? 128 : 192;
+  const canvasLeftInsetPx = !workspace.isMobileMode && workspace.showCatalog && workspace.catalogPinned ? 336 : 0;
+  const canvasRightInsetPx =
+    !workspace.isMobileMode
+      ? (workspace.showInspector && workspace.inspectorPinned ? 336 : 0) +
+        (workspace.showLayers && workspace.layersPinned ? 336 : 0)
+      : 0;
 
   useEffect(() => {
     if (!plannerEditor || hydratedInitialDocument) return;
@@ -204,6 +211,9 @@ export function SmartdrawPlanner({
           currentStep={workspace.currentStep}
           onMount={workspace.handleMount}
           isGridVisible={workspace.isGridVisible}
+          topInsetPx={desktopTopInsetPx}
+          leftInsetPx={canvasLeftInsetPx}
+          rightInsetPx={canvasRightInsetPx}
           gridState={workspace.gridState}
           measurements={workspace.canvasMeasurements}
         />
