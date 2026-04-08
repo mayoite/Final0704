@@ -29,7 +29,7 @@
 <g id="node1" class="node">
 <title>ext_afc</title>
 <path fill="#fff5f5" stroke="#2d3748" d="M98.12,-257C98.12,-257 17.62,-257 17.62,-257 11.62,-257 5.62,-251 5.62,-245 5.62,-245 5.62,-233 5.62,-233 5.62,-227 11.62,-221 17.62,-221 17.62,-221 98.12,-221 98.12,-221 104.12,-221 110.12,-227 110.12,-233 110.12,-233 110.12,-245 110.12,-245 110.12,-251 104.12,-257 98.12,-257"/>
-<text xml:space="preserve" text-anchor="middle" x="57.88" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">E1 AFC backups</text>
+<text xml:space="preserve" text-anchor="middle" x="57.88" y="-241.5" font-family="Helvetica,sans-Serif" font-size="10.00">E1 legacy backups</text>
 <text xml:space="preserve" text-anchor="middle" x="57.88" y="-229.5" font-family="Helvetica,sans-Serif" font-size="10.00">(manual corrections)</text>
 </g>
 <!-- proc_map -->
@@ -65,7 +65,7 @@
 <title>ext_paths</title>
 <path fill="#fff5f5" stroke="#2d3748" d="M103.75,-121C103.75,-121 12,-121 12,-121 6,-121 0,-115 0,-109 0,-109 0,-97 0,-97 0,-91 6,-85 12,-85 12,-85 103.75,-85 103.75,-85 109.75,-85 115.75,-91 115.75,-97 115.75,-97 115.75,-109 115.75,-109 115.75,-115 109.75,-121 103.75,-121"/>
 <text xml:space="preserve" text-anchor="middle" x="57.88" y="-105.5" font-family="Helvetica,sans-Serif" font-size="10.00">E3 legacy image paths</text>
-<text xml:space="preserve" text-anchor="middle" x="57.88" y="-93.5" font-family="Helvetica,sans-Serif" font-size="10.00">(/images/afc/*)</text>
+<text xml:space="preserve" text-anchor="middle" x="57.88" y="-93.5" font-family="Helvetica,sans-Serif" font-size="10.00">(/images/catalog/*)</text>
 </g>
 <!-- ext_paths&#45;&gt;proc_map -->
 <g id="edge3" class="edge">

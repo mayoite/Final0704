@@ -41,7 +41,7 @@ interface PlannerMobilePanelsProps {
   onToggleSnap: () => void;
   onUpdateSelectionDimensions: (next: { widthMm?: number; heightMm?: number | null }) => void;
   onUnitSystemChange: (unit: "mm" | "ft-in") => void;
-  onGenerateQuote: () => void;
+  onAdvanceBoqFlow: () => void;
 }
 
 export function PlannerMobilePanels({
@@ -76,7 +76,7 @@ export function PlannerMobilePanels({
   onToggleSnap,
   onUpdateSelectionDimensions,
   onUnitSystemChange,
-  onGenerateQuote,
+  onAdvanceBoqFlow,
 }: PlannerMobilePanelsProps) {
   return (
     <>
@@ -153,8 +153,8 @@ export function PlannerMobilePanels({
             isSnapMode={isSnapMode}
             onToggleSnap={onToggleSnap}
             onUpdateSelectionDimensions={onUpdateSelectionDimensions}
-            onGenerateQuote={() => {
-              onGenerateQuote();
+            onAdvanceBoqFlow={() => {
+              onAdvanceBoqFlow();
               onOpenInspectorChange(false);
             }}
             onClose={() => onOpenInspectorChange(false)}

@@ -19,7 +19,7 @@ interface InspectorPanelProps {
   isSnapMode: boolean;
   onToggleSnap: () => void;
   onUpdateSelectionDimensions: (next: { widthMm?: number; heightMm?: number | null }) => void;
-  onGenerateQuote: () => void;
+  onAdvanceBoqFlow: () => void;
   onClose: () => void;
   pinned: boolean;
   onTogglePin: () => void;
@@ -68,7 +68,7 @@ export function InspectorPanel({
   isSnapMode,
   onToggleSnap,
   onUpdateSelectionDimensions,
-  onGenerateQuote,
+  onAdvanceBoqFlow,
   onClose,
   pinned,
   onTogglePin,
@@ -83,7 +83,7 @@ export function InspectorPanel({
   const isMeasureStep = currentStep === "measure";
   const hasBoqData = boqItems.length > 0 || totalBoq > 0;
 
-  const quoteLabel = isRoomStep
+  const primaryActionLabel = isRoomStep
     ? "Continue to Catalog"
     : isCatalogStep ? "Continue to Measure"
     : isMeasureStep ? "Continue to Review" : "Open BOQ Enquiry";
@@ -190,9 +190,9 @@ export function InspectorPanel({
                   <span className="text-[14px] font-bold text-[color:var(--planner-primary)]">{boqItems.length}</span>
                 </div>
               )}
-              <button onClick={onGenerateQuote} disabled={primaryDisabled}
+              <button onClick={onAdvanceBoqFlow} disabled={primaryDisabled}
                 className="flex w-full items-center justify-center gap-2 bg-[color:var(--planner-primary)] py-2.5 text-[12px] font-semibold text-white transition-colors hover:bg-[color:var(--planner-primary-hover)] disabled:bg-[color:var(--planner-border-soft)] disabled:text-[color:var(--planner-text-subtle)]">
-                <FileText className="h-4 w-4" /> {quoteLabel}
+                <FileText className="h-4 w-4" /> {primaryActionLabel}
               </button>
             </div>
           </div>

@@ -118,7 +118,7 @@ export function FurnitureTable({ furniture }: FurnitureTableProps) {
                   {item.width_cm} x {item.depth_cm} x {item.height_cm}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
-                  AFC India
+                  One & Only
                 </TableCell>
                 <TableCell>
                   {item.is_active ? (

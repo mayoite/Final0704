@@ -312,37 +312,37 @@ export const GALLERY_PROJECTS = [
   {
     title: "Titan Workspace",
     location: "Patna",
-    image: "/projects/Titan/27-06-2025 Image 05_edited_edited.webp",
+    image: "/images/projects/Titan/27-06-2025 Image 05_edited_edited.webp",
     category: "Corporate fit-out",
   },
   {
     title: "TVS Office",
     location: "Patna",
-    image: "/projects/TVS/27-06-2025 Image 03.webp",
+    image: "/images/projects/TVS/27-06-2025 Image 03.webp",
     category: "Operations floor",
   },
   {
     title: "DMRC Facility",
     location: "New Delhi",
-    image: "/projects/DMRC/IMG_20200612_145931.webp",
+    image: "/images/projects/DMRC/IMG_20200612_145931.webp",
     category: "Institutional workspace",
   },
   {
     title: "Usha Setup",
     location: "Patna",
-    image: "/projects/Usha/DSC_0077_edited.webp",
+    image: "/images/projects/Usha/DSC_0077_edited.webp",
     category: "Workspace modernization",
   },
   {
     title: "Government Office",
     location: "Patna",
-    image: "/projects/Govenment/20140707_124458_compressed.webp",
+    image: "/images/projects/Govenment/20140707_124458_compressed.webp",
     category: "Public sector project",
   },
   {
     title: "Franklin Templeton",
     location: "India",
-    image: "/projects/FranklinTempleton/WhatsApp Image 2020-08-28 at 12.40.51.webp",
+    image: "/images/projects/FranklinTempleton/WhatsApp Image 2020-08-28 at 12.40.51.webp",
     category: "Enterprise deployment",
   },
 ] as const;

@@ -163,8 +163,8 @@ interface UsePlannerWorkspaceOptions {
   activeDocumentId: string | null;
   setActiveDocumentId: (value: string | null) => void;
   navigate: (href: string) => void;
-  addQuoteItem: (item: ReturnType<typeof buildPlannerQuoteCartItems>[number]) => void;
-  clearQuoteCart: () => void;
+  addBoqItem: (item: ReturnType<typeof buildPlannerQuoteCartItems>[number]) => void;
+  clearBoqCart: () => void;
   catalogProducts?: CatalogProduct[];
 }
 
@@ -199,9 +199,8 @@ export function usePlannerWorkspace({
   activeDocumentId,
   setActiveDocumentId,
   navigate,
-  addQuoteItem,
-  clearQuoteCart,
-  catalogProducts = [],
+  addBoqItem,
+  clearBoqCart,
 }: UsePlannerWorkspaceOptions) {
   const [editor, setEditor] = useState<Editor | null>(null);
   const [boqItems, setBoqItems] = useState<BoqItem[]>([]);
@@ -424,7 +423,7 @@ export function usePlannerWorkspace({
       if (currentStep === "review" && items.length > 0) {
         suggestions.push({
           type: "action",
-          text: `${items.length} item(s) ready. Click Generate Final Quote to proceed.`,
+          text: `${items.length} item(s) ready. Open the BOQ enquiry to continue.`,
         });
       }
 
@@ -488,7 +487,7 @@ export function usePlannerWorkspace({
       });
     };
 
-    syncViewportState();
+    scheduleViewportSync();
     const stopListening = editor.store.listen(scheduleViewportSync);
 
     return () => {
@@ -776,7 +775,6 @@ export function usePlannerWorkspace({
           }
 
           // ── 3. Zone label text at centre of each space ───────────────────
-          const zoneStartX = xCursor - (zIdx < zones.length - 1 ? 0 : 0);
           // Compute correct zone start
           let zoneOx = 0;
           for (let k = 0; k < zIdx; k++) {
@@ -924,7 +922,7 @@ export function usePlannerWorkspace({
     resolvePlannerWallJoins(editor, selectedIds.length > 0 ? selectedIds : undefined);
   }, [editor, getActionableSelectionIds]);
 
-  const handleGenerateQuote = useCallback(() => {
+  const handleAdvanceBoqFlow = useCallback(() => {
     if (currentStep === "room") {
       if (!canEnterCatalog) return;
       applyStepMode("catalog");
@@ -942,13 +940,13 @@ export function usePlannerWorkspace({
     }
     if (boqItems.length === 0) return;
 
-    clearQuoteCart();
+    clearBoqCart();
     buildPlannerQuoteCartItems(boqItems).forEach((item) => {
-      addQuoteItem(item);
+      addBoqItem(item);
     });
 
     navigate("/quote-cart");
-  }, [addQuoteItem, applyStepMode, boqItems, canEnterCatalog, canEnterMeasure, canEnterReview, clearQuoteCart, currentStep, navigate]);
+  }, [addBoqItem, applyStepMode, boqItems, canEnterCatalog, canEnterMeasure, canEnterReview, clearBoqCart, currentStep, navigate]);
 
   const totalBoq = calculatePlannerBoqTotal(boqItems);
 
@@ -1092,7 +1090,7 @@ export function usePlannerWorkspace({
       handleAddWallSegment,
       handleAddDoorOpening,
       handleResolveWallJoins,
-      handleGenerateQuote,
+      handleAdvanceBoqFlow,
       adjustZoom,
       handleUndo,
       handleRedo,

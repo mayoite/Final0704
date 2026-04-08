@@ -43,8 +43,8 @@ function Verify2FAContent() {
       // No factor yet — enroll now
       const { data: enrollData, error: enrollError } = await supabase.auth.mfa.enroll({
         factorType: "totp",
-        issuer: "AFC India Admin",
-        friendlyName: "AFC Admin",
+        issuer: "One & Only Admin",
+        friendlyName: "Admin",
       })
       if (enrollError || !enrollData) {
         setPhase({ kind: "error", message: enrollError?.message ?? "Enrollment failed" })

@@ -111,7 +111,7 @@ const CHECKLIST: ChecklistSection[] = [
     title: "Product Catalog",
     icon: React.createElement(Package, { className: "h-4 w-4" }),
     items: [
-      { text: "229 AFC India products from planner-catalog.v1.json", status: "done" },
+      { text: "229 products from planner-catalog.v1.json", status: "done" },
       { text: "3-step flow: Category -> Family -> Size", status: "done" },
       { text: "Fuse.js fuzzy search across all items", status: "done" },
       { text: "Drag-to-canvas with correct mm dimensions (cm x 10)", status: "done" },
@@ -147,7 +147,7 @@ const CHECKLIST: ChecklistSection[] = [
       { text: "jsPDF A4 customer proposal (port from BlueprintPlanner)", status: "todo", note: "jsPDF 4 + html2canvas both installed" },
       { text: "Canvas screenshot capture ref (workspaceCaptureRef)", status: "todo" },
       { text: "Client metadata fields (name, project, preparedBy)", status: "todo", note: "Port PlannerClientBar.tsx from legacy planner" },
-      { text: "AFC India letterhead + branding in PDF", status: "todo" },
+      { text: "Brand letterhead + branding in PDF", status: "todo" },
     ],
   },
   {
@@ -414,7 +414,7 @@ export default function PlannerOverhaulPage() {
                 <LayoutGrid className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="typ-caption font-semibold uppercase tracking-widest text-muted">AFC India — Internal</p>
+                <p className="typ-caption font-semibold uppercase tracking-widest text-muted">Internal</p>
                 <h1 className="text-lg font-bold leading-tight text-white">Planner Overhaul Hub</h1>
                 <p className="typ-caption-lg text-muted">Master control center · /ops/planner-overhaul</p>
               </div>
@@ -493,7 +493,7 @@ export default function PlannerOverhaulPage() {
                   Unify the fragmented planning tools into one world-class experience.
                 </h2>
                 <p className="text-sm leading-relaxed text-inverse-muted">
-                  AFC India has two separate planning tools —{" "}
+                  The repo has two separate planning tools —{" "}
                   <code className="font-mono text-xs bg-white/10 px-1 py-0.5 rounded">/planner</code> and{" "}
                   <code className="font-mono text-xs bg-white/10 px-1 py-0.5 rounded">/configurator</code> — with duplicated
                   logic, no shared state, and no path to an integrated quote flow. The overhaul replaces both with{" "}
@@ -522,7 +522,7 @@ export default function PlannerOverhaulPage() {
                     <h3 className="font-semibold text-success">The Vision</h3>
                   </div>
                   <ul className="space-y-2 typ-body-sm text-inverse-muted">
-                    <li>•{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/planner2</code>{" "}— single, unified planning tool for all AFC product lines.</li>
+                    <li>•{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/planner2</code>{" "}— single, unified planning tool for all product lines.</li>
                     <li>• SmartDraw-style catalog → place furniture on canvas → Get Quote →{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/quote-cart</code>{" "}→ submit to sales.</li>
                     <li>• Customer journey: browse → plan → quote-cart → contact(intent=quote).</li>
                     <li>• Full customer accounts planned but not yet built (Partner Portal exists at /login).</li>
@@ -866,7 +866,7 @@ export default function PlannerOverhaulPage() {
 
       {/* Footer */}
       <div className="border-t border-white/10 px-6 py-4 text-center typ-caption-lg text-strong">
-        AFC India — Planner Overhaul Hub · Internal ops page · noindex · /ops/planner-overhaul
+        Planner Overhaul Hub · Internal ops page · noindex · /ops/planner-overhaul
       </div>
     </div>
   );

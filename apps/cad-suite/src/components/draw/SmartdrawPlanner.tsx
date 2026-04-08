@@ -65,8 +65,8 @@ export function SmartdrawPlanner({
     activeDocumentId,
     setActiveDocumentId,
     navigate: (href) => router.push(href),
-    addQuoteItem: (item) => quoteCart.addItem(item),
-    clearQuoteCart: () => quoteCart.clearCart(),
+    addBoqItem: (item) => quoteCart.addItem(item),
+    clearBoqCart: () => quoteCart.clearCart(),
     catalogProducts,
   });
 
@@ -323,7 +323,7 @@ export function SmartdrawPlanner({
             onToggleSnap={() => workspace.setIsSnapMode((current) => !current)}
             onUpdateSelectionDimensions={workspace.handleUpdateSelectionDimensions}
             onUnitSystemChange={workspace.setUnitSystem}
-            onGenerateQuote={workspace.handleGenerateQuote}
+            onAdvanceBoqFlow={workspace.handleAdvanceBoqFlow}
             topInsetPx={desktopTopInsetPx}
             panelDockedSpanPx={desktopPanelDockedSpanPx}
           />
@@ -367,7 +367,7 @@ export function SmartdrawPlanner({
           onToggleSnap={() => workspace.setIsSnapMode((current) => !current)}
           onUpdateSelectionDimensions={workspace.handleUpdateSelectionDimensions}
           onUnitSystemChange={workspace.setUnitSystem}
-          onGenerateQuote={workspace.handleGenerateQuote}
+          onAdvanceBoqFlow={workspace.handleAdvanceBoqFlow}
         />
       ) : null}
 

@@ -26,7 +26,7 @@ export default async function SocialPage() {
         title={SOCIAL_PAGE_COPY.heroTitle}
         subtitle={SOCIAL_PAGE_COPY.heroSubtitle}
         showButton={false}
-        backgroundImage="/projects/Titan/27-06-2025 Image 05_edited_edited.webp"
+        backgroundImage="/images/projects/Titan/27-06-2025 Image 05_edited_edited.webp"
       />
 
       <section className="container px-6 py-18 2xl:px-0 md:py-22">

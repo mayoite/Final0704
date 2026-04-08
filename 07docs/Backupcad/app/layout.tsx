@@ -8,7 +8,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: 'FloorPlanner - 2D/3D Office Layout Designer',
-  description: 'Design professional office layouts with our intuitive 2D editor and immersive 3D walkthrough. Features AFC India furniture catalog.',
+  description: 'Design professional office layouts with our intuitive 2D editor and immersive 3D walkthrough. Features One & Only furniture catalog.',
   generator: 'v0.app',
   icons: {
     icon: [

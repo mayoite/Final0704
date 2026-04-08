@@ -30,7 +30,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 text-center">
           <div className="inline-flex items-center gap-2 rounded-full bg-muted px-4 py-1.5 text-sm text-muted-foreground mb-6">
             <span className="flex h-2 w-2 rounded-full bg-accent" />
-            Powered by AFC India Furniture Catalog
+            Powered by One & Only Furniture Catalog
           </div>
           <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-balance max-w-4xl mx-auto mb-6">
             Design Your Perfect Office Layout in 2D & 3D
@@ -72,7 +72,7 @@ export default function HomePage() {
             <FeatureCard
               icon={<Boxes className="h-6 w-6" />}
               title="Furniture Library"
-              description="50+ office furniture items from AFC India with accurate dimensions and specifications."
+              description="50+ office furniture items from One & Only with accurate dimensions and specifications."
             />
             <FeatureCard
               icon={<Users className="h-6 w-6" />}
@@ -87,7 +87,7 @@ export default function HomePage() {
       <footer className="py-8 border-t border-border">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>FloorPlanner - Professional Office Layout Designer</p>
-          <p className="mt-1">Furniture catalog sourced from AFC India</p>
+          <p className="mt-1">Furniture catalog sourced from One & Only</p>
         </div>
       </footer>
     </div>

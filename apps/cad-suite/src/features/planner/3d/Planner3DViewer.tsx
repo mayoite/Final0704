@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   ContactShadows,
@@ -323,7 +323,7 @@ function WalkCamera({
   const euler = useRef(new THREE.Euler(0, 0, 0, "YXZ"));
   const isPointerLocked = useRef(false);
 
-  const persistWalkPose = () => {
+  const persistWalkPose = useCallback(() => {
     const camera = cameraRef.current;
     if (!camera) return;
 
@@ -331,7 +331,7 @@ function WalkCamera({
       position: [camera.position.x, camera.position.y, camera.position.z],
       rotation: [euler.current.x, euler.current.y],
     };
-  };
+  }, [cameraMemoryRef]);
 
   useEffect(() => {
     const camera = cameraRef.current;
@@ -388,7 +388,7 @@ function WalkCamera({
         void document.exitPointerLock();
       }
     };
-  }, [cameraMemoryRef, gl, metrics]);
+  }, [cameraMemoryRef, gl, metrics, persistWalkPose]);
 
   useFrame((_state, delta) => {
     const camera = cameraRef.current;
@@ -506,9 +506,9 @@ export function Planner3DViewer({ document, className }: Planner3DViewerProps) {
   const sceneSignature = useMemo(() => getSceneSignature(sceneDocument), [sceneDocument]);
   const cameraMemoryRef = useRef<CameraMemory>({ sceneSignature });
 
-  if (cameraMemoryRef.current.sceneSignature !== sceneSignature) {
+  useEffect(() => {
     cameraMemoryRef.current = { sceneSignature };
-  }
+  }, [sceneSignature]);
 
   return (
     <div className={`surface-inverse relative overflow-hidden rounded-[2rem] border border-theme-soft shadow-theme-float ${className ?? ""}`}>

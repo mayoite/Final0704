@@ -29,9 +29,9 @@ function totalQty(items: QuoteCartItem[]): number {
 }
 
 const noopStorage = {
-  getItem: (_name: string) => null,
-  setItem: (_name: string, _value: string) => {},
-  removeItem: (_name: string) => {},
+  getItem: () => null,
+  setItem: () => {},
+  removeItem: () => {},
 };
 
 const quoteCartStorage = createJSONStorage(() =>

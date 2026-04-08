@@ -45,7 +45,7 @@
 <g id="node4" class="node">
 <title>a1</title>
 <path fill="#ebf8ff" stroke="#2d3748" d="M476.75,-2318.45C476.75,-2318.45 345.25,-2318.45 345.25,-2318.45 339.25,-2318.45 333.25,-2312.45 333.25,-2306.45 333.25,-2306.45 333.25,-2294.45 333.25,-2294.45 333.25,-2288.45 339.25,-2282.45 345.25,-2282.45 345.25,-2282.45 476.75,-2282.45 476.75,-2282.45 482.75,-2282.45 488.75,-2288.45 488.75,-2294.45 488.75,-2294.45 488.75,-2306.45 488.75,-2306.45 488.75,-2312.45 482.75,-2318.45 476.75,-2318.45"/>
-<text xml:space="preserve" text-anchor="middle" x="411" y="-2296.95" font-family="Helvetica,sans-Serif" font-size="10.00">A1 Load AFC backups (primary)</text>
+<text xml:space="preserve" text-anchor="middle" x="411" y="-2296.95" font-family="Helvetica,sans-Serif" font-size="10.00">A1 Load legacy backups (primary)</text>
 </g>
 <!-- start&#45;&gt;a1 -->
 <g id="edge1" class="edge">
@@ -114,7 +114,7 @@
 <title>a4</title>
 <path fill="#fffaf0" stroke="#2d3748" d="M623.5,-1980.82C623.5,-1980.82 508.5,-1980.82 508.5,-1980.82 502.5,-1980.82 496.5,-1974.82 496.5,-1968.82 496.5,-1968.82 496.5,-1956.82 496.5,-1956.82 496.5,-1950.82 502.5,-1944.82 508.5,-1944.82 508.5,-1944.82 623.5,-1944.82 623.5,-1944.82 629.5,-1944.82 635.5,-1950.82 635.5,-1956.82 635.5,-1956.82 635.5,-1968.82 635.5,-1968.82 635.5,-1974.82 629.5,-1980.82 623.5,-1980.82"/>
 <text xml:space="preserve" text-anchor="middle" x="566" y="-1965.32" font-family="Helvetica,sans-Serif" font-size="10.00">A4 Resolve conflicts</text>
-<text xml:space="preserve" text-anchor="middle" x="566" y="-1953.32" font-family="Helvetica,sans-Serif" font-size="10.00">(AFC priority) + write diff log</text>
+<text xml:space="preserve" text-anchor="middle" x="566" y="-1953.32" font-family="Helvetica,sans-Serif" font-size="10.00">(legacy priority) + write diff log</text>
 </g>
 <!-- g1&#45;&gt;a4 -->
 <g id="edge6" class="edge">

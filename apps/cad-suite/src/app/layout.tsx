@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import "./globals.css";
 import DynamicBotWrapper from "@/components/bot/DynamicBotWrapper";
 import { ciscoSans, helveticaNeue } from "@/lib/fonts";
+import { SITE_URL } from "@/lib/siteUrl";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "One&Only CAD Suite",
   description: "Professional interior planning and 3D configuration tools.",
 };

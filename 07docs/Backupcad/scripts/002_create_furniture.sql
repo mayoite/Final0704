@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS public.furniture_items (
   name TEXT NOT NULL,
   category TEXT NOT NULL CHECK (category IN ('workstation', 'desk', 'chair', 'table', 'storage', 'seating', 'accessory')),
   subcategory TEXT,
-  brand TEXT DEFAULT 'AFC India',
+  brand TEXT DEFAULT 'One & Only',
   width_cm NUMERIC NOT NULL,
   depth_cm NUMERIC NOT NULL,
   height_cm NUMERIC NOT NULL,

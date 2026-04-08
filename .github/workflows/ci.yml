@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm install
+
+      - name: Root lint
+        run: npm run lint
+
+      - name: CAD lint
+        run: npm -w cad-suite run lint
+
+      - name: Planner tests
+        run: npm run test:planner
+
+      - name: Root build
+        run: npm run build
+
+      - name: CAD build
+        run: npm -w cad-suite run build

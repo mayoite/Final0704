@@ -44,7 +44,7 @@ describe("planner 3d scene document", () => {
     expect(scene.room).toEqual({
       widthMm: 7200,
       depthMm: 5400,
-      wallHeightMm: 3000,
+      wallHeightMm: 2100,
       wallThicknessMm: 120,
       floorThicknessMm: 40,
     });

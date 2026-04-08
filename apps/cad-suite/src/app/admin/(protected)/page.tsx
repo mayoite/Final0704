@@ -101,7 +101,7 @@ export default async function AdminPage() {
         <div>
           <h1 className="text-2xl font-bold text-inverse">Internal Hub</h1>
           <p className="mt-1 text-sm text-inverse-muted">
-            AFC India — workspace tools and ops dashboards
+            One & Only — workspace tools and ops dashboards
           </p>
         </div>
         <div className="flex items-center gap-2 rounded-xl border border-theme-inverse surface-overlay-08 px-3 py-2 text-xs text-inverse-muted">

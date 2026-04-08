@@ -55,7 +55,7 @@ interface PlannerDesktopPanelsProps {
   onToggleSnap: () => void;
   onUpdateSelectionDimensions: (next: { widthMm?: number; heightMm?: number | null }) => void;
   onUnitSystemChange: (unit: "mm" | "ft-in") => void;
-  onGenerateQuote: () => void;
+  onAdvanceBoqFlow: () => void;
   topInsetPx?: number;
   panelDockedSpanPx?: number;
 }
@@ -102,7 +102,7 @@ export function PlannerDesktopPanels({
   onToggleSnap,
   onUpdateSelectionDimensions,
   onUnitSystemChange,
-  onGenerateQuote,
+  onAdvanceBoqFlow,
   topInsetPx = 188,
   panelDockedSpanPx = DEFAULT_PLANNER_PANEL_WIDTH_PX + DEFAULT_PLANNER_PANEL_DOCK_GAP_PX,
 }: PlannerDesktopPanelsProps) {
@@ -162,7 +162,7 @@ export function PlannerDesktopPanels({
             isSnapMode={isSnapMode}
             onToggleSnap={onToggleSnap}
             onUpdateSelectionDimensions={onUpdateSelectionDimensions}
-            onGenerateQuote={onGenerateQuote}
+            onAdvanceBoqFlow={onAdvanceBoqFlow}
             onClose={onCloseInspector}
             pinned={inspectorPinned}
             onTogglePin={onToggleInspectorPin}

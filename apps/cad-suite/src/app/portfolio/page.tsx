@@ -30,13 +30,13 @@ function encodePathForNextImage(pathname: string): string {
 }
 
 async function getClientPhotos(folder: string): Promise<string[]> {
-  const folderPath = path.join(process.cwd(), "public", "projects", folder);
+  const folderPath = path.join(process.cwd(), "public", "images", "projects", folder);
   const fileNames = await fs.readdir(folderPath);
   return fileNames
     .filter((name) => /\.(webp|jpg|jpeg|png)$/i.test(name))
     .filter((name) => !BROKEN_PORTFOLIO_FILES.has(name))
     .sort((a, b) => a.localeCompare(b))
-    .map((name) => `/projects/${folder}/${name}`);
+    .map((name) => `/images/projects/${folder}/${name}`);
 }
 
 async function buildPortfolioData(): Promise<ClientPortfolioWithPhotos[]> {
@@ -55,7 +55,7 @@ export default async function PortfolioPage() {
   const totalPhotos = portfolio.reduce((sum, item) => sum + item.photos.length, 0);
   const portfolioHero = encodePathForNextImage(
     portfolio.find((item) => item.id === "titan")?.photos[0] ??
-      "/projects/Titan/27-06-2025 Image 05_edited_edited.webp",
+      "/images/projects/Titan/27-06-2025 Image 05_edited_edited.webp",
   );
 
   return (

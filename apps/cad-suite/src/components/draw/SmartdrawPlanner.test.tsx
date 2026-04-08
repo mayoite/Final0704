@@ -76,9 +76,9 @@ describe("SmartdrawPlanner", () => {
   it("starts in room shell mode with later steps gated", () => {
     render(<SmartdrawPlanner catalogProducts={[]} />);
 
-    expect(screen.getByText(/Room Shell - Walls and basic shapes/i)).toBeDefined();
-    expect((screen.getByRole("button", { name: /Stage 2 Catalog/i }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: /Stage 3 Measure/i }) as HTMLButtonElement).disabled).toBe(true);
-    expect((screen.getByRole("button", { name: /Stage 4 Review/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByRole("button", { name: /^Space$/i })).toHaveAttribute("aria-current", "step");
+    expect((screen.getByRole("button", { name: /^Catalog$/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: /^Measure$/i }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole("button", { name: /^Review$/i }) as HTMLButtonElement).disabled).toBe(true);
   });
 });

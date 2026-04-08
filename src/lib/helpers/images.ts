@@ -45,11 +45,6 @@ export function normalizeImageSource(path: string | null | undefined): string {
   let candidatePath = normalized;
   let candidateLower = candidatePath.toLowerCase();
 
-  if (candidateLower.startsWith("/images/afc/")) {
-    candidatePath = `/images/catalog/${candidatePath.slice("/images/afc/".length)}`;
-    candidateLower = candidatePath.toLowerCase();
-  }
-
   if (hasImageExtension && candidateLower.startsWith("/products/")) {
     candidatePath = `/images/products/${candidatePath.slice("/products/".length)}`;
     candidateLower = candidatePath.toLowerCase();

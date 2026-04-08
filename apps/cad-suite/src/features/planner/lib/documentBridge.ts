@@ -111,7 +111,8 @@ function sanitizePlannerSnapshot<T>(value: T): T {
 
   for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
     if (key === "meta" && entry && typeof entry === "object" && !Array.isArray(entry)) {
-      const { price: _removedPrice, ...metaWithoutPrice } = entry as Record<string, unknown>;
+      const metaWithoutPrice = { ...(entry as Record<string, unknown>) };
+      delete metaWithoutPrice.price;
       clone[key] = sanitizePlannerSnapshot(metaWithoutPrice);
       continue;
     }

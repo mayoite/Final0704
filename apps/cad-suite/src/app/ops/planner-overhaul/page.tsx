@@ -111,7 +111,7 @@ const CHECKLIST: ChecklistSection[] = [
     title: "Product Catalog",
     icon: React.createElement(Package, { className: "h-4 w-4" }),
     items: [
-      { text: "229 AFC India products from planner-catalog.v1.json", status: "done" },
+      { text: "229 products from planner-catalog.v1.json", status: "done" },
       { text: "3-step flow: Category -> Family -> Size", status: "done" },
       { text: "Fuse.js fuzzy search across all items", status: "done" },
       { text: "Drag-to-canvas with correct mm dimensions (cm x 10)", status: "done" },
@@ -123,15 +123,15 @@ const CHECKLIST: ChecklistSection[] = [
     ],
   },
   {
-    id: "quote",
-    title: "Quote Flow",
+    id: "boq-handoff",
+    title: "BOQ Handoff",
     icon: React.createElement(ShoppingCart, { className: "h-4 w-4" }),
     items: [
       { text: "PlannerQuoteBar appears when 1+ item placed", status: "done" },
       { text: "Family chips aggregate duplicates", status: "done" },
-      { text: "Get Quote navigates to /quote-cart", status: "done" },
+      { text: "Open BOQ Enquiry navigates to /quote-cart", status: "done" },
       { text: "QuoteCartItem extended with source + plannerFamily", status: "done" },
-      { text: "quote-cart page shows From your floor plan section", status: "done" },
+      { text: "BOQ enquiry page shows planner handoff items", status: "done" },
       { text: "Series & finish picker on quote-cart page", status: "in-progress" },
       { text: "Product renderings on quote-cart", status: "in-progress" },
     ],
@@ -147,7 +147,7 @@ const CHECKLIST: ChecklistSection[] = [
       { text: "jsPDF A4 customer proposal (port from BlueprintPlanner)", status: "todo", note: "jsPDF 4 + html2canvas both installed" },
       { text: "Canvas screenshot capture ref (workspaceCaptureRef)", status: "todo" },
       { text: "Client metadata fields (name, project, preparedBy)", status: "todo", note: "Port PlannerClientBar.tsx from legacy planner" },
-      { text: "AFC India letterhead + branding in PDF", status: "todo" },
+      { text: "Brand letterhead + branding in PDF", status: "todo" },
     ],
   },
   {
@@ -218,7 +218,7 @@ const SITE_ROUTES: SiteRoute[] = [
   { route: "/download-brochure",         desc: "Brochure request form",                                        type: "public" },
   { route: "/brochure",                  desc: "Brochure direct page",                                         type: "public" },
   { route: "/tracking",                  desc: "Order tracking tool",                                          type: "tool" },
-  { route: "/quote-cart",                desc: "Quote cart - floor plan items to quote request",               type: "tool" },
+  { route: "/quote-cart",                desc: "BOQ enquiry - floor plan items to sales handoff",              type: "tool" },
   { route: "/smartdraw",                 desc: "SmartDraw integration page",                                   type: "tool" },
   { route: "/workstations",              desc: "Workstations category landing",                                 type: "public" },
   { route: "/planner2",                  desc: "Planner v2 - Active dev, our build target",                    type: "tool",   note: "Active dev" },
@@ -414,7 +414,7 @@ export default function PlannerOverhaulPage() {
                 <LayoutGrid className="h-5 w-5 text-white" />
               </div>
               <div>
-                <p className="typ-caption font-semibold uppercase tracking-widest text-muted">AFC India — Internal</p>
+                <p className="typ-caption font-semibold uppercase tracking-widest text-muted">Internal</p>
                 <h1 className="text-lg font-bold leading-tight text-white">Planner Overhaul Hub</h1>
                 <p className="typ-caption-lg text-muted">Master control center · /ops/planner-overhaul</p>
               </div>
@@ -493,12 +493,12 @@ export default function PlannerOverhaulPage() {
                   Unify the fragmented planning tools into one world-class experience.
                 </h2>
                 <p className="text-sm leading-relaxed text-inverse-muted">
-                  AFC India has two separate planning tools —{" "}
+                  The repo has two separate planning tools —{" "}
                   <code className="font-mono text-xs bg-white/10 px-1 py-0.5 rounded">/planner</code> and{" "}
                   <code className="font-mono text-xs bg-white/10 px-1 py-0.5 rounded">/configurator</code> — with duplicated
                   logic, no shared state, and no path to an integrated quote flow. The overhaul replaces both with{" "}
                   <code className="font-mono text-xs bg-white/10 px-1 py-0.5 rounded">/planner2</code>: a single SmartDraw-style
-                  tool that takes a customer from blank canvas to quote submission in one session.
+                  tool that takes a customer from blank canvas to BOQ enquiry in one session.
                 </p>
               </div>
 
@@ -511,7 +511,7 @@ export default function PlannerOverhaulPage() {
                   <ul className="space-y-2 typ-body-sm text-inverse-muted">
                     <li>•{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/planner</code>{" "}(BlueprintPlanner.tsx, 1120 lines) is a standalone codebase — no connection to plannerStore, quote-cart, or engine modules.</li>
                     <li>•{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/configurator</code>{" "}is a second separate codebase — own context, own canvas, own panels.</li>
-                    <li>• Every feature built twice. Quote flow impossible without major surgery.</li>
+                    <li>• Every feature built twice. BOQ handoff impossible without major surgery.</li>
                     <li>• No path from floor plan to /quote-cart without a full rewrite.</li>
                   </ul>
                 </div>
@@ -522,9 +522,9 @@ export default function PlannerOverhaulPage() {
                     <h3 className="font-semibold text-success">The Vision</h3>
                   </div>
                   <ul className="space-y-2 typ-body-sm text-inverse-muted">
-                    <li>•{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/planner2</code>{" "}— single, unified planning tool for all AFC product lines.</li>
-                    <li>• SmartDraw-style catalog → place furniture on canvas → Get Quote →{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/quote-cart</code>{" "}→ submit to sales.</li>
-                    <li>• Customer journey: browse → plan → quote-cart → contact(intent=quote).</li>
+                    <li>•{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/planner2</code>{" "}— single, unified planning tool for all product lines.</li>
+                    <li>• SmartDraw-style catalog → place furniture on canvas → Open BOQ Enquiry →{" "}<code className="font-mono text-xs bg-white/10 px-1 rounded">/quote-cart</code>{" "}→ submit to sales.</li>
+                    <li>• Customer journey: browse → plan → quote-cart → contact(intent=quote) as BOQ follow-up.</li>
                     <li>• Full customer accounts planned but not yet built (Partner Portal exists at /login).</li>
                   </ul>
                 </div>
@@ -794,7 +794,7 @@ export default function PlannerOverhaulPage() {
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <LinkCard label="Planner v2"     href="/planner2"     icon={<LayoutGrid   className="h-5 w-5" />} color="from-blue-600 to-blue-700"       desc="Active dev — our build target" />
                   <LinkCard label="Configurator"   href="/configurator" icon={<Settings     className="h-5 w-5" />} color="from-slate-600 to-slate-700"     desc="Office Planning Studio" />
-                  <LinkCard label="Quote Cart"     href="/quote-cart"   icon={<ShoppingCart className="h-5 w-5" />} color="from-emerald-600 to-emerald-700" desc="Floor plan to quote request" />
+                  <LinkCard label="BOQ Enquiry"    href="/quote-cart"   icon={<ShoppingCart className="h-5 w-5" />} color="from-emerald-600 to-emerald-700" desc="Floor plan to sales handoff" />
                   <LinkCard label="Partner Login"  href="/login"        icon={<Lock         className="h-5 w-5" />} color="from-violet-600 to-violet-700"   desc="Supabase auth portal" />
                 </div>
               </section>
@@ -834,7 +834,7 @@ export default function PlannerOverhaulPage() {
                   <LinkCard label="Products"       href="/products"            icon={<Package      className="h-5 w-5" />} color="from-teal-700 to-teal-800"      desc="229 items" />
                   <LinkCard label="Planner"        href="/planner"             icon={<PanelLeft    className="h-5 w-5" />} color="from-indigo-700 to-indigo-800"   desc="Canonical planner route" />
                   <LinkCard label="Catalog"        href="/catalog"             icon={<FileText     className="h-5 w-5" />} color="from-slate-600 to-slate-700"    desc="Catalogue" />
-                  <LinkCard label="Contact (Quote)"href="/contact?intent=quote"icon={<ShoppingCart className="h-5 w-5" />} color="from-rose-700 to-rose-800"      desc="Submit quote" />
+                  <LinkCard label="Contact (BOQ)"  href="/contact?intent=quote"icon={<ShoppingCart className="h-5 w-5" />} color="from-rose-700 to-rose-800"      desc="Submit BOQ enquiry" />
                   <LinkCard label="Showrooms"      href="/showrooms"           icon={<Map          className="h-5 w-5" />} color="from-slate-600 to-slate-700"    desc="Locations" />
                 </div>
               </section>
@@ -866,7 +866,7 @@ export default function PlannerOverhaulPage() {
 
       {/* Footer */}
       <div className="border-t border-white/10 px-6 py-4 text-center typ-caption-lg text-strong">
-        AFC India — Planner Overhaul Hub · Internal ops page · noindex · /ops/planner-overhaul
+        Planner Overhaul Hub · Internal ops page · noindex · /ops/planner-overhaul
       </div>
     </div>
   );

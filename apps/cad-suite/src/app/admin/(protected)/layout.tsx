@@ -46,7 +46,7 @@ export default async function AdminProtectedLayout({
         {/* Brand */}
         <div className="border-b border-theme-inverse px-5 py-5">
           <p className="typ-caption font-bold uppercase tracking-widest text-inverse-subtle">
-            AFC India
+            One & Only
           </p>
           <p className="mt-0.5 text-base font-bold text-inverse">Admin</p>
         </div>

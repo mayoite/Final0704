@@ -5,7 +5,6 @@ import {
   deletePlannerDocumentFromSupabase,
   listPlannerDocumentsFromSupabase,
   loadPlannerDocumentFromSupabase,
-  PlannerStorageError,
   savePlannerDocumentToSupabase,
 } from "./plannerSaves";
 
