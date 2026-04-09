@@ -16,6 +16,9 @@ export function RouteChrome({
   const pathname = usePathname();
   const isCADRoute =
     pathname === "/planner" || pathname?.startsWith("/planner/") ||
+    pathname === "/planner-blueprint" || pathname?.startsWith("/planner-blueprint/") ||
+    pathname === "/planner1" || pathname?.startsWith("/planner1/") ||
+    pathname === "/planner-lab" || pathname?.startsWith("/planner-lab/") ||
     pathname === "/draw" || pathname?.startsWith("/draw/") ||
     pathname === "/configurator" || pathname?.startsWith("/configurator/");
 

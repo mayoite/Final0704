@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
-import "../planner.tokens.css";
-import "../planner.components.css";
+import "../planner-blueprint.tokens.css";
+import "../planner-blueprint.components.css";
 
 export const metadata: Metadata = {
   title: "Planner 1 | One&Only",

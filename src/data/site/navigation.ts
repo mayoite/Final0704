@@ -6,7 +6,7 @@ import { SITE_CONTACT } from "@/data/site/contact";
 
 export const SITE_NAV_LINKS = [
   { label: "Products", href: "/products", hasMega: true },
-  { label: "Planner", href: "/planner" },
+  { label: "Planner", href: "/planners" },
   { label: "Partner Login", href: "/login" },
   { label: "Solutions", href: "/solutions" },
   { label: "Projects", href: "/projects" },
@@ -84,7 +84,11 @@ export const SITE_FOOTER_NAV = [
   {
     heading: "Support & Tools",
     links: [
-      { href: "/planner", label: "Planner" },
+      { href: "/planners", label: "All Planners" },
+      { href: "/planner", label: "Live Planner" },
+      { href: "/planner-blueprint", label: "Blueprint Planner" },
+      { href: "/planner1", label: "Planner 1" },
+      { href: "/planner-lab", label: "Planner Lab" },
       { href: "/draw", label: "Draw" },
       { href: "/configurator", label: "Configurator" },
       { href: "/login", label: "Partner Portal" },

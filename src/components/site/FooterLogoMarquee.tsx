@@ -6,7 +6,13 @@ import { HOMEPAGE_TRUST_CONTENT } from "@/data/site/homepage";
 
 export function FooterLogoMarquee() {
   const pathname = usePathname();
-  const isCADRoute = pathname.startsWith("/planner") || pathname.startsWith("/draw") || pathname.startsWith("/configurator");
+  const isCADRoute =
+    pathname.startsWith("/planner") ||
+    pathname.startsWith("/planner-blueprint") ||
+    pathname.startsWith("/planner1") ||
+    pathname.startsWith("/planner-lab") ||
+    pathname.startsWith("/draw") ||
+    pathname.startsWith("/configurator");
   const isHorizontalMarquee =
     pathname === "/" || pathname === "/about" || pathname.startsWith("/solutions");
   if (isCADRoute) return null;

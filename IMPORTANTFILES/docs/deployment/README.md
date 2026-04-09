@@ -2,23 +2,23 @@
 
 ## Purpose
 
-This folder stores deployment and infrastructure runbooks.
+This folder stores the current deployment runbooks for the main app.
+
+Planner routes are part of the main app deployment.
 
 ## Files
 
 | File | Role |
 |---|---|
-| `cloudflare-workers.md` | Current Cloudflare deployment model and commands |
-| `DOMAIN-STATE-2026-04-08.md` | Current live domain truth for `oando.co.in` and `cad.oando.co.in` |
-| `vercel-cloudflare-r2.md` | Cross-platform deployment and storage notes |
+| `DEPLOY.md` | Full deploy runbook for Vercel and Cloudflare/OpenNext |
+| `DEPLOY-CHECKLIST.md` | Short deploy checklist with copy-ready env blocks |
 
 ## Reading Order
 
-1. `cloudflare-workers.md`
-2. `DOMAIN-STATE-2026-04-08.md`
-3. `vercel-cloudflare-r2.md`
+1. `DEPLOY.md`
+2. `DEPLOY-CHECKLIST.md`
 
 ## Notes
 
-- Planner deployment depends on the CAD suite worker model described here.
-- Runtime behavior should be verified against live config, not docs alone.
+- Old deployment docs that referenced a separate CAD deployment were removed.
+- Use the repo-root docs as the source of truth, mirrored here for `IMPORTANTFILES`.
