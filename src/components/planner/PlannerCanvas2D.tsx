@@ -505,7 +505,7 @@ export function PlannerCanvas2D({
           >
             {currentView === "2.5d" ? "Switch to 3D" : "Switch to 2D"}
           </button>
-          <p className="px-3 pb-1 pt-2 text-[11px] uppercase tracking-[0.16em] text-[var(--text-subtle)]">
+          <p className="px-3 pt-2 pb-1 text-[11px] tracking-[0.16em] text-[var(--text-subtle)] uppercase">
             Wall resize stays on left-click drag.
           </p>
         </div>

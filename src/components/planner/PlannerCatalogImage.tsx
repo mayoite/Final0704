@@ -61,7 +61,7 @@ export function PlannerCatalogImage({
         </div>
         <div className="px-4">
           <p className="text-sm font-semibold text-[var(--text-heading)]">{item.name}</p>
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
+          <p className="mt-1 text-[11px] font-semibold tracking-[0.16em] text-[var(--text-muted)] uppercase">
             Planner placeholder
           </p>
         </div>

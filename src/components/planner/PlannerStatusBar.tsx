@@ -20,10 +20,10 @@ export function PlannerStatusBar({ status }: PlannerStatusBarProps) {
       role="status"
       aria-live="polite"
       aria-atomic="true"
-      className="absolute left-6 bottom-6 z-10 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-full border border-soft bg-[var(--planner-status-bg)] px-4 py-2.5 text-[11px] font-bold uppercase tracking-wider text-[var(--planner-status-text)] shadow-theme-panel md:left-8 md:bottom-8 md:max-w-[560px]"
+      className="absolute bottom-6 left-6 z-10 flex max-w-[calc(100%-2rem)] items-center gap-3 rounded-full border border-soft bg-[var(--planner-status-bg)] px-4 py-2.5 text-[11px] font-bold tracking-wider text-[var(--planner-status-text)] uppercase shadow-theme-panel md:bottom-8 md:left-8 md:max-w-[560px]"
     >
-      <div className="flex items-center gap-2 pr-2 border-r border-soft">
-        <span className="flex h-2 w-2 rounded-full bg-[var(--planner-accent)] animate-pulse" />
+      <div className="flex items-center gap-2 border-r border-soft pr-2">
+        <span className="flex h-2 w-2 animate-pulse rounded-full bg-[var(--planner-accent)]" />
         {getIcon()}
       </div>
       <span className="min-w-0 truncate">{status}</span>

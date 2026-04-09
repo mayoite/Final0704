@@ -151,7 +151,7 @@ export function PlannerRoomLayer({
               stroke="var(--planner-room-stroke)"
               strokeWidth="1"
               onClick={onSelectRoom}
-              className="transition-colors hover:stroke-zinc-600 cursor-cell"
+              className="cursor-cell transition-colors hover:stroke-zinc-600"
             />
 
             {showRoomMeasurements ? (
@@ -199,7 +199,7 @@ export function PlannerRoomLayer({
                   fontWeight="900"
                   textAnchor="middle"
                   fill="var(--planner-room-text)"
-                  className="font-mono uppercase tracking-tighter"
+                  className="font-mono tracking-tighter uppercase"
                 >
                   {roomWidthLabel}
                 </text>
@@ -250,7 +250,7 @@ export function PlannerRoomLayer({
                     fontWeight="900"
                     textAnchor="middle"
                     fill="var(--planner-room-text)"
-                    className="font-mono uppercase tracking-tighter"
+                    className="font-mono tracking-tighter uppercase"
                   >
                     {roomHeightLabel}
                   </text>
@@ -378,7 +378,7 @@ export function PlannerRoomLayer({
                   fontWeight="900"
                   textAnchor="middle"
                   fill="var(--planner-selection)"
-                  className="font-mono uppercase tracking-tighter"
+                  className="font-mono tracking-tighter uppercase"
                 >
                   {wallLabel}
                 </text>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Bookmark,
   FolderOpen,
@@ -169,33 +169,41 @@ export function PlannerCatalogGrid({
       })
       .map(([label]) => label);
   }, [supportFilteredCatalog]);
+  const resolvedActiveSeries =
+    activeSeries !== "all" && !availableSeries.includes(activeSeries)
+      ? "all"
+      : activeSeries;
   const filteredCatalog = useMemo(
     () =>
       supportFilteredCatalog.filter(
         (item) =>
-          activeSeries === "all" || getSeriesLabel(item) === activeSeries,
+          resolvedActiveSeries === "all" ||
+          getSeriesLabel(item) === resolvedActiveSeries,
       ),
-    [activeSeries, supportFilteredCatalog],
+    [resolvedActiveSeries, supportFilteredCatalog],
   );
   const visibleSeries = useMemo(() => {
     const topSeries = availableSeries.slice(0, 7);
 
-    if (activeSeries !== "all" && !topSeries.includes(activeSeries)) {
-      return [activeSeries, ...topSeries].slice(0, 8);
+    if (
+      resolvedActiveSeries !== "all" &&
+      !topSeries.includes(resolvedActiveSeries)
+    ) {
+      return [resolvedActiveSeries, ...topSeries].slice(0, 8);
     }
 
     return topSeries;
-  }, [activeSeries, availableSeries]);
+  }, [resolvedActiveSeries, availableSeries]);
   const shouldChooseCategoryFirst =
     activeSection === "library" && activeCategory.length === 0;
   const shouldChooseSeriesNext =
     activeSection === "library" &&
     activeCategory.length > 0 &&
-    activeSeries === "all";
+    resolvedActiveSeries === "all";
   const shouldShowItemList =
     activeSection === "library" &&
     activeCategory.length > 0 &&
-    activeSeries !== "all";
+    resolvedActiveSeries !== "all";
   const seriesCards = useMemo(
     () =>
       visibleSeries
@@ -219,12 +227,6 @@ export function PlannerCatalogGrid({
     [supportFilteredCatalog, visibleSeries],
   );
   const hasSeriesChoices = shouldChooseSeriesNext && seriesCards.length > 0;
-
-  useEffect(() => {
-    if (activeSeries !== "all" && !availableSeries.includes(activeSeries)) {
-      setActiveSeries("all");
-    }
-  }, [activeSeries, availableSeries]);
 
   const featuredCollections = useMemo(
     () =>
@@ -331,9 +333,15 @@ export function PlannerCatalogGrid({
                       {
                         id: "02",
                         label: "Series",
-                        active: activeCategory.length > 0 && activeSeries === "all",
+                        active:
+                          activeCategory.length > 0 &&
+                          resolvedActiveSeries === "all",
                       },
-                      { id: "03", label: "Item", active: activeSeries !== "all" },
+                      {
+                        id: "03",
+                        label: "Item",
+                        active: resolvedActiveSeries !== "all",
+                      },
                     ].map((step) => (
                       <span
                         key={step.id}
@@ -444,7 +452,7 @@ export function PlannerCatalogGrid({
                       <p className="text-[9px] font-semibold tracking-[0.16em] text-[var(--planner-shell-muted)] uppercase">
                         Series filter
                       </p>
-                      {activeSeries !== "all" ? (
+                      {resolvedActiveSeries !== "all" ? (
                         <button
                           type="button"
                           onClick={() => setActiveSeries("all")}
@@ -460,7 +468,7 @@ export function PlannerCatalogGrid({
                         onClick={() => setActiveSeries("all")}
                         className={cn(
                           "rounded-full border px-2.5 py-1 text-[9px] font-semibold tracking-[0.06em] whitespace-nowrap transition-all",
-                          activeSeries === "all"
+                          resolvedActiveSeries === "all"
                             ? "border-[var(--planner-accent-soft-border)] bg-[var(--planner-accent-soft-bg)] text-white"
                             : "border-white/8 bg-black/10 text-[var(--planner-shell-muted)] hover:border-white/14 hover:text-white",
                         )}
@@ -474,7 +482,7 @@ export function PlannerCatalogGrid({
                           onClick={() => setActiveSeries(series)}
                           className={cn(
                             "rounded-full border px-2.5 py-1 text-[9px] font-semibold tracking-[0.04em] whitespace-nowrap transition-all",
-                            activeSeries === series
+                            resolvedActiveSeries === series
                               ? "border-[var(--planner-accent-soft-border)] bg-white/12 text-white"
                               : "border-white/8 bg-black/10 text-[var(--planner-shell-muted)] hover:border-white/14 hover:text-white",
                           )}
@@ -533,7 +541,9 @@ export function PlannerCatalogGrid({
                   {activeCategory ? (
                     <span className="rounded-full border border-white/8 bg-black/10 px-2 py-0.5 text-[9px] font-semibold tracking-[0.06em] text-[var(--planner-shell-muted)]">
                       {activeCategory}
-                      {activeSeries !== "all" ? ` / ${activeSeries}` : ""}
+                      {resolvedActiveSeries !== "all"
+                        ? ` / ${resolvedActiveSeries}`
+                        : ""}
                     </span>
                   ) : null}
                 </div>
@@ -952,7 +962,7 @@ export function PlannerCatalogGrid({
 
             {canShowMore &&
             supportFilter === "all" &&
-            activeSeries === "all" &&
+            resolvedActiveSeries === "all" &&
             !catalogLoading &&
             !catalogError ? (
               <div className="px-4 pb-12">

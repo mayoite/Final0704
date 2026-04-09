@@ -83,6 +83,8 @@ Open:
 
 ## Vercel
 
+Use Vercel when you want the standard hosted Next.js deployment path.
+
 ### Preview
 
 ```bash
@@ -103,7 +105,24 @@ vercel --prod --yes
 
 ### Vercel Environment Variables
 
-Set these in Vercel for `Production`, `Preview`, and `Development`:
+Set these in Vercel for `Production`, `Preview`, and `Development`.
+
+Copy block:
+
+```env
+NEXT_PUBLIC_SITE_URL=https://oando.co.in
+SITE_URL=https://oando.co.in
+NEXT_PUBLIC_SUPABASE_URL=https://erpweaiypimorcunaimz.supabase.co
+SUPABASE_URL=https://erpweaiypimorcunaimz.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable-key>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+NEXT_IMAGE_UNOPTIMIZED=0
+OPENAI_MODEL=gpt-5.4
+OPENROUTER_MODEL=openrouter/free
+```
+
+Exact keys:
 
 - `NEXT_PUBLIC_SITE_URL`
 - `SITE_URL`
@@ -114,6 +133,8 @@ Set these in Vercel for `Production`, `Preview`, and `Development`:
 - `SUPABASE_SERVICE_ROLE_KEY`
 
 ## Cloudflare / OpenNext
+
+Use Cloudflare when you want the worker deployment path backed by OpenNext.
 
 Cloudflare uses:
 
@@ -150,7 +171,28 @@ Current worker vars are defined in [wrangler.jsonc](/C:/claude0104%20-%20Copy/wr
 - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` as a secret
 
-Keep these set:
+Copy block for worker vars:
+
+```env
+NEXT_PUBLIC_SITE_URL=https://oando.co.in
+SITE_URL=https://oando.co.in
+NEXT_PUBLIC_SUPABASE_URL=https://erpweaiypimorcunaimz.supabase.co
+SUPABASE_URL=https://erpweaiypimorcunaimz.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=<publishable-key>
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<publishable-key>
+OPENAI_MODEL=gpt-5.4
+OPENROUTER_MODEL=openrouter/free
+NEXT_IMAGE_UNOPTIMIZED=0
+CLOUDFLARE_BACKUP_ENABLED=true
+```
+
+Set this separately as a secret:
+
+```env
+SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+```
+
+Keep these set in Cloudflare:
 
 - `NEXT_PUBLIC_SITE_URL=https://oando.co.in`
 - `SITE_URL=https://oando.co.in`

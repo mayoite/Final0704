@@ -30,7 +30,7 @@ export function PlannerPresets({
 }: PlannerPresetsProps) {
   return (
     <div className="flex items-center gap-1">
-      <span className="mr-1 text-[11px] font-semibold tracking-[0.05em] text-subtle">
+      <span className="mr-1 text-[11px] text-subtle font-semibold tracking-[0.05em]">
         Layouts
       </span>
       {PRESETS.map((preset) => (

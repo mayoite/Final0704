@@ -252,24 +252,24 @@ export function PlannerToolbar({
             {!showSelectionCluster ? (
               <div className="hidden items-center gap-1 rounded-[12px] border border-white/8 bg-black/10 px-2 py-1 sm:flex">
                 <div className="flex min-w-[38px] flex-col items-center justify-center rounded-[9px] px-1 py-1">
-                  <span className="text-[12px] font-black leading-none text-white">
+                  <span className="text-[12px] leading-none font-black text-white">
                     {itemCount}
                   </span>
-                  <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-[var(--text-inverse-muted)]">
+                  <span className="text-[8px] font-semibold tracking-[0.14em] text-[var(--text-inverse-muted)] uppercase">
                     Placed
                   </span>
                 </div>
                 <div className="flex min-w-[38px] flex-col items-center justify-center rounded-[9px] px-1 py-1">
-                  <span className="text-[12px] font-black leading-none text-[var(--planner-accent)]">
+                  <span className="text-[12px] leading-none font-black text-[var(--planner-accent)]">
                     {boqLineCount}
                   </span>
-                  <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-[var(--text-inverse-muted)]">
+                  <span className="text-[8px] font-semibold tracking-[0.14em] text-[var(--text-inverse-muted)] uppercase">
                     BOQ
                   </span>
                 </div>
                 {roomWidthLabel && roomDepthLabel ? (
                   <div className="hidden min-w-[98px] border-l border-[var(--planner-toolbar-border)] pl-2 md:flex md:flex-col">
-                    <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-[var(--text-inverse-muted)]">
+                    <span className="text-[8px] font-semibold tracking-[0.14em] text-[var(--text-inverse-muted)] uppercase">
                       Room
                     </span>
                     <span className="text-[10px] font-semibold text-white">

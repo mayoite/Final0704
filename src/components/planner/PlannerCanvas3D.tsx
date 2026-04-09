@@ -76,7 +76,7 @@ export function PlannerCanvas3D() {
     >
       <div className="pointer-events-none absolute inset-x-4 top-4 z-2 flex flex-wrap items-start justify-between gap-3">
         <div className="rounded-[18px] border border-[var(--border-soft)] bg-white/92 px-4 py-3 shadow-[var(--shadow-panel)]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">
+          <p className="text-[11px] font-semibold tracking-[0.18em] text-[var(--text-muted)] uppercase">
             3D preview
           </p>
           <p className="mt-1 text-sm font-semibold text-[var(--text-body)]">
@@ -89,7 +89,7 @@ export function PlannerCanvas3D() {
           </p>
         </div>
 
-        <div className="rounded-full border border-soft bg-glass-strong px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.16em] text-strong shadow-theme-soft">
+        <div className="rounded-full border border-soft bg-glass-strong px-3 py-1.5 text-[11px] text-strong font-semibold tracking-[0.16em] uppercase shadow-theme-soft">
           {document.walls.length} walls
         </div>
       </div>

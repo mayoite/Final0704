@@ -100,19 +100,19 @@ export function PlannerAiPanel() {
   }
 
   return (
-    <section className="home-frame home-frame--roomy animate-in fade-in transition-all">
+    <section className="animate-in fade-in home-frame home-frame--roomy transition-all">
       <div className="mb-8 flex flex-wrap items-start justify-between gap-8 border-b border-soft pb-8">
         <div className="min-w-0 flex-1">
           <div className="mb-3 flex items-center gap-2">
             <BrainCircuit className="h-5 w-5 text-[var(--planner-accent)]" />
-            <p className="text-[12px] font-semibold tracking-[0.05em] text-subtle">
+            <p className="text-[12px] text-subtle font-semibold tracking-[0.05em]">
               AI LAYOUT ADVISOR
             </p>
           </div>
           <h3 className="font-display text-[clamp(1.95rem,2.8vw,2.9rem)] font-[400] tracking-[-0.035em] text-[var(--text-heading-soft)]">
             Analytic Engine
           </h3>
-          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted font-medium">
+          <p className="mt-3 max-w-2xl text-[15px] text-muted leading-7 font-medium">
             Retrieve immediate feedback on spacing, ergonomics, and budget
             allocation based on the current canvas state.
           </p>
@@ -122,7 +122,7 @@ export function PlannerAiPanel() {
               <button
                 key={starter}
                 type="button"
-                className="home-chip home-chip--accent max-w-none px-4 py-2.5 text-[12px] text-subtle transition-all hover:border-strong hover:bg-hover hover:text-strong"
+                className="home-chip max-w-none home-chip--accent px-4 py-2.5 text-[12px] text-subtle transition-all hover:border-strong hover:bg-hover hover:text-strong"
                 onClick={() => {
                   setQuery(starter);
                   void submitPlannerQuery(starter);
@@ -163,7 +163,7 @@ export function PlannerAiPanel() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Ask AI for layout refinement..."
-            className="max-h-[180px] min-h-[64px] flex-1 resize-none border-none bg-transparent text-[15px] leading-7 font-medium text-strong outline-none placeholder:text-subtle"
+            className="max-h-[180px] min-h-[64px] flex-1 resize-none border-none bg-transparent text-[15px] text-strong leading-7 font-medium outline-none placeholder:text-subtle"
           />
           <Button
             size="lg"
@@ -200,23 +200,23 @@ export function PlannerAiPanel() {
                   Analytic Summary
                 </span>
               </div>
-              <p className="text-[19px] leading-8 text-strong font-semibold tracking-tight">
+              <p className="text-[19px] text-strong leading-8 font-semibold tracking-tight">
                 {result.summary}
               </p>
               <div className="mt-8 flex gap-4">
                 <div className="rounded-xl border border-soft bg-hover px-5 py-3">
-                  <p className="mb-1 text-[11px] font-semibold tracking-[0.03em] text-subtle">
+                  <p className="mb-1 text-[11px] text-subtle font-semibold tracking-[0.03em]">
                     Estimated Budget
                   </p>
-                  <p className="text-xl font-semibold tracking-tight text-strong">
+                  <p className="text-xl text-strong font-semibold tracking-tight">
                     {result.totalBudget}
                   </p>
                 </div>
                 <div className="rounded-xl border border-soft bg-hover px-5 py-3">
-                  <p className="mb-1 text-[11px] font-semibold tracking-[0.03em] text-subtle">
+                  <p className="mb-1 text-[11px] text-subtle font-semibold tracking-[0.03em]">
                     Catalog Matches
                   </p>
-                  <p className="text-xl font-semibold tracking-tight text-strong">
+                  <p className="text-xl text-strong font-semibold tracking-tight">
                     {result.recommendations.length} options
                   </p>
                 </div>
@@ -227,21 +227,21 @@ export function PlannerAiPanel() {
               {result.recommendations.map((item, i) => (
                 <div
                   key={i}
-                  className="home-step-card group p-6 transition-all duration-300 hover:border-strong hover:shadow-theme-float"
+                  className="group home-step-card p-6 transition-all duration-300 hover:border-strong hover:shadow-theme-float"
                 >
                   <div className="mb-4 flex items-start justify-between">
-                    <span className="text-[12px] font-semibold tracking-[0.03em] text-subtle transition-colors group-hover:text-[var(--planner-selection)]">
+                    <span className="text-[12px] text-subtle font-semibold tracking-[0.03em] transition-colors group-hover:text-[var(--planner-selection)]">
                       {item.category}
                     </span>
-                    <span className="rounded-lg border border-soft bg-hover px-2 py-1 text-[11px] font-semibold text-subtle transition-colors group-hover:text-strong">
+                    <span className="rounded-lg border border-soft bg-hover px-2 py-1 text-[11px] text-subtle font-semibold transition-colors group-hover:text-strong">
                       {item.budgetEstimate}
                     </span>
                   </div>
-                  <h4 className="mb-4 text-[19px] font-semibold leading-tight tracking-tight text-strong">
+                  <h4 className="mb-4 text-[19px] text-strong leading-tight font-semibold tracking-tight">
                     {item.productName}
                   </h4>
                   <div className="mb-4 h-px bg-[var(--border-soft)] transition-colors group-hover:bg-[var(--border-strong)]" />
-                  <p className="text-[14px] leading-7 text-muted font-medium transition-colors group-hover:text-body">
+                  <p className="text-[14px] text-muted leading-7 font-medium transition-colors group-hover:text-body">
                     {item.why}
                   </p>
                 </div>

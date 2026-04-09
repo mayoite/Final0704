@@ -38,7 +38,7 @@ export class PlannerErrorBoundary extends Component<
           }}
         >
           <div className="mx-auto max-w-3xl rounded-[28px] border border-white/75 bg-white/80 p-8 text-[var(--text-heading)] shadow-[var(--shadow-float)]">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--text-muted)]">
+            <p className="text-[11px] font-semibold tracking-[0.2em] text-[var(--text-muted)] uppercase">
               Workspace Planner
             </p>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight">

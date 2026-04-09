@@ -26,7 +26,7 @@ export function PlannerViewportGate() {
     return (
       <div className="flex min-h-screen items-center justify-center px-6 py-16">
         <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-[var(--surface-inverse-soft)] p-8 text-center text-[var(--text-inverse)] shadow-[0_24px_60px_rgba(1,5,10,0.24)]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-inverse-subtle)]">
+          <p className="text-[11px] font-semibold tracking-[0.22em] text-[var(--text-inverse-subtle)] uppercase">
             Workspace Planner
           </p>
           <p className="mt-3 text-sm leading-6 text-[var(--text-inverse-body)]">
@@ -41,7 +41,7 @@ export function PlannerViewportGate() {
     return (
       <div className="flex min-h-screen items-center justify-center px-6 py-16">
         <div className="w-full max-w-md rounded-[28px] border border-white/10 bg-[var(--surface-inverse-soft)] p-8 text-center text-[var(--text-inverse)] shadow-[0_24px_60px_rgba(1,5,10,0.24)]">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[var(--text-inverse-subtle)]">
+          <p className="text-[11px] font-semibold tracking-[0.22em] text-[var(--text-inverse-subtle)] uppercase">
             Workspace Planner
           </p>
           <h1 className="mt-3 text-2xl font-semibold tracking-[-0.03em] text-[var(--text-inverse)]">
