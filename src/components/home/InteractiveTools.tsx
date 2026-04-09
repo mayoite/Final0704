@@ -2,27 +2,51 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Box, DraftingCompass } from "lucide-react";
+import {
+  ArrowRight,
+  Box,
+  DraftingCompass,
+  LayoutGrid,
+  Layers3,
+} from "lucide-react";
 
 const tools = [
   {
-    title: "Planner",
-    description: "Plan complete workspace layouts. Place furniture, check compliance, and export BOQs.",
+    title: "All planners",
+    description:
+      "Open the planner hub with the live planner, Blueprint planner, lab routes, and configurator.",
+    href: "/planners",
+    icon: LayoutGrid,
+  },
+  {
+    title: "Live planner",
+    description:
+      "Use the active workspace planner for layouts, product placement, BOQs, and quote flow.",
     href: "/planner",
     icon: DraftingCompass,
   },
   {
-    title: "Draw",
-    description: "Draw and visualize your office layouts with our robust 2D smart diagramming engine.",
-    href: "/configurator",
-    icon: DraftingCompass,
-    badge: "New",
+    title: "Blueprint planner",
+    description:
+      "Open the legacy Blueprint planner with 2D, 3D review, import-export, and proposal tools.",
+    href: "/planner-blueprint",
+    icon: Layers3,
+    badge: "Legacy",
   },
   {
     title: "Configurator",
-    description: "Build custom desk configurations and preview spacing in a 3D interactive room layout.",
+    description:
+      "Build custom desk configurations and preview spacing in a 3D interactive room layout.",
     href: "/configurator",
     icon: Box,
+  },
+  {
+    title: "Planner lab",
+    description:
+      "Open the preserved planner lab route from the main app without a separate deployment.",
+    href: "/planner-lab",
+    icon: DraftingCompass,
+    badge: "Lab",
   },
 ];
 
@@ -38,7 +62,7 @@ export function InteractiveTools() {
         </div>
 
         {/* Tool cards — standard grid matching Collections */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
           {tools.map((tool, i) => {
             const Icon = tool.icon;
             return (
