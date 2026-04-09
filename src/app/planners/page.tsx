@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Box, DraftingCompass, Layers3, LayoutGrid } from "lucide-react";
+import { ArrowRight, Box, DraftingCompass, Layers3 } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "All Planners | One&Only",
   description:
-    "Access the live planner, Blueprint planner, preserved lab routes, and configurator from one page.",
+    "Access the live planner, Blueprint planner, and configurator from one page.",
 };
 
 const PLANNER_LINKS = [
@@ -24,22 +24,6 @@ const PLANNER_LINKS = [
     badge: "Legacy",
     description:
       "Imported legacy Blueprint planner with the preserved 2D and 3D review workflow.",
-  },
-  {
-    title: "Planner 1",
-    href: "/planner1",
-    icon: LayoutGrid,
-    badge: "Mirror",
-    description:
-      "Preserved planner1 route inside the main app so the legacy entrypoint still exists.",
-  },
-  {
-    title: "Planner lab",
-    href: "/planner-lab",
-    icon: LayoutGrid,
-    badge: "Lab",
-    description:
-      "Preserved planner lab route for side-by-side access from the same deployment.",
   },
   {
     title: "Configurator",
@@ -63,12 +47,12 @@ export default function PlannersPage() {
             All planners in one main app.
           </h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-[var(--text-muted)]">
-            Open the live planner, the imported Blueprint planner, preserved lab
-            routes, and the configurator from one page. No separate deployment.
+            Open the live planner, the imported Blueprint planner, and the
+            configurator from one page. No separate deployment.
           </p>
         </header>
 
-        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+        <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
           {PLANNER_LINKS.map((planner) => {
             const Icon = planner.icon;
 

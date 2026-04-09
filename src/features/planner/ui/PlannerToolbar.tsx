@@ -72,6 +72,7 @@ interface PlannerToolbarProps {
   onOpenMobileCatalog: () => void;
   onOpenMobileInspector: () => void;
   onSaveDraft: () => void;
+  onOpen3d?: () => void;
   onImport: () => void;
   onOpenSession: () => void;
   onClearAll: () => void;
@@ -167,7 +168,7 @@ export function PlannerToolbar({
   isMobileMode, showLayers, showCatalog, showInspector,
   onToggleLayers, onOpenMobileLayers, onToggleCatalog, onToggleInspector,
   onOpenMobileCatalog, onOpenMobileInspector,
-  onSaveDraft, onImport, onOpenSession, onClearAll, onExport,
+  onSaveDraft, onOpen3d, onImport, onOpenSession, onClearAll, onExport,
 }: PlannerToolbarProps) {
   const catalogLabel = currentStep === "room" ? "Room Builder" : "Catalog";
 
@@ -222,6 +223,7 @@ export function PlannerToolbar({
             {isSessionBusy && <Loader2 className="mr-1 h-3 w-3 animate-spin" />}
             {sessionModeLabel}
           </span>
+          {onOpen3d ? <Btn label="3D" icon={<ArrowUpRight className="h-3.5 w-3.5" />} onClick={onOpen3d} disabled={isSessionBusy} variant="ghost" /> : null}
           <Btn label={isMobileMode ? "Plans" : "Plan Sessions"} icon={isSessionBusy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <FolderOpen className="h-3.5 w-3.5" />} onClick={onOpenSession} disabled={isSessionBusy} variant="primary" />
           <Btn label={isMobileMode ? "Save" : "Save Draft"} icon={<Save className="h-3.5 w-3.5" />} onClick={onSaveDraft} disabled={isSessionBusy} variant="accent" />
           {!isMobileMode && <Btn label="Import" icon={<Import className="h-3.5 w-3.5" />} onClick={onImport} disabled={isSessionBusy} variant="ghost" />}

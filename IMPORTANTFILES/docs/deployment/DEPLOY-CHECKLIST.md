@@ -44,7 +44,6 @@ npm run vercel:prod
 - `/`
 - `/planner`
 - `/planner-blueprint`
-- `/planner1`
 - `/planner-lab`
 - `/planners`
 - `/configurator`
@@ -107,7 +106,6 @@ npm run cf:d1:schema:apply
 - `/`
 - `/planner`
 - `/planner-blueprint`
-- `/planner1`
 - `/planner-lab`
 - `/planners`
 - `/configurator`

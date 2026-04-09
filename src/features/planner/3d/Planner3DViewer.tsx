@@ -4,7 +4,6 @@ import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } fr
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import {
   ContactShadows,
-  Environment,
   Html,
   OrbitControls,
   PerspectiveCamera,
@@ -461,7 +460,6 @@ function PlannerScene({
     <>
       <color attach="background" args={["#0b1120"]} />
       <fog attach="fog" args={["#0b1120", metrics.fogNear, metrics.fogFar]} />
-      <Environment preset="warehouse" />
       <ambientLight intensity={0.92} />
       <hemisphereLight intensity={0.58} groundColor="#0f172a" color="#dbeafe" />
       <directionalLight
@@ -511,10 +509,12 @@ export function Planner3DViewer({ document, className }: Planner3DViewerProps) {
   }, [sceneSignature]);
 
   return (
-    <div className={`surface-inverse relative overflow-hidden rounded-[2rem] border border-theme-soft shadow-theme-float ${className ?? ""}`}>
+    <div
+      className={`surface-inverse relative overflow-hidden rounded-[2rem] border border-theme-soft shadow-theme-float ${className ?? ""}`}
+    >
       <Suspense
         fallback={
-          <div className="surface-inverse absolute inset-0 flex items-center justify-center">
+          <div className="surface-inverse flex h-full min-h-[420px] items-center justify-center">
             <div className="planner-viewer-chip rounded-full px-4 py-2 typ-caption font-semibold uppercase tracking-[0.22em] text-body">
               Preparing 3D scene
             </div>
@@ -525,7 +525,7 @@ export function Planner3DViewer({ document, className }: Planner3DViewerProps) {
           shadows
           dpr={[1, 1.75]}
           gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
-          className="absolute inset-0"
+          className="h-full min-h-[420px] w-full"
         >
           <PlannerScene cameraMemoryRef={cameraMemoryRef} cameraMode={cameraMode} sceneDocument={sceneDocument} />
         </Canvas>

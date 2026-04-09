@@ -268,6 +268,7 @@ export function SmartdrawPlanner({
           onOpenMobileCatalog={() => workspace.setMobileCatalogOpen(true)}
           onOpenMobileInspector={() => workspace.setMobileInspectorOpen(true)}
           onSaveDraft={session.handleSaveDraft}
+          onOpen3d={session.handleOpen3d}
           onImport={() => session.handleImportRequest(importInputRef.current)}
           onOpenSession={() => session.setSessionDialogOpen(true)}
           onClearAll={handleClearAll}

@@ -87,8 +87,6 @@ export const SITE_FOOTER_NAV = [
       { href: "/planners", label: "All Planners" },
       { href: "/planner", label: "Live Planner" },
       { href: "/planner-blueprint", label: "Blueprint Planner" },
-      { href: "/planner1", label: "Planner 1" },
-      { href: "/planner-lab", label: "Planner Lab" },
       { href: "/draw", label: "Draw" },
       { href: "/configurator", label: "Configurator" },
       { href: "/login", label: "Partner Portal" },

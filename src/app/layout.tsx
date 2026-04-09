@@ -1,15 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { CookieConsentBar } from "@/components/site/CookieConsentBar";
-import { SiteFooter } from "@/components/site/Footer";
-import { FooterLogoMarquee } from "@/components/site/FooterLogoMarquee";
-import { SiteHeader } from "@/components/site/Header";
-import DynamicBotWrapper from "@/components/bot/DynamicBotWrapper";
 import QueryProvider from "@/app/providers/QueryProvider";
-import { WhatsAppCTA } from "@/components/ui/WhatsAppCTA";
 import { ciscoSans, helveticaNeue } from "@/lib/fonts";
 import { SITE_URL } from "@/lib/siteUrl";
 import { buildGlobalJsonLd, buildSiteMetadata } from "@/data/site/seo";
+import { RouteChrome } from "@/components/site/RouteChrome";
 
 export const metadata: Metadata = buildSiteMetadata(SITE_URL);
 
@@ -23,6 +18,7 @@ export default function RootLayout({
   return (
     <html
       lang="en-IN"
+      data-scroll-behavior="smooth"
       className={`${ciscoSans.variable} ${helveticaNeue.variable} scroll-smooth`}
     >
       <head>
@@ -41,13 +37,9 @@ export default function RootLayout({
           Skip to main content
         </a>
         <QueryProvider>
-          <SiteHeader />
+          <RouteChrome position="top" />
           <main id="main-content">{children}</main>
-          <FooterLogoMarquee />
-          <SiteFooter />
-          <CookieConsentBar />
-          <DynamicBotWrapper />
-          <WhatsAppCTA />
+          <RouteChrome position="bottom" />
         </QueryProvider>
       </body>
     </html>

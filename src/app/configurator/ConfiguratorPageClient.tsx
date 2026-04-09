@@ -470,7 +470,7 @@ function ConfiguratorPageContent() {
 
             <div className="relative flex-1 p-3 sm:p-4">
               {isLoading || !resolvedDocument ? (
-                <div className="planner-viewer-surface flex h-full min-h-[620px] items-center justify-center rounded-[1.6rem] border border-dashed border-theme-soft px-6 text-center typ-caption-lg text-subtle">
+                <div className="planner-viewer-surface flex h-[clamp(420px,68vh,860px)] items-center justify-center rounded-[1.6rem] border border-dashed border-theme-soft px-6 text-center typ-caption-lg text-subtle">
                   Resolving the requested planner document before mounting the 3D preview.
                 </div>
               ) : (
@@ -483,7 +483,7 @@ function ConfiguratorPageContent() {
                       <div className="mt-1 typ-caption-lg text-body">{statusMessage}</div>
                     </div>
                   ) : null}
-                  <Planner3DViewer document={resolvedDocument} className="h-full min-h-[620px]" />
+                  <Planner3DViewer document={resolvedDocument} className="h-[clamp(420px,68vh,860px)] w-full" />
                 </>
               )}
             </div>

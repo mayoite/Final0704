@@ -14,7 +14,7 @@ const tools = [
   {
     title: "All planners",
     description:
-      "Open the planner hub with the live planner, Blueprint planner, lab routes, and configurator.",
+      "Open the planner hub with the live planner, Blueprint planner, and configurator.",
     href: "/planners",
     icon: LayoutGrid,
   },
@@ -40,14 +40,6 @@ const tools = [
     href: "/configurator",
     icon: Box,
   },
-  {
-    title: "Planner lab",
-    description:
-      "Open the preserved planner lab route from the main app without a separate deployment.",
-    href: "/planner-lab",
-    icon: DraftingCompass,
-    badge: "Lab",
-  },
 ];
 
 export function InteractiveTools() {
@@ -62,7 +54,7 @@ export function InteractiveTools() {
         </div>
 
         {/* Tool cards — standard grid matching Collections */}
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-5">
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {tools.map((tool, i) => {
             const Icon = tool.icon;
             return (
