@@ -247,6 +247,8 @@ export function MobileNavDrawer({ open, onClose, closeButtonRef, groupedCategori
                 >
                   <Search className="h-4 w-4 text-muted" />
                   <input
+                    id="mobile-nav-search"
+                    name="search"
                     value={searchQuery}
                     onChange={(event) => setSearchQuery(event.target.value)}
                     onFocus={() => setShowSearchPanel(true)}

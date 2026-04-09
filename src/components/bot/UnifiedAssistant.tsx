@@ -482,6 +482,8 @@ export function UnifiedAssistant() {
                         ))}
                       </div>
                       <input
+                        id="guided-seats"
+                        name="seats"
                         type="text"
                         placeholder={GUIDED_PLANNER_COPY.placeholders.seats}
                         value={guided.seats}
@@ -495,6 +497,8 @@ export function UnifiedAssistant() {
                     <>
                       <p className="text-sm text-body">{GUIDED_PLANNER_COPY.stepTwoIntro}</p>
                       <input
+                        id="guided-company"
+                        name="company"
                         type="text"
                         placeholder={GUIDED_PLANNER_COPY.placeholders.company}
                         value={guided.company}
@@ -502,6 +506,8 @@ export function UnifiedAssistant() {
                         className="w-full rounded-lg border border-soft px-3 py-2 text-sm outline-none focus:border-strong"
                       />
                       <input
+                        id="guided-city"
+                        name="city"
                         type="text"
                         placeholder={GUIDED_PLANNER_COPY.placeholders.city}
                         value={guided.city}
@@ -525,6 +531,8 @@ export function UnifiedAssistant() {
                         ))}
                       </div>
                       <input
+                        id="guided-budget"
+                        name="budget"
                         type="text"
                         placeholder={GUIDED_PLANNER_COPY.placeholders.budget}
                         value={guided.budget}
@@ -532,6 +540,8 @@ export function UnifiedAssistant() {
                         className="w-full rounded-lg border border-soft px-3 py-2 text-sm outline-none focus:border-strong"
                       />
                       <textarea
+                        id="guided-notes"
+                        name="notes"
                         rows={3}
                         placeholder={GUIDED_PLANNER_COPY.placeholders.notes}
                         value={guided.notes}
@@ -545,6 +555,8 @@ export function UnifiedAssistant() {
                     <>
                       <p className="text-sm text-body">{GUIDED_PLANNER_COPY.stepThreeIntro}</p>
                       <input
+                        id="guided-name"
+                        name="name"
                         type="text"
                         placeholder={GUIDED_PLANNER_COPY.placeholders.name}
                         value={guided.name}
@@ -552,6 +564,8 @@ export function UnifiedAssistant() {
                         className="w-full rounded-lg border border-soft px-3 py-2 text-sm outline-none focus:border-strong"
                       />
                       <input
+                        id="guided-email"
+                        name="email"
                         type="email"
                         placeholder={GUIDED_PLANNER_COPY.placeholders.email}
                         value={guided.email}
@@ -559,6 +573,8 @@ export function UnifiedAssistant() {
                         className="w-full rounded-lg border border-soft px-3 py-2 text-sm outline-none focus:border-strong"
                       />
                       <input
+                        id="guided-phone"
+                        name="phone"
                         type="tel"
                         placeholder={GUIDED_PLANNER_COPY.placeholders.phone}
                         value={guided.phone}
@@ -785,6 +801,8 @@ export function UnifiedAssistant() {
 
               <form onSubmit={handleAiSubmit} className="flex items-end gap-2">
                 <textarea
+                  id="assistant-query"
+                  name="query"
                   rows={2}
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
@@ -808,4 +826,3 @@ export function UnifiedAssistant() {
     </>
   );
 }
-

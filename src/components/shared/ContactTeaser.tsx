@@ -102,6 +102,8 @@ export function ContactTeaser() {
                 <label className="contact-teaser__field">
                   <span className="contact-teaser__field-label">Name</span>
                   <input
+                    id="contact-teaser-name"
+                    name="name"
                     value={name}
                     onChange={(event) => setName(event.target.value)}
                     className="contact-teaser__input"
@@ -115,6 +117,8 @@ export function ContactTeaser() {
                 <label className="contact-teaser__field">
                   <span className="contact-teaser__field-label">City</span>
                   <input
+                    id="contact-teaser-city"
+                    name="city"
                     value={city}
                     onChange={(event) => setCity(event.target.value)}
                     className="contact-teaser__input"
@@ -128,6 +132,8 @@ export function ContactTeaser() {
                 <label className="contact-teaser__field">
                   <span className="contact-teaser__field-label">Phone or Email</span>
                   <input
+                    id="contact-teaser-contact"
+                    name="contact"
                     value={contact}
                     onChange={(event) => setContact(event.target.value)}
                     className="contact-teaser__input"
@@ -141,6 +147,8 @@ export function ContactTeaser() {
                 <label className="contact-teaser__field">
                   <span className="contact-teaser__field-label">Timeline</span>
                   <select
+                    id="contact-teaser-timeline"
+                    name="timeline"
                     value={timeline}
                     onChange={(event) => setTimeline(event.target.value)}
                     className="contact-teaser__input"
@@ -160,6 +168,8 @@ export function ContactTeaser() {
                   </span>
                 </div>
                 <textarea
+                  id="contact-teaser-brief"
+                  name="brief"
                   value={brief}
                   onChange={(event) => setBrief(event.target.value)}
                   className="contact-teaser__input contact-teaser__input--textarea"

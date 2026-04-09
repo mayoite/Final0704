@@ -1,12 +1,12 @@
-import type { Metadata } from "next";
-import { SmartPlanner } from "@/components/planner/SmartPlanner";
+import { SmartdrawPlannerShell } from "@/components/draw/SmartdrawPlannerShell";
+import { getPlannerCatalogProductsSafe } from "./plannerProducts";
 
-export const metadata: Metadata = {
-  title: "Workspace Planner | One&Only",
-  description:
-    "Plan your office space with One&Only's interactive floor planner. Draw rooms, place furniture, and generate quotes — all in one page.",
-};
+export default async function PlannerPage() {
+  const products = await getPlannerCatalogProductsSafe();
 
-export default function PlannerPage() {
-  return <SmartPlanner />;
+  return (
+    <div className="flex h-screen flex-1 flex-col overflow-hidden">
+      <SmartdrawPlannerShell catalogProducts={products} />
+    </div>
+  );
 }

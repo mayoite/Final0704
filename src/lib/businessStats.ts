@@ -26,6 +26,7 @@ const loggedBusinessStatsFallbacks = new Set<string>();
 function isExpectedStatsFallback(message: string): boolean {
   const normalized = message.toLowerCase();
   return (
+    normalized.includes("timeout>") ||
     normalized.includes("public.business_stats_current") ||
     normalized.includes("missing_active_business_stats")
   );
@@ -60,14 +61,18 @@ async function fetchLiveBusinessStats(): Promise<BusinessStats> {
     .limit(1)
     .maybeSingle();
 
+  let timeoutHandle: NodeJS.Timeout | null = null;
   const timeout = new Promise<never>((_, reject) => {
-    setTimeout(
+    timeoutHandle = setTimeout(
       () => reject(new Error(`timeout>${BUSINESS_STATS_FETCH_TIMEOUT_MS}ms`)),
       BUSINESS_STATS_FETCH_TIMEOUT_MS,
     );
   });
 
   const result = await Promise.race([dbQuery, timeout]);
+  if (timeoutHandle) {
+    clearTimeout(timeoutHandle);
+  }
   const { data, error } = result as Awaited<typeof dbQuery>;
 
   if (error) {

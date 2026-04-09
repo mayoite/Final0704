@@ -24,8 +24,7 @@
     ],
     "paths": {
       "@/*": [
-        "./src/*",
-        "./apps/cad-suite/src/*"
+        "./src/*"
       ]
     }
   },
@@ -41,6 +40,6 @@
     "apps",
     "scripts",
     "b_yeh73xcndxr",
-    "07docs"
+    ".07docs"
   ]
 }

@@ -1,11 +1,6 @@
 "use client";
 
-import dynamic from "next/dynamic";
-
-const UnifiedAssistant = dynamic(() =>
-  import("@/components/bot/UnifiedAssistant").then((m) => ({
-    default: m.UnifiedAssistant,
-  })), { ssr: false });
+import { UnifiedAssistant } from "@/components/bot/UnifiedAssistant";
 
 export default function DynamicBotWrapper() {
   return <UnifiedAssistant />;

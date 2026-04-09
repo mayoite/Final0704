@@ -1,3 +1,5 @@
+import { SITE_CONTACT } from "@/data/site/contact";
+
 export type VisualIvrActionType = "contact" | "info" | "link";
 export type VisualIvrIconId = "user" | "phone" | "info" | "arrow-right";
 
@@ -14,41 +16,44 @@ export type VisualIvrNode = {
   };
 };
 
+const OFFICE_SUMMARY = "401 Jagat Trade Centre, Frazer Road, Patna 800013";
+
 export const VISUAL_IVR_TREE: VisualIvrNode = {
   id: "root",
-  label: "Main Menu",
+  label: "Support Routing",
+  description: "Choose the lane that matches your request.",
   options: [
     {
       id: "sales",
       label: "Sales & Product Requests",
       icon: "user",
-      description: "Request a quote or product information",
+      description: "Quotes, product guidance, and workspace planning discussions.",
       options: [
         {
-          id: "sales_de",
-          label: "Domestic (India)",
+          id: "sales_quote",
+          label: "Quotes & Product Advice",
           action: {
             type: "contact",
-            value: "+91 124 403 1666",
-            detail: "sales@oando.co.in",
+            value: SITE_CONTACT.salesPhone,
+            detail: SITE_CONTACT.salesEmail,
           },
         },
         {
-          id: "sales_int",
-          label: "International Sales",
+          id: "sales_planning",
+          label: "Planning & Layout Help",
           action: {
-            type: "contact",
-            value: "+91 124 403 1666",
-            detail: "export@oando.co.in",
+            type: "link",
+            value: "/planner",
+            detail: "Open the guided planner or start a layout discussion.",
           },
         },
         {
-          id: "dealer",
-          label: "Find a Dealer",
+          id: "sales_visit",
+          label: "Office Visit / Contact Desk",
           action: {
             type: "link",
             value: "/contact",
-            detail: "Use our Dealer Locator",
+            detail: OFFICE_SUMMARY,
           },
         },
       ],
@@ -57,32 +62,33 @@ export const VISUAL_IVR_TREE: VisualIvrNode = {
       id: "support",
       label: "Customer Support",
       icon: "phone",
-      description: "Help with existing orders or products",
+      description: "Active orders, installation help, warranty, and service follow-up.",
       options: [
         {
-          id: "order_status",
-          label: "Order Status",
-          action: {
-            type: "info",
-            value: "Please have your order confirmation number ready.",
-          },
-        },
-        {
-          id: "claims",
-          label: "Complaints & Claims",
+          id: "support_order",
+          label: "Order Status / Delivery",
           action: {
             type: "contact",
-            value: "service@oando.co.in",
-            detail: "Attach photos for faster processing",
+            value: SITE_CONTACT.supportPhone,
+            detail: `Keep your order reference ready. ${SITE_CONTACT.openingHours}`,
           },
         },
         {
-          id: "spare_parts",
-          label: "Spare Parts",
+          id: "support_warranty",
+          label: "Warranty / Service Issue",
+          action: {
+            type: "contact",
+            value: SITE_CONTACT.salesEmail,
+            detail: "Include photos, invoice details, and the site location.",
+          },
+        },
+        {
+          id: "support_docs",
+          label: "Manuals / Spare Parts / Documents",
           action: {
             type: "link",
-            value: "/products",
-            detail: "Check product manuals first",
+            value: "/contact",
+            detail: "Request technical sheets, manuals, or parts support.",
           },
         },
       ],
@@ -91,32 +97,33 @@ export const VISUAL_IVR_TREE: VisualIvrNode = {
       id: "general",
       label: "General Inquiry",
       icon: "info",
-      description: "Reception, HR, and other topics",
+      description: "Reception, careers, and office information.",
       options: [
         {
-          id: "reception",
+          id: "general_switchboard",
           label: "Reception / Switchboard",
           action: {
             type: "contact",
-            value: "+91 124 403 1666",
-            detail: "Mon-Sat 9:30 - 18:30 IST",
+            value: SITE_CONTACT.supportPhone,
+            detail: SITE_CONTACT.openingHours,
           },
         },
         {
-          id: "hr",
+          id: "general_hr",
           label: "Human Resources / Careers",
           action: {
             type: "link",
             value: "/career",
-            detail: "View open positions",
+            detail: "View open positions and share your profile.",
           },
         },
         {
-          id: "press",
-          label: "Press & Marketing",
+          id: "general_office",
+          label: "Corporate Office Details",
           action: {
-            type: "contact",
-            value: "marketing@oando.co.in",
+            type: "info",
+            value: OFFICE_SUMMARY,
+            detail: "One&Only corporate office, Patna, Bihar, India.",
           },
         },
       ],

@@ -37,14 +37,13 @@
     "NEXT_PUBLIC_SITE_URL": "https://oando.co.in",
     "SITE_URL": "https://oando.co.in",
     "NEXT_PUBLIC_SUPABASE_URL": "https://erpweaiypimorcunaimz.supabase.co",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_s-rFltnlTHSTmNtYQrdOyQ_Z2P13F0t",
-    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_s-rFltnlTHSTmNtYQrdOyQ_Z2P13F0t",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "",
+    "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "",
     "SUPABASE_URL": "https://erpweaiypimorcunaimz.supabase.co",
     "OPENAI_MODEL": "gpt-5.4",
     "OPENROUTER_MODEL": "openrouter/free",
     "NEXT_IMAGE_UNOPTIMIZED": "0",
-    "CLOUDFLARE_BACKUP_ENABLED": "true",
-    "NEXT_PUBLIC_CAD_SUITE_URL": "https://cad.oando.co.in"
+    "CLOUDFLARE_BACKUP_ENABLED": "true"
   },
   "images": {
     "binding": "IMAGES"

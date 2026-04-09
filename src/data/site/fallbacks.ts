@@ -1,7 +1,7 @@
 import type { BusinessStats } from "@/lib/types/businessStats";
 
-export const BUSINESS_STATS_FETCH_TIMEOUT_MS = 1200;
-export const BUSINESS_STATS_TOTAL_BUDGET_MS = 2500;
+export const BUSINESS_STATS_FETCH_TIMEOUT_MS = 2500;
+export const BUSINESS_STATS_TOTAL_BUDGET_MS = 4000;
 export const BUSINESS_STATS_REVALIDATE_SECONDS = 300;
 export const CATALOG_REVALIDATE_SECONDS = 300;
 

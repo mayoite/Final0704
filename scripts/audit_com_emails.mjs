@@ -24,19 +24,15 @@ const rgArgs = [
   "--glob",
   "!**/.wrangler/**",
   "--glob",
-  "!07docs/archive/**",
+  "!.07docs/archive/**",
   "--glob",
-  "!07docs/Backupcad/**",
+  "!.07docs/Backupcad/**",
   "--glob",
   "!IMPORTANTFILES/**",
   "--glob",
   "!public/vendors/**",
   "--glob",
   "!public/smartdraw/vendor/**",
-  "--glob",
-  "!apps/cad-suite/public/vendors/**",
-  "--glob",
-  "!apps/cad-suite/public/smartdraw/vendor/**",
   "--glob",
   "!test-results/**",
   "--glob",
@@ -78,15 +74,14 @@ try {
 } catch (error) {
   if (error.code === 1) {
     const output = error.stdout?.trim();
-    if (!output) {
-      console.log("No .com email IDs found in the live repo scan.");
-      process.exit(0);
+    if (output) {
+      console.log(output);
+      process.exit(1);
     }
-
-    console.log(output);
-    process.exit(1);
+    console.log("No .com email IDs found in the live repo scan.");
+    process.exit(0);
   }
 
-  console.error(error.stderr || error.message);
-  process.exit(2);
+  console.error(error?.stderr || error?.message || String(error));
+  process.exit(1);
 }

@@ -1,8 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
-// proxy.ts — Next.js 16 replacement for middleware.ts
-// Runs in Node.js runtime (not Edge), so @supabase/ssr works correctly.
+// Next.js 16 auth/session hook. Keep it limited to Supabase-managed auth routes.
 
 export async function proxy(request: NextRequest) {
   try {
@@ -13,7 +12,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|@vite/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/admin/:path*", "/login", "/auth/callback"],
 };

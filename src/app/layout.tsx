@@ -4,14 +4,12 @@ import { CookieConsentBar } from "@/components/site/CookieConsentBar";
 import { SiteFooter } from "@/components/site/Footer";
 import { FooterLogoMarquee } from "@/components/site/FooterLogoMarquee";
 import { SiteHeader } from "@/components/site/Header";
-import dynamic from "next/dynamic";
+import DynamicBotWrapper from "@/components/bot/DynamicBotWrapper";
 import QueryProvider from "@/app/providers/QueryProvider";
 import { WhatsAppCTA } from "@/components/ui/WhatsAppCTA";
 import { ciscoSans, helveticaNeue } from "@/lib/fonts";
 import { SITE_URL } from "@/lib/siteUrl";
 import { buildGlobalJsonLd, buildSiteMetadata } from "@/data/site/seo";
-
-const DynamicBotWrapper = dynamic(() => import("@/components/bot/DynamicBotWrapper"));
 
 export const metadata: Metadata = buildSiteMetadata(SITE_URL);
 

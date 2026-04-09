@@ -8,20 +8,17 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: ["./vitest.setup.ts"],
-    include: [
-      "apps/cad-suite/src/**/*.test.{ts,tsx}"
-    ],
+    include: ["src/**/*.test.{ts,tsx}"],
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      include: ["apps/cad-suite/src/**/*.ts", "apps/cad-suite/src/**/*.tsx"],
+      include: ["src/**/*.ts", "src/**/*.tsx"],
       exclude: ["**/__tests__/**", "**/*.test.tsx", "**/*.test.ts"],
     },
   },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@cad": path.resolve(__dirname, "./apps/cad-suite/src")
     },
   },
 });

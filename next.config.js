@@ -224,17 +224,7 @@ const nextConfig = {
     ];
   },
   async rewrites() {
-    const cadSuiteUrl = process.env.NEXT_PUBLIC_CAD_SUITE_URL || "http://localhost:3001";
     return [
-      { source: "/planner", destination: `${cadSuiteUrl}/planner` },
-      { source: "/planner/", destination: `${cadSuiteUrl}/planner/` },
-      { source: "/planner/:path*", destination: `${cadSuiteUrl}/planner/:path*` },
-      { source: "/draw", destination: `${cadSuiteUrl}/draw` },
-      { source: "/draw/", destination: `${cadSuiteUrl}/draw/` },
-      { source: "/draw/:path*", destination: `${cadSuiteUrl}/draw/:path*` },
-      { source: "/configurator", destination: `${cadSuiteUrl}/configurator` },
-      { source: "/configurator/", destination: `${cadSuiteUrl}/configurator/` },
-      { source: "/configurator/:path*", destination: `${cadSuiteUrl}/configurator/:path*` },
       { source: "/@vite/client", destination: "/api/vite-client" },
       { source: "/@vite/client/", destination: "/api/vite-client" },
     ];
@@ -255,7 +245,8 @@ const shouldInitOpenNextCloudflareForDev =
   isLocalDevLifecycle &&
   process.env.NODE_ENV !== "production" &&
   !isHostedVercelRuntime &&
-  process.env.CI !== "true";
+  process.env.CI !== "true" &&
+  process.env.ENABLE_OPENNEXT_CLOUDFLARE_DEV === "true";
 
 if (shouldInitOpenNextCloudflareForDev) {
   import("@opennextjs/cloudflare")

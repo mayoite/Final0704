@@ -1,7 +1,7 @@
-import fs from "node:fs";
-import path from "node:path";
+import * as fs from "node:fs";
+import * as path from "node:path";
 import { config } from "dotenv";
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 type BackupTableResult = {
   table: string;
@@ -45,7 +45,15 @@ function ensureDir(dir: string) {
 
 function parseTablesFromEnv(): string[] {
   const raw = process.env.SUPABASE_BACKUP_TABLES?.trim();
-  return Array.from(new Set(raw.split(",").map((v) => v.trim()).filter(Boolean)));
+  if (!raw) return [...DEFAULT_TABLES];
+  const uniqueTables: string[] = [];
+  for (const value of raw.split(",")) {
+    const table = value.trim();
+    if (!table || uniqueTables.includes(table)) continue;
+    uniqueTables.push(table);
+  }
+  return uniqueTables;
+}
 
 function parseRetentionDays(): number {
   const raw = process.env.SUPABASE_BACKUP_RETENTION_DAYS?.trim();
@@ -121,7 +129,7 @@ async function withRetry<T>(
 }
 
 async function fetchAllRows(
-  client: ReturnType<typeof createClient>,
+  client: SupabaseClient,
   table: string,
   maxRetries: number,
 ): Promise<{ rows: unknown[]; pages: number }> {
