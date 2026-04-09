@@ -237,6 +237,20 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
+  webpack: (config, { isServer }) => {
+    // Deduplicate tldraw modules to prevent multiple instances
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@tldraw/utils': require.resolve('@tldraw/utils'),
+      '@tldraw/editor': require.resolve('@tldraw/editor'),
+      '@tldraw/store': require.resolve('@tldraw/store'),
+      '@tldraw/tlschema': require.resolve('@tldraw/tlschema'),
+      '@tldraw/tlvalidate': require.resolve('@tldraw/tlvalidate'),
+      '@tldraw/ui': require.resolve('@tldraw/ui'),
+    };
+
+    return config;
+  },
 };
 
 module.exports = nextConfig;
